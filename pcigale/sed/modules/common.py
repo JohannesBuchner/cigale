@@ -20,6 +20,11 @@ class SEDCreationModule(object):
     # should be the default value, use the 'None' string instead.
     parametre_list = {}
 
+    # comments is the text that is used to comment the module section in
+    # the configuration file. For instance, it can be used to give special
+    # instructions for the configuration.
+    comments = ""
+
     def __init__(self, **kwargs):
         """Instantiate a SED creation module
 

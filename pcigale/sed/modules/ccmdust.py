@@ -51,6 +51,8 @@ class Module(common.SEDCreationModule):
         )
 
     }
+    comments = ("One must indicate only two of the three parametres 'A_v', "
+                "'ebv' and 'R_v'. The other must be set to 'None'.")
 
     def _process(self, sed, parametres):
         """Add CCM dust model extinction to the SED
