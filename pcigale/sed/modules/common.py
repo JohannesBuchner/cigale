@@ -12,11 +12,11 @@ class SEDCreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 
-    # parametre_list is a dictionnary containing all the parametres used by the
-    # module. Each parametre name is associate to a tuple (variable type, unit
-    # [string], description [string], default value). Each module must define
-    # its parametre list, unless it does not use any parametre. Using None
-    # means that there is non description, unit or default value. If None
+    # parametre_list is a dictionnary containing all the parametres used by
+    # the module. Each parametre name is associate to a tuple (variable type,
+    # unit [string], description [string], default value). Each module must
+    # define its parametre list, unless it does not use any parametre. Using
+    # None means that there is no description, unit or default value. If None
     # should be the default value, use the 'None' string instead.
     parametre_list = {}
 
@@ -28,21 +28,6 @@ class SEDCreationModule(object):
         # parametres is a dictionnary containing the actual values for each
         # module parametre.
         self.parametres = kwargs
-
-    def printParametreList(self):
-        """Pretty print the list of parametres for the module
-        """
-        for parametre in self.parametre_list:
-            pType, unit, description, defValue = \
-                self.parametre_list[parametre]
-            outStr = str(parametre) + ': ' + str(description)
-            if pType:
-                outStr += ' (type=' + str(pType) + ')'
-            if unit:
-                outStr += ' (unit=' + str(unit) + ')'
-            if defValue:
-                outStr += ' (default=' + str(defValue) + ')'
-            print outStr
 
     def _process(self, sed, parametres):
         """Do the actual processing of the module on a SED object
@@ -111,24 +96,24 @@ class SEDCreationModule(object):
         self._process(sed, parametres)
 
 
-def getModuleClass(moduleName):
+def get_module(module_name):
     """Return the main class of the module provided
 
     Parametres
     ----------
-    moduleName : string
+    module_name : string
         The name of the module we want to get the class.
 
     Returns
     -------
-    moduleClass : class
+    module_class : class
     """
 
     try:
         # TODO Find a better way to do dynamic import
-        importString = 'from . import ' + moduleName + ' as module'
-        exec importString
+        import_string = 'from . import ' + module_name + ' as module'
+        exec import_string
         return module.Module()
     except ImportError:
-        print('Module ' + moduleName + ' does not exists!')
+        print('Module ' + module_name + ' does not exists!')
         raise

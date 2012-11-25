@@ -37,7 +37,7 @@ class Module(common.SEDCreationModule):
             'array of strings',
             None,
             "List of the extinction contributions to process. This module "
-            "will a new re-emission contribution for each.",
+            "will add a new re-emission contribution for each one.",
             None
         )
     }
