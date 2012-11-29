@@ -41,44 +41,48 @@ def list_modules(package_name):
     return module_names
 
 
-def read_array_description(description):
-    """Read an array description from configuration file
+def evaluate_description(description):
+    """Evaluate a description from the config file as a list.
 
-    Interpret a string (from the configuration file) as a Numpy array
-    definition. The string can be either a Numpy command beginning with 'np.'
-    and evaluated (may be dangerous), or a range definition beginning with
-    'range' and followed by the start value, the stop value and the step (the
-    stop value is included if reached), or a list of values separated with
-    spaces.
-
-    The returned array is always an array of floats.
+    The description is read from the config file by configobj that transforms
+    coma separated value in a list. From this description, this function try
+    to evaluate the desired list of values:
+    - If the description begins with 'np.', then the Numpy command is
+      evaluated and its result returned.
+    - If the description is a list beginning by 'range', the start, step and
+      stop values are then expected and the range is evaluated.
+    - Then the function tries to evaluate the description as a Numpy array of
+      float and returns the mere list if this fails.
 
     Parametres
     ----------
-    description : string
+    description : string or list
         The description to be evaluated.
 
     Returns
     -------
-    array : array of floats
-        The evaluated array.
+     results : list or array of floats
+        The evaluated list of values.
 
     """
 
-    if description[:3] == 'np.':
-        array = eval(description)
+    if not type(description) == list:
+        description = [description]
+
+    if description[0].startswith('np.'):
+        results = eval(description[0])
+    elif description[0] == 'range':
+        start = float(description[1])
+        step = float(description[2])
+        stop = float(description[3])
+        results = np.arange(start, stop, step, float)
     else:
-        value_list = description.split(' ')
+        try:
+            results = np.array(description, float)
+        except ValueError:
+            results = description
 
-        if value_list[0] == 'range':
-            start = float(value_list[1])
-            step = float(value_list[3])
-            stop = float(value_list[2]) + step  # to include stop value
-            array = np.arange(start, stop, step, float)
-        else:
-            array = np.array(value_list, dtype=float)
-
-    return array
+    return results
 
 
 class Configuration(object):
@@ -193,3 +197,46 @@ class Configuration(object):
             self.config['analysis_configuration'].comments[name] = wrap(desc)
 
         self.config.write()
+
+    def get_conf(self):
+        """Returns a dictionnary for the session configuration.
+
+        Returns
+        -------
+        configuration['data_file'] : string
+            File containing the observations to fit.
+        configuration['column_list'] : list of strings
+            List of the columns of data_file to use in the fitting.
+        configuration['sed_modules'] : list of strings
+            List of the modules (in the right order) used to create the SEDs.
+        configuration['sed_modules_params'] : list of dictionaries
+            Configuration parametres for each module. To each parametre, the
+            dictionnary associates a list of possible values (possibly only
+            one).
+        configuration['analysis_method'] : string
+            Statistical analysis module used to fit the data.
+        configuration['analysis_methode_params'] : dictionnary
+            Parametres for the statistical analysis module. To each parametre
+            is associated a list of possible values.
+        """
+        configuration = {}
+
+        for section in ['data_file', 'column_list', 'sed_modules',
+                        'analysis_method']:
+            configuration[section] = self.config[section]
+
+        # Parsing the SED modules parametres
+        configuration['sed_modules_params'] = []
+        for module in self.config['sed_modules']:
+            module_params = {}
+            for key, value in self.config['sed_creation_modules'][module]:
+                module_params[key] = evaluate_description(value)
+            configuration['sed_modules_params'].append(module_params)
+
+        # Parsing the statistical analysis parametres
+        configuration['analysis_methode_params'] = {}
+        for key, value in self.config['analysis_configuration']:
+            configuration['analysis_methode_params'][key] = \
+                evaluate_description(value)
+
+        return configuration
