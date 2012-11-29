@@ -203,7 +203,8 @@ class Configuration(object):
 
         self.config.write()
 
-    def get_conf(self):
+    @property
+    def configuration(self):
         """Returns a dictionnary for the session configuration.
 
         Returns
