@@ -229,13 +229,14 @@ class Configuration(object):
         configuration['sed_modules_params'] = []
         for module in self.config['sed_modules']:
             module_params = {}
-            for key, value in self.config['sed_creation_modules'][module]:
+            for key, value in \
+                    self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
             configuration['sed_modules_params'].append(module_params)
 
         # Parsing the statistical analysis parametres
         configuration['analysis_methode_params'] = {}
-        for key, value in self.config['analysis_configuration']:
+        for key, value in self.config['analysis_configuration'].items():
             configuration['analysis_methode_params'][key] = \
                 evaluate_description(value)
 
