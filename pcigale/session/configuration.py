@@ -13,8 +13,10 @@ import configobj
 import pkg_resources
 import pkgutil
 import collections
+import itertools
 import numpy as np
 from textwrap import wrap
+from .tools import param_dict_combine
 from ..data import Database
 from ..sed.modules import common as modules
 from ..stats import common as analysis
@@ -247,3 +249,31 @@ class Configuration(object):
                 evaluate_description(value)
 
         return configuration
+
+    @property
+    def sed_modules_conf_array(self):
+        """Return the array of all the possible parametre sets from the
+        SED creation modules.
+
+        TODO: Maybe it would be more optimal to create an iterator that would
+              iterate over the whole parametre combinations instead of
+              creating the array.
+
+        Returns
+        -------
+        result : array of arrays of dictionaries
+            The inner arrays contains the various parametre dictionaries
+            for the modules listed in configuration['sed_modules'].
+
+        """
+
+        # First, for each module, we transform the dictionary containing all
+        # the possible value for each parametre in a list of dictionaries
+        # containing one value for each parametre. We put this list in a list
+        # corresponding to the SED modules one.
+        tmp_list = [param_dict_combine(dictionary) for dictionary in
+                    self.configuration['sed_modules_params']]
+
+        # The we use itertools to create an array of all possible
+        # combinations.
+        return [x for x in itertools.product(*tmp_list)]
