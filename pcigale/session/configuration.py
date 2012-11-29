@@ -12,6 +12,7 @@ import atpy
 import configobj
 import pkg_resources
 import pkgutil
+import collections
 import numpy as np
 from textwrap import wrap
 from ..data import Database
@@ -47,8 +48,9 @@ def evaluate_description(description):
     The description is read from the config file by configobj that transforms
     coma separated value in a list. From this description, this function try
     to evaluate the desired list of values:
-    - If the description begins with 'np.', then the Numpy command is
-      evaluated and its result returned.
+    - If the description is a string beginning with 'eval ', then its content
+      (without 'eval ') is evaluated as Python code and its result returned.
+      An array is expected.
     - If the description is a list beginning by 'range', the start, step and
       stop values are then expected and the range is evaluated.
     - Then the function tries to evaluate the description as a Numpy array of
@@ -61,7 +63,7 @@ def evaluate_description(description):
 
     Returns
     -------
-     results : list or array of floats
+     results : list
         The evaluated list of values.
 
     """
@@ -69,8 +71,11 @@ def evaluate_description(description):
     if not type(description) == list:
         description = [description]
 
-    if description[0].startswith('np.'):
-        results = eval(description[0])
+    if description[0].startswith('eval '):
+        results = eval(description[0][4:])
+        # If the evaluation lead to a single value, we put it in a list.
+        if not isinstance(results, collections.Iterable):
+            results = [results]
     elif description[0] == 'range':
         start = float(description[1])
         step = float(description[2])
