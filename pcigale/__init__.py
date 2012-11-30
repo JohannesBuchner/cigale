@@ -28,7 +28,10 @@ def genconf(config):
 
 def check(config):
     "Check the configuration."
-    raise NotImplementedError()
+    # TODO : Check if all the parametres that don't have default values are
+    # given for each module.
+    print ("With this configuration, pcigale must compute {} "
+           "SEDs.".format(len(config.sed_modules_conf_array)))
 
 
 def run(config):
