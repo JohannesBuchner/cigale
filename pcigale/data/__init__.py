@@ -61,7 +61,7 @@ class _SspM2005(BASE):
 
     imf = Column(String, primary_key=True)
     metallicity = Column(Float, primary_key=True)
-    age_grid = Column(PickleType)
+    time_grid = Column(PickleType)
     wavelength_grid = Column(PickleType)
     mass_table = Column(PickleType)
     spec_table = Column(PickleType)
@@ -69,7 +69,7 @@ class _SspM2005(BASE):
     def __init__(self, ssp):
         self.imf = ssp.imf
         self.metallicity = ssp.metallicity
-        self.age_grid = ssp.age_grid
+        self.time_grid = ssp.time_grid
         self.wavelength_grid = ssp.wavelength_grid
         self.mass_table = ssp.mass_table
         self.spec_table = ssp.spec_table
@@ -246,7 +246,7 @@ class Database(object):
             .filter(_SspM2005.metallicity == metallicity)\
             .first()
         if result:
-            return SspM2005(result.imf, result.metallicity, result.age_grid,
+            return SspM2005(result.imf, result.metallicity, result.time_grid,
                             result.wavelength_grid, result.mass_table,
                             result.spec_table)
         else:
@@ -296,6 +296,6 @@ class Database(object):
     def parse_ssp_m2005(self):
         """Generator to parse the Maraston 2005 SSP database."""
         for ssp in self.session.query(SspM2005):
-            yield SspM2005(ssp.imf, ssp.metallicity, ssp.age_grid,
+            yield SspM2005(ssp.imf, ssp.metallicity, ssp.time_grid,
                            ssp.wavelength_grid, ssp.mass_table,
                            ssp.spec_table)

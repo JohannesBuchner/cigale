@@ -31,7 +31,7 @@ class SspM2005(object):
 
      """
 
-    def __init__(self, imf, metallicity, age_grid, wavelength_grid,
+    def __init__(self, imf, metallicity, time_grid, wavelength_grid,
                  mass_table, spec_table):
         """Create a new single stellar population as defined in Maraston 2005.
 
@@ -48,14 +48,14 @@ class SspM2005(object):
                 * +0.00 (corresponding to 1.0 Zsun)
                 * -0.33 (corresponding to 0.5 Zsun)
                 * -1.35 (corresponding to 1/50 Zsun)
-        age_grid : array of floats
+        time_grid : array of floats
             The age [Gyr] grid used in the mass_table and the spec_table.
         wavelength_grid : array of floats
             The wavelength [nm] grid used in the spec_table.
         mass_table : (6, n) array of floats
             The 2D table giving the various stellar masses at a given age. The
             first axis is the king of mass, the second is the age based on the
-            age_grid.
+            time_grid.
                 * mass_table[0]: total star mass
                 * mass_table[1]: alive star mass
                 * mass_table[2]: white dwarf star mass
@@ -64,7 +64,7 @@ class SspM2005(object):
                 * mass_table[5]: mass in the turn off
         spec_table : (2, n) array of floats
             The 2D table giving the luminosity density [W/nm] at various age.
-            The first axis is the age, base on the age_grid, the second is the
+            The first axis is the age, base on the time_grid, the second is the
             wavelength, base on the wavelength_grid.
 
         """
@@ -75,7 +75,7 @@ class SspM2005(object):
             raise ValueError('IMF must be either ss for Salpeter or '
                              'kr for Krupa.')
         self.metallicity = metallicity
-        self.age_grid = age_grid
+        self.time_grid = time_grid
         self.wavelength_grid = wavelength_grid
         self.mass_table = mass_table
         self.spec_table = spec_table
@@ -123,7 +123,7 @@ class SspM2005(object):
         sfr = np.copy(sfr)
 
         # The SFR must be on the same age grid as the SSP.
-        if not len(sfr) == len(self.age_grid):
+        if not len(sfr) == len(self.time_grid):
             raise ValueError("The star formation rate must be base"
                              "on the same grid than the SSP.")
 
@@ -146,13 +146,13 @@ class SspM2005(object):
             return sum(a1 * a2[::-1])
 
         # Step between two item in the age grid in Gyr
-        step = self.age_grid[1] - self.age_grid[0]
+        step = self.time_grid[1] - self.time_grid[0]
 
         if isAgeUnique:
             # This is the fast convolution technique
             # 1. We find the index of the nearest element to the given age in
             # the age grid.
-            idx = np.abs(self.age_grid - age).argmin()
+            idx = np.abs(self.time_grid - age).argmin()
 
             # 2. If needed, we normalise the SFR to 1 solar mass formed at
             # 'age'.
@@ -182,7 +182,7 @@ class SspM2005(object):
             # If needed, we normalise the SFR to 1 solar mass formed at the
             # end of the 'age' lapse.
             if norm:
-                idx = np.abs(self.age_grid - max(age)).argmin()
+                idx = np.abs(self.time_grid - max(age)).argmin()
                 sfr = sfr / (1.e6 * sfr[:idx + 1].sum())
 
             # We convolve the mass table with the SFR for each kind of mass.
@@ -190,19 +190,19 @@ class SspM2005(object):
             # the result the first slice with the length of the age grid. The
             # SFR is multiplicated by step*1e9 to convert it in Msun/Gyr
             conv_masses = [
-                np.convolve(table, sfr * step * 1.e9)[0:len(self.age_grid)]
+                np.convolve(table, sfr * step * 1.e9)[0:len(self.time_grid)]
                 for table in self.mass_table]
             conv_masses = np.array(conv_masses)
 
             # We then interpolate the convolved mass table to the given age
             # and return it.
-            masses = interpolate.interp1d(self.age_grid, conv_masses)(age)
+            masses = interpolate.interp1d(self.time_grid, conv_masses)(age)
 
             # We convolve the spectrum table with the SFR.
             conv_spectra = [
-                np.convolve(table, sfr * step * 1e9)[0:len(self.age_grid)]
+                np.convolve(table, sfr * step * 1e9)[0:len(self.time_grid)]
                 for table in self.spec_table]
             conv_spectra = np.array(conv_spectra)
-            spectra = interpolate.interp1d(self.age_grid, conv_spectra)(age)
+            spectra = interpolate.interp1d(self.time_grid, conv_spectra)(age)
 
         return masses, spectra
