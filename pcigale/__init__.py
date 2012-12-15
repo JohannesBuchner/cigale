@@ -9,6 +9,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 import argparse
 from .session.configuration import Configuration
+from .stats import psum as stats_module
 
 
 def init(config):
@@ -36,7 +37,23 @@ def check(config):
 
 def run(config):
     "Run the analysis."
-    raise NotImplementedError()
+    data_file = config.configuration['data_file']
+    column_list = config.configuration['column_list']
+    sed_modules = config.configuration['sed_modules']
+    sed_modules_params = config.sed_modules_conf_array
+    psum = stats_module.Module()
+    psum_results = psum.process(data_file, column_list, sed_modules,
+                                sed_modules_params)
+    for (index, (sed, params, chi2, norm_factor)) in enumerate(psum_results):
+        print("Object {}:".format(index))
+        print("Best SED Chi2: {}".format(chi2))
+        print("Best SED factor: {}".format(norm_factor))
+        print("Best SED parametres:")
+        print(params)
+        print("Best SED info:")
+        for (key, value) in sed.info.items():
+            print("{} : {}".format(key, value))
+        print("##################################")
 
 
 def main():
