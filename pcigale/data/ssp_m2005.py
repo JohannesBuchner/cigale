@@ -80,7 +80,7 @@ class SspM2005(object):
         self.mass_table = mass_table
         self.spec_table = spec_table
 
-    def convolve(self, sfr, age, norm=False):
+    def convolve(self, sfh, age, norm=False):
         """
         Given a Star Formation History (SFH) and an age, this method convolves
         the mass distribution and the spectrum at a given age.
@@ -94,13 +94,13 @@ class SspM2005(object):
 
         Parametres
         ----------
-        sfr : array of floats
+        sfh : array of floats
             Star Formation Rates in Msun/y for each age of the SSP age grid.
         age : float or array of floats
             Age(s) in Gyr we want the mass distribution at. If an array is
             given, the various outputs will be arrays of the same length.
         norm: boolean
-            If true, the sfr will be normalised to 1 solar mass produced at
+            If true, the sfh will be normalised to 1 solar mass produced at
             'age' (or max(age) if it's an array).
 
         Returns
@@ -119,11 +119,11 @@ class SspM2005(object):
                 - spectra[1] : luminosity in W/nm
 
         """
-        # We work on a copy of SFR (as we change it)
-        sfr = np.copy(sfr)
+        # We work on a copy of SFH (as we change it)
+        sfh = np.copy(sfh)
 
-        # The SFR must be on the same age grid as the SSP.
-        if not len(sfr) == len(self.time_grid):
+        # The SFH must be on the same age grid as the SSP.
+        if not len(sfh) == len(self.time_grid):
             raise ValueError("The star formation rate must be base"
                              "on the same grid than the SSP.")
 
@@ -144,40 +144,40 @@ class SspM2005(object):
             # the age grid.
             idx = np.abs(self.time_grid - age).argmin()
 
-            # 2. If needed, we normalise the SFR to 1 solar mass formed at
+            # 2. If needed, we normalise the SFH to 1 solar mass formed at
             # 'age'.
             if norm:
-                sfr = sfr / (1.e6 * sfr[:idx + 1].sum())
+                sfh = sfh / (1.e6 * sfh[:idx + 1].sum())
 
-            # 3. We must convolve the mass evolution array with the SFR at a
+            # 3. We must convolve the mass evolution array with the SFH at a
             # given time (i.e. a given index). As both tables share the same
             # age grid, it's just a matter of slicing the arrays to the given
             # index, reverting one and computing the sum of the one to one
             # product. This is done using the dot product.
-            # The 1.e9 * step is because the SFR is in solar mass per year.
+            # The 1.e9 * step is because the SFH is in solar mass per year.
             masses = 1.e9 * step * np.dot(self.mass_table[:, :idx + 1],
-                                          sfr[:idx + 1][::-1])
+                                          sfh[:idx + 1][::-1])
 
             #4.  We do the same thing for the spectre.
             spectra = 1.e9 * step * np.dot(self.spec_table[:, :idx + 1],
-                                           sfr[:idx + 1][::-1])
+                                           sfh[:idx + 1][::-1])
 
         else:
             # If the age parametre is an array, we do the full convolution.
             # TODO: We can stop the convolution at the youngest age.
 
-            # If needed, we normalise the SFR to 1 solar mass formed at the
+            # If needed, we normalise the SFH to 1 solar mass formed at the
             # end of the 'age' lapse.
             if norm:
                 idx = np.abs(self.time_grid - max(age)).argmin()
-                sfr = sfr / (1.e6 * sfr[:idx + 1].sum())
+                sfh = sfh / (1.e6 * sfh[:idx + 1].sum())
 
-            # We convolve the mass table with the SFR for each kind of mass.
+            # We convolve the mass table with the SFH for each kind of mass.
             # Because of the way numpy full convolution work, we must take in
             # the result the first slice with the length of the age grid. The
-            # SFR is multiplicated by step*1e9 to convert it in Msun/Gyr
+            # SFH is multiplicated by step*1e9 to convert it in Msun/Gyr
             conv_masses = [
-                np.convolve(table, sfr * step * 1.e9)[0:len(self.time_grid)]
+                np.convolve(table, sfh * step * 1.e9)[0:len(self.time_grid)]
                 for table in self.mass_table]
             conv_masses = np.array(conv_masses)
 
@@ -185,9 +185,9 @@ class SspM2005(object):
             # and return it.
             masses = interpolate.interp1d(self.time_grid, conv_masses)(age)
 
-            # We convolve the spectrum table with the SFR.
+            # We convolve the spectrum table with the SFH.
             conv_spectra = [
-                np.convolve(table, sfr * step * 1e9)[0:len(self.time_grid)]
+                np.convolve(table, sfh * step * 1e9)[0:len(self.time_grid)]
                 for table in self.spec_table]
             conv_spectra = np.array(conv_spectra)
             spectra = interpolate.interp1d(self.time_grid, conv_spectra)(age)
