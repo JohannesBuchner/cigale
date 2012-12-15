@@ -13,10 +13,11 @@ from . import common
 
 
 class Module(common.SEDCreationModule):
-    """Read a spectrum from a file and add it to the SED.
+    """Module reading a spectrum from a file and adding it to the SED.
 
     Note that this module uses the atpy module, which is not automatically
     installed when one installs pcigale.
+
     """
 
     parametre_list = {
@@ -53,11 +54,14 @@ class Module(common.SEDCreationModule):
         """
         filename = parametres['filename']
         table = atpy.Table(filename)
-        sed.add_component(
-            'loadfile',
-            parametres,
-            'loadfile_' + filename,
+
+        # Base name for adding information to the SED.
+        name = self.name or 'loadfile'
+
+        sed.add_module(name, parametres)
+
+        sed.add_contribution(
+            name + '_' + filename,
             table[parametres['lambda_column']],
-            table[parametres['l_lambda_column']],
-            {}
+            table[parametres['l_lambda_column']]
         )

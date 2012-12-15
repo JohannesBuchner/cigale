@@ -8,6 +8,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 """
 
 
+import numpy as np
 from . import common
 from ...extern.lsst import Sed as lsst
 
@@ -21,6 +22,10 @@ class Module(common.SEDCreationModule):
 
     This module is based on the code from the Large Synoptic Survey Telescope.
     http://dev.lsstcorp.org/trac/
+
+    The parametres added and available for the statistical analysis are:
+    ccmdust_A_v, ccmdust_ebv and ccmdust_R_v.
+
     """
 
     parametre_list = {
@@ -100,20 +105,28 @@ class Module(common.SEDCreationModule):
 
         # We only want to add the extinction as a SED component. We compute
         # the difference because extended_flambda and flambda have the same
-        # wavelength grit (see addCCMDust definition).
+        # wavelength grid (see addCCMDust definition).
         extinction = extended_l_lambda - l_lambda
 
-        # If the extinction was applied to a specific contribution flux, we
-        # suffix the ccmdust contribution name with its own.
-        ccmdust_contrib_name = 'ccmdust'
-        if parametres['contribution_name']:
-            ccmdust_contrib_name += '_' + parametres['contribution_name']
+        # Integrate the value of the extinction (-1 is because the extinction
+        # spectrum is negative.
+        extinction_value = -1 * np.trapz(extinction, wavelen)
 
-        sed.add_component(
-            'ccmdust',
-            parametres,
-            ccmdust_contrib_name,
+        # Base name for adding information to the SED.
+        name = self.name or 'ccmdust'
+
+        sed.add_module(name, parametres)
+
+        # Add the parametres values to the SED information.
+        sed.add_info(name + '_A_v', parametres['A_v'])
+        sed.add_info(name + '_ebv', parametres['ebv'])
+        sed.add_info(name + '_R_v', parametres['R_v'])
+
+        # Add the extinction value to the SED information
+        sed.add_info(name + '_extinction', extinction_value)
+
+        sed.add_contribution(
+            name,
             wavelen,
-            extinction,
-            {}
+            extinction
         )

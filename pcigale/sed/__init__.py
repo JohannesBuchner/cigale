@@ -131,14 +131,27 @@ class SED(object):
             raise KeyError("The information %s is yet present "
                            "in the SED. " % key)
 
-    def add_component(self, module_name, module_conf, contribution_name,
-                      results_wavelengths, results_lumin, infos):
-        """
-        Add a new module contribution to the SED
+    def add_module(self, module_name, module_conf):
+        """Add a new module information to the SED.
 
-        The module name and parametres are added to the module list of the
-        SED. If the module adds some information to the SED, it is added to
-        the info dictionnary.
+        Parametres
+        ----------
+        module_name : string
+            Name of the module. This name can be suffixed with anything
+            using a dot.
+        module_conf : dictionary
+            Dictionary containing the module parametres.
+
+        TODO: Complete the parametre dictionary with the default values from
+              the module if they are not present.
+
+        """
+        self.modules.append((module_name, module_conf))
+
+    def add_contribution(self, contribution_name, results_wavelengths,
+                         results_lumin):
+        """
+        Add a new luminosity contribution to the SED.
 
         The luminosity contribution of the module is added to the contribution
         table doing an interpolation between the current wavelength grid and
@@ -149,12 +162,6 @@ class SED(object):
 
         Parametres
         ----------
-        module_name : string
-            Name of the SED creation module used.
-
-        module_conf : dictionary
-            The dictionnary containing the module parametres.
-
         contribution_name : string
             Name of the contribution added. This name is used to retrieve the
             luminosity contribution and allows one module to add more than
@@ -166,16 +173,8 @@ class SED(object):
         results_lumin : array of floats
             The vector of the Lλ luminosities (in W/nm) of the module results.
 
-        infos : dictionary
-            The dictionary of the informations added by the module to the SED.
-            If a key of the dictionary is yet present in __info, its value
-            will be overwritten.
-
         """
-        self.modules.append((module_name, module_conf))
         self.contribution_names.append(contribution_name)
-        for key, value in infos.items():
-            self.add_info(key, value)
 
         # If the SED luminosity table is empty, then there is nothing to
         # compute.

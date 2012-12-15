@@ -86,11 +86,16 @@ class Module(common.SEDCreationModule):
 
             igm_effect = red_l_lambda - init_l_lambda
 
-            sed.add_component(
-                'igmattenuation',
-                parametres,
-                'igmattenuation',
+            # Base name for adding information to the SED.
+            name = self.name or 'igmattenuation'
+
+            sed.add_module(name, parametres)
+
+            sed.add_info(name + '_redshift', parametres['redshift'])
+            sed.add_info(name + '_rtau', parametres['rtau'])
+
+            sed.add_contribution(
+                name,
                 new_wavelen,
-                igm_effect,
-                {}
+                igm_effect
             )

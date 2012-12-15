@@ -25,11 +25,17 @@ class SEDCreationModule(object):
     # instructions for the configuration.
     comments = ""
 
-    def __init__(self, **kwargs):
+    def __init__(self, name=None, **kwargs):
         """Instantiate a SED creation module
+
+        A name can be given to the module. This can be useful when a same
+        module is used several times with different parametres in the SED
+        creation process.
 
         The module parametres values can be passed as keyworded paramatres.
         """
+        self.name = name
+
         # parametres is a dictionnary containing the actual values for each
         # module parametre.
         self.parametres = kwargs
@@ -101,24 +107,30 @@ class SEDCreationModule(object):
         self._process(sed, parametres)
 
 
-def get_module(module_name):
-    """Return the main class of the module provided
+def get_module(name):
+    """Get a SED creation module from its name
 
     Parametres
     ----------
     module_name : string
-        The name of the module we want to get the class.
+        The name of the module we want to get the class. This name can be
+        prefixed by anything using a dot, then the part before the dot is
+        used to determine the module to load (e.g. 'dh2002_ir.1' will return
+        the 'dh2002_ir' module).
 
     Returns
     -------
-    module_class : class
+    a pcigale.sed.modules.Module instance
     """
+
+    # Determine the real module name by removing the dotted prefix.
+    module_name = name.split('.')[0]
 
     try:
         # TODO Find a better way to do dynamic import
         import_string = 'from . import ' + module_name + ' as module'
         exec import_string
-        return module.Module()
+        return module.Module(name=name)
     except ImportError:
         print('Module ' + module_name + ' does not exists!')
         raise
