@@ -150,7 +150,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'm2005_sfh'
 
-        self.add_module(name, parametres)
+        sed.add_module(name, parametres)
 
         sed.add_info('imf', imf)
         sed.add_info('metallicity', metallicity)
