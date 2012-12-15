@@ -135,16 +135,6 @@ class SspM2005(object):
             age = np.array(age, dtype='float')
             isAgeUnique = False
 
-        # Function used in the fast convolution
-        def flip_prod_sum(array1, array2):
-            """
-            Take to arrays of the same size, reverse one and return the sum on
-            the one to one products.
-            """
-            a1 = np.copy(array1)
-            a2 = np.copy(array2)
-            return sum(a1 * a2[::-1])
-
         # Step between two item in the age grid in Gyr
         step = self.time_grid[1] - self.time_grid[0]
 
@@ -163,17 +153,14 @@ class SspM2005(object):
             # given time (i.e. a given index). As both tables share the same
             # age grid, it's just a matter of slicing the arrays to the given
             # index, reverting one and computing the sum of the one to one
-            # product.
-            masses = [flip_prod_sum(table[:idx + 1],
-                                    1.e9 * step * sfr[:idx + 1])
-                      for table in self.mass_table]
-            masses = np.array(masses)
+            # product. This is done using the dot product.
+            # The 1.e9 * step is because the SFR is in solar mass per year.
+            masses = 1.e9 * step * np.dot(self.mass_table[:, :idx + 1],
+                                          sfr[:idx + 1][::-1])
 
             #4.  We do the same thing for the spectre.
-            spectra = [flip_prod_sum(table[:idx + 1],
-                                     1.e9 * step * sfr[:idx + 1])
-                       for table in self.spec_table]
-            spectra = np.array(spectra)
+            spectra = 1.e9 * step * np.dot(self.spec_table[:, :idx + 1],
+                                           sfr[:idx + 1][::-1])
 
         else:
             # If the age parametre is an array, we do the full convolution.
