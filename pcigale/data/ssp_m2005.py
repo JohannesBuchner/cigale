@@ -18,9 +18,9 @@ class SspM2005(object):
     (SSP) as defined in Maraston (2005). Compare to the pristine Maraston's
     SSP:
 
-    - The age grid used ranges from 1 My to 13.7 Gyr with 1 My step. This
+    - The age grid used ranges from 1 My to 13.7 Gyr with 1 My step. This
       excludes the metallicities -2.25 and 0.67 for which the pristine age
-      grid starts at 1 Gyr.
+      grid starts at 1 Gyr.
 
     - The stellar masses and the luminosities ( luminosity vs age for a given
       wavelength) were all interpolated to this new grid.
@@ -140,56 +140,63 @@ class SspM2005(object):
 
         if isAgeUnique:
             # This is the fast convolution technique
-            # 1. We find the index of the nearest element to the given age in
-            # the age grid.
+            # 1. We limit sfh, mass_table and spec_table for time up to
+            # the age.
+            # Index of the time nearest to age in the grid.
             idx = np.abs(self.time_grid - age).argmin()
+            sfh = sfh[:idx + 1]
+            mass_table = self.mass_table[:, :idx + 1]
+            spec_table = self.spec_table[:, :idx + 1]
 
             # 2. If needed, we normalise the SFH to 1 solar mass formed at
             # 'age'.
             if norm:
-                sfh = sfh / (1.e6 * sfh[:idx + 1].sum())
+                sfh = sfh / (step * sfh.sum())
 
-            # 3. We must convolve the mass evolution array with the SFH at a
-            # given time (i.e. a given index). As both tables share the same
-            # age grid, it's just a matter of slicing the arrays to the given
-            # index, reverting one and computing the sum of the one to one
+            # 3. We must convolve the mass evolution array with the SFH.
+            #  As both tables share the same time grid, it's just a matter
+            # of reverting one and computing the sum of the one to one
             # product. This is done using the dot product.
             # The 1.e9 * step is because the SFH is in solar mass per year.
-            masses = 1.e9 * step * np.dot(self.mass_table[:, :idx + 1],
-                                          sfh[:idx + 1][::-1])
+            masses = 1.e9 * step * np.dot(mass_table, sfh[::-1])
 
             #4.  We do the same thing for the spectre.
-            spectra = 1.e9 * step * np.dot(self.spec_table[:, :idx + 1],
-                                           sfh[:idx + 1][::-1])
+            spectra = 1.e9 * step * np.dot(spec_table, sfh[::-1])
 
         else:
             # If the age parametre is an array, we do the full convolution.
-            # TODO: We can stop the convolution at the youngest age.
+            # 1. We limit sfh, mass_table, spec_table and time_grid for time
+            # up to the maximum age.
+            # Index of the time nearest to the maximum age in the grid.
+            idx = np.abs(self.time_grid - np.max(age)).argmin()
+            sfh = sfh[:idx + 1]
+            mass_table = self.mass_table[:, :idx + 1]
+            spec_table = self.spec_table[:, :idx + 1]
+            time_grid = self.time_grid[:, :idx + 1]
 
             # If needed, we normalise the SFH to 1 solar mass formed at the
             # end of the 'age' lapse.
             if norm:
-                idx = np.abs(self.time_grid - max(age)).argmin()
-                sfh = sfh / (1.e6 * sfh[:idx + 1].sum())
+                sfh = sfh / (1.e6 * sfh.sum())
 
             # We convolve the mass table with the SFH for each kind of mass.
             # Because of the way numpy full convolution work, we must take in
             # the result the first slice with the length of the age grid. The
             # SFH is multiplicated by step*1e9 to convert it in Msun/Gyr
             conv_masses = [
-                np.convolve(table, sfh * step * 1.e9)[0:len(self.time_grid)]
-                for table in self.mass_table]
+                np.convolve(table, sfh * step * 1.e9)[0:len(time_grid)]
+                for table in mass_table]
             conv_masses = np.array(conv_masses)
 
             # We then interpolate the convolved mass table to the given age
             # and return it.
-            masses = interpolate.interp1d(self.time_grid, conv_masses)(age)
+            masses = interpolate.interp1d(time_grid, conv_masses)(age)
 
             # We convolve the spectrum table with the SFH.
             conv_spectra = [
-                np.convolve(table, sfh * step * 1e9)[0:len(self.time_grid)]
-                for table in self.spec_table]
+                np.convolve(table, sfh * step * 1e9)[0:len(time_grid)]
+                for table in spec_table]
             conv_spectra = np.array(conv_spectra)
-            spectra = interpolate.interp1d(self.time_grid, conv_spectra)(age)
+            spectra = interpolate.interp1d(time_grid, conv_spectra)(age)
 
         return masses, spectra
