@@ -67,12 +67,9 @@ class Module(common.SEDCreationModule):
         sed.add_module(name, parametres)
         sed.add_info(name + '_alpha', alpha)
 
-        # We multiply the extinction * ir_template by -1 because the value
-        # of the former is positive in the SED's info and its effects are
-        # negative.
         for extinction in extinction_value_names:
             sed.add_contribution(
                 name + '_' + extinction,
                 dh2002.wavelength_grid,
-                -1 * sed.info[extinction] * ir_template
+                sed.info[extinction] * ir_template
             )
