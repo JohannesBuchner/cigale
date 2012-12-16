@@ -96,9 +96,22 @@ class SEDCreationModule(object):
         # of the parametre_list dictionnary, we raises a KeyError. That means
         # that a parametre is missing (and has no default value) or that an
         # unexpected one was given.
-        if not parametres.keys() == self.parametre_list.keys():
+        if not set(parametres.keys()) == set(self.parametre_list.keys()):
+            missing_parametres = (set(self.parametre_list.keys())
+                                  - set(parametres.keys()))
+            unexpected_parametres = (set(parametres.keys())
+                                     - set(self.parametre_list.keys()))
+            message = ""
+            if missing_parametres:
+                message += ("Missing parametres: " +
+                            ", ".join(missing_parametres) +
+                            ".")
+            if unexpected_parametres:
+                message += ("Unexpected parametres: " +
+                            ", ".join(unexpected_parametres) +
+                            ".")
             raise KeyError("The parametres passed are different from the "
-                           "expected one.")
+                           "expected one." + message)
 
         # TODO: We should also check that all parametres is from the right
         # type.
