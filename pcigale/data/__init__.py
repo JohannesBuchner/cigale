@@ -289,13 +289,13 @@ class Database(object):
 
     def parse_filters(self):
         """Generator to parse the filter database."""
-        for filt in self.session.query(Filter):
+        for filt in self.session.query(_Filter):
             yield Filter(filt.name, filt.description, filt.trans_type,
                          filt.trans_table, filt.effective_wavelength)
 
     def parse_ssp_m2005(self):
         """Generator to parse the Maraston 2005 SSP database."""
-        for ssp in self.session.query(SspM2005):
+        for ssp in self.session.query(_SspM2005):
             yield SspM2005(ssp.imf, ssp.metallicity, ssp.time_grid,
                            ssp.wavelength_grid, ssp.mass_table,
                            ssp.spec_table)
