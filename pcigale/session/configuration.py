@@ -223,7 +223,7 @@ class Configuration(object):
             one).
         configuration['analysis_method'] : string
             Statistical analysis module used to fit the data.
-        configuration['analysis_methode_params'] : dictionnary
+        configuration['analysis_method_params'] : dictionnary
             Parametres for the statistical analysis module. To each parametre
             is associated a list of possible values.
         """
@@ -243,9 +243,9 @@ class Configuration(object):
             configuration['sed_modules_params'].append(module_params)
 
         # Parsing the statistical analysis parametres
-        configuration['analysis_methode_params'] = {}
+        configuration['analysis_method_params'] = {}
         for key, value in self.config['analysis_configuration'].items():
-            configuration['analysis_methode_params'][key] = \
+            configuration['analysis_method_params'][key] = \
                 evaluate_description(value)
 
         return configuration
