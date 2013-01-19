@@ -24,6 +24,7 @@ TODO: Factorise the way the analysis is done to have general methods in the
 
 import atpy
 import numpy as np
+from scipy import stats
 from . import common
 from ..sed.warehouse import create_sed
 from ..data import Database
@@ -31,6 +32,8 @@ from ..data import Database
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1.e-12
+# Name of the fits file containing the results
+RESULT_FILE = 'psum_results.xml'
 
 
 class Module(common.AnalysisModule):
@@ -39,35 +42,67 @@ class Module(common.AnalysisModule):
     TODO: Description of the PSUM method.
     """
 
-    paramtre_list = {}
+    parametre_list = {
+        'analysed_variables': (
+            'array of strings',
+            None,
+            "List of the variables (in the SEDs info dictionaries) for which "
+            "the statistical analysis will be done.",
+            ['sfr', 'average_sfr']
+        )
+    }
 
-    # TODO: Don't use the configuration from the pcigale.session but the
-    # individual needed components.
     def process(self, data_file, column_list, sed_modules,
-                sed_modules_params):
+                sed_modules_params, analysed_variables):
         """Process with the psum analysis.
+
+        The analysis is done in two nested loops: over each observation and
+        over each theoretical SEDs. We first loop over the SEDs to limit the
+        number of time the SEDs are created.
 
         Parametres
         ----------
-        configuration : dictionary
-            Session configuration dictionnary resulting of
-            pcigale.session.Configuration.configuration
+        data_file: string
+            Name of the file containing the observations to fit.
+        column_list: list of strings
+            Name of the columns from the data file to use for the analysis.
+        sed_modules: list of strings
+            List of the module names (in the right order) to use for creating
+            the SEDs.
+        sed_modules_params: list of dictionaries
+            List of the parametre dictionaries for each module.
+        analysed_variables: list of strings
+            List of the variables (from the SED info dictionaries) to be
+            statistically analysed.
 
         Returns
         -------
-        results : list of tuples (pcigale.sed object, dict, float, float)
+        best_sed: list of tuples (pcigale.sed object, dict, float, float)
             There is one tuple per observed object: the first element is the
             best fitting SED for this object, the second dictionary of
-            parametre used to produce i, the third is the reduced Chi-square
+            parametre used to produce it, the third is the reduced Chi-square
             of the fit and the fourth is the normalisation factor to be
             applied to the SED to fit the observation.
+        results: dictionary
+            Dictionary associating to NAME and NAME_err the weighted average
+            and standard deviation lists, where name is galaxy_mass or the
+            content of the analysed variables list. Each key is associated
+            to an array which index corresponds to the rows in the observation
+            data file. This dictionary is also saved as a FITS file to the
+            disk.
 
         """
-        filter_list = [name for name in column_list
-                       if not name.endswith('_err')]
+
+        best_sed_list = []
+        results = {'galaxy_mass': [], 'galaxy_mass_err': []}
+        for variable in analysed_variables:
+            results[variable] = []
+            results[variable + '_err'] = []
 
         # We get the transmission table and effective wavelength for each
         # used filter.
+        filter_list = [name for name in column_list
+                       if not name.endswith('_err')]
         transmission = {}
         effective_wavelength = {}
         base = Database()
@@ -77,21 +112,9 @@ class Module(common.AnalysisModule):
             effective_wavelength[name] = filt.effective_wavelength
         base.close()
 
-        # Read the observation table
+        # Read the observation table and complete it by adding error where
+        # none is provided and by adding the systematic deviation.
         obs_table = atpy.Table(data_file)
-
-        # 2D array containing the chi-squares. The first axis in the
-        # observation number, the second axis is the model number (i.e. the
-        # index of the parametre dictionary in sed_modules_params.
-        chi_square_table = 99 * np.ones((obs_table.data.shape[0],
-                                         len(sed_modules_params)))
-
-        # Same 2D array for the normalisation factor.
-        norm_factor_table = np.zeros((obs_table.data.shape[0],
-                                      len(sed_modules_params)))
-
-        # We complete the observation data by adding error where none is
-        # provided and by adding the systematic deviation.
         for name in filter_list:
             name_err = name + '_err'
             if name_err not in column_list:
@@ -105,6 +128,19 @@ class Module(common.AnalysisModule):
             obs_table[name_err] = adjust_errors(obs_table[name],
                                                 obs_table[name_err])
 
+        # As we loop fist on the models (to limit the number of times a model
+        # is computed) we need to store the computation results to make the
+        # analysis for each observation in a second time. For this, we use a
+        # three axis numpy array: axis 1 is the model (based on the index of
+        # the sed_module_params list), axis 2 is the observation (base on the
+        # data table row index) and axis 3 is the considered variable (based
+        # on the analysed variables list + chi2min, probability and
+        # galaxy_mass at the beginning).
+        comp_table = np.zeros((len(sed_modules_params),
+                               obs_table.data.shape[0],
+                               len(analysed_variables) + 3), dtype=float)
+        comp_table[:, :, :] = np.nan
+
         # We loop over all the possible theoretical SEDs
         for model_index, parametres in enumerate(sed_modules_params):
 
@@ -115,37 +151,63 @@ class Module(common.AnalysisModule):
                                             effective_wavelength[name])
                             for name in filter_list]
 
-            # Compute the reduced Chi-square and normalisation factor for each
-            # observed SEDs
+            # Compute the reduced Chi-square, the galaxy mass (normalisation
+            # factor) and probability for each observed SEDs. Add these and
+            # the values for the analysed variable to the comp_table.
             for obs_index in range(obs_table.data.shape[0]):
                 obs_fluxes = [obs_table[name][obs_index]
                               for name in filter_list]
                 obs_errors = [obs_table[name + '_err'][obs_index]
                               for name in filter_list]
+                chi2min, galaxy_mass, probability = compute_chi2(theor_fluxes,
+                                                                 obs_fluxes,
+                                                                 obs_errors)
+                comp_table[model_index, obs_index, 0] = chi2min
+                comp_table[model_index, obs_index, 1] = probability
+                comp_table[model_index, obs_index, 2] = galaxy_mass
 
-                chi2, norm_factor = compute_chi2(theor_fluxes,
-                                                 obs_fluxes,
-                                                 obs_errors)
-                chi_square_table[obs_index, model_index] = chi2
-                norm_factor_table[obs_index, model_index] = norm_factor
+                for index, variable in enumerate(analysed_variables):
+                    comp_table[model_index, obs_index, index + 3] = \
+                        sed.info[variable]
 
         # Find the model corresponding to the least reduced Chi-square for
         # each observation.
-        results = []
+        # Now we loop over the observations.
         for obs_index in range(obs_table.data.shape[0]):
-            # If there more than one model with the minimal chi-square value
+            # Find the model corresponding to the least reduced Chi-square;
+            # if there more than one model with the minimal chi-square value
             # only the first is returned.
-            best_chi2 = min(chi_square_table[obs_index])
-            best_index = chi_square_table[obs_index].argmin()
-            best_norm_factor = norm_factor_table[obs_index, best_index]
+            best_index = comp_table[:, obs_index, 0].argmin()
+            best_chi2 = comp_table[best_index, obs_index, 0]
+            best_norm_factor = comp_table[best_index, obs_index, 2]
             best_params = sed_modules_params[best_index]
             best_sed = create_sed(sed_modules, best_params)
-            results.append((best_sed,
-                            best_params,
-                            best_chi2,
-                            best_norm_factor))
+            best_sed_list.append((best_sed,
+                                  best_params,
+                                  best_chi2,
+                                  best_norm_factor))
 
-            return results
+            # Compute the statistics for the desired variables.
+            for index, variable in enumerate(['galaxy_mass'] +
+                                             analysed_variables):
+                # The 'variable' axis in comp_table as chi2 and probability
+                # values at the beginnng.
+                idx = index + 2
+                mean, sigma = w_mean_sigma(comp_table[:, obs_index, idx],
+                                           comp_table[:, obs_index, 1])
+
+                results[variable].append(mean)
+                results[variable + '_err'].append(sigma)
+
+        # Write the results to the fits file
+        result_table = atpy.Table()
+        for variable in (['galaxy_mass'] + analysed_variables):
+            result_table.add_column(variable, results[variable])
+            result_table.add_column(variable + '_err',
+                                    results[variable + '_err'])
+        result_table.write(RESULT_FILE)
+
+        return best_sed_list
 
 
 def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
@@ -214,6 +276,9 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
     normalisation_factor : float
         Normalisation factor that must be applied to the model to fit the
         observation.
+    probability: float
+        Probability associated with the chi-square and the considered number
+        of degrees of freedom.
 
     """
 
@@ -236,6 +301,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             min(obs_errors[obs_fluxes > TOLERANCE]) < TOLERANCE):
         reduced_chi2 = 99
         normalisation_factor = 1
+        probability = 0
     else:
         # We make the computation using only the filters for which the
         # observation error is over the tolerance threshold.
@@ -251,13 +317,39 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             #FIXME
             reduced_chi2 = 0
             normalisation_factor = sum(obs_fluxes) / sum(model_fluxes)
+            probability = 1
         else:
             normalisation_factor = (sum(obs_fluxes * model_fluxes) /
                                     sum(model_fluxes * model_fluxes))
             norm_model_fluxes = normalisation_factor * model_fluxes
-            reduced_chi2 = (sum(np.square((obs_fluxes - norm_model_fluxes) /
-                            obs_errors))
-                            / degrees_of_freedom)
+            chi2 = sum(np.square((obs_fluxes - norm_model_fluxes) /
+                                 obs_errors))
+            reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
-    return reduced_chi2, normalisation_factor
+            probability = stats.chi2.sf(chi2, degrees_of_freedom)
+
+    return reduced_chi2, normalisation_factor, probability
+
+
+def w_mean_sigma(values, weights):
+    """Return the weighted average and standard deviation
+
+    Parametres
+    ----------
+    values : list of floats
+        List of values.
+    weights : list of floats
+        List of weights, must have the same shape as value list.
+
+    Returns
+    -------
+    mean: float
+        Weighted average.
+    sigma: float
+        Standard deviation.
+    """
+    mean = np.average(values, weights=weights)
+    variance = np.dot(weights, (values - mean) ** 2) / np.sum(weights)
+
+    return (mean, np.sqrt(variance))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -41,9 +41,11 @@ def run(config):
     column_list = config.configuration['column_list']
     sed_modules = config.configuration['sed_modules']
     sed_modules_params = config.sed_modules_conf_array
+    analysed_variables = \
+        config.configuration['analysis_method_params']['analysed_variables']
     psum = stats_module.Module()
     psum_results = psum.process(data_file, column_list, sed_modules,
-                                sed_modules_params)
+                                sed_modules_params, analysed_variables)
     for (index, (sed, params, chi2, norm_factor)) in enumerate(psum_results):
         print("Object {}:".format(index))
         print("Best SED Chi2: {}".format(chi2))
