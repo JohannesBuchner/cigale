@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -146,19 +146,22 @@ class Module(common.AnalysisModule):
 
             sed = create_sed(sed_modules, parametres)
 
-            # Theoretical fluxes
-            theor_fluxes = [sed.compute_fnu(transmission[name],
-                                            effective_wavelength[name])
-                            for name in filter_list]
-
             # Compute the reduced Chi-square, the galaxy mass (normalisation
             # factor) and probability for each observed SEDs. Add these and
             # the values for the analysed variable to the comp_table.
             for obs_index in range(obs_table.data.shape[0]):
+                obs_redshift = obs_table['redshift'][obs_index]
                 obs_fluxes = [obs_table[name][obs_index]
                               for name in filter_list]
                 obs_errors = [obs_table[name + '_err'][obs_index]
                               for name in filter_list]
+
+                # Theoretical fluxes
+                theor_fluxes = [sed.compute_fnu(transmission[name],
+                                                effective_wavelength[name],
+                                                obs_redshift)
+                                for name in filter_list]
+
                 chi2min, galaxy_mass, probability = compute_chi2(theor_fluxes,
                                                                  obs_fluxes,
                                                                  obs_errors)
