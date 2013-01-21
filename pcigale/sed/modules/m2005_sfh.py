@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -47,20 +47,17 @@ class Module(common.SEDCreationModule):
     parametre_list = {
         'imf': (
             'string',
-            None,
             "Initial mass function: ss (Salpeter) or kr (Krupa)",
             None
         ),
         'metallicity': (
             'float',
-            None,
             "Z/H abundance of heavy elements with respect to hydrogen, "
             "normalised to solar values.",
             None
         ),
         'sfh': (
             'numpy array of floats',
-            "Solar mass per year",
             "Star formation history (in solar mass per year) as an array "
             "based on the age grid used for the Maraston 2005 SSP, i.e. "
             "np.arange(1e-3,13.701,1e-3).",
@@ -68,14 +65,12 @@ class Module(common.SEDCreationModule):
         ),
         'oldest_age': (
             'float',
-            'Gyr',
-            "Age of the oldest stars in the galaxy.",
+            "Age of the oldest stars in the galaxy in Gyr.",
             None
         ),
         'separation_age': (
             'float',
-            'Gyr',
-            "Age of the separation between the young and the old star "
+            "Age [Gyr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (0.01 Gyr). Set "
             "to 0 not to differentiate ages.",
             0.01

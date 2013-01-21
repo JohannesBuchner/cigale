@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -25,20 +25,17 @@ class Module(common.SEDCreationModule):
     parametre_list = {
         "redshift": (
             'float',
-            None,
             "Redshift to apply to the galaxy.",
             0.
         ),
         "dimming": (
             'boolean',
-            None,
             "If set to true, the cosmological dimming is applied "
             "to the fluxes.",
             True
         ),
         "rtau": (
             'float',
-            None,
             "Parametre which scale the tau value at each wavelength.",
             1.
         )

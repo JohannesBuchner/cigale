@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -29,13 +29,11 @@ class Module(common.SEDCreationModule):
     parametre_list = {
         'alpha': (
             'float',
-            None,
             "Alpha slope.",
             None
         ),
         'extinction_value_names': (
             'array of strings',
-            None,
             "List of extinction value names (in the SED's info dictionary). "
             "A new re-emission contribution will be added for each one.",
             None

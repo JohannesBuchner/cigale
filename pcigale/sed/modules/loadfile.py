@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -23,7 +23,6 @@ class Module(common.SEDCreationModule):
     parametre_list = {
         "filename": (
             'str',
-            None,
             "Name of the file to load and to add to the SED table. This "
             "file must be loadable with atpy (that depends on other modules "
             "being installed).",
@@ -31,13 +30,11 @@ class Module(common.SEDCreationModule):
         ),
         "lambda_column": (
             'str',
-            None,
             "Name of the column containing the wavelength in nm.",
             None
         ),
         "l_lambda_column": (
             'str',
-            None,
             "Name of the column containing the Lλ luminosity in W/nm.",
             None
         )

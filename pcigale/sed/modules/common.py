@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -14,10 +14,10 @@ class SEDCreationModule(object):
 
     # parametre_list is a dictionnary containing all the parametres used by
     # the module. Each parametre name is associate to a tuple (variable type,
-    # unit [string], description [string], default value). Each module must
-    # define its parametre list, unless it does not use any parametre. Using
-    # None means that there is no description, unit or default value. If None
-    # should be the default value, use the 'None' string instead.
+    # description [string], default value). Each module must define its
+    # parametre list, unless it does not use any parametre. Using None means
+    # that there is no description or default value. If None should be the
+    # default value, use the 'None' string instead.
     parametre_list = {}
 
     # comments is the text that is used to comment the module section in
@@ -89,8 +89,8 @@ class SEDCreationModule(object):
         # with their default value.
         for key in self.parametre_list:
             if (not key in parametres) and (
-                    self.parametre_list[key][3] is not None):
-                parametres[key] = self.parametre_list[key][3]
+                    self.parametre_list[key][2] is not None):
+                parametres[key] = self.parametre_list[key][2]
 
         # If the keys of the parametres dictionnary are different from the one
         # of the parametre_list dictionnary, we raises a KeyError. That means

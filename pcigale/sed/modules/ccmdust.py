@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -32,24 +32,20 @@ class Module(common.SEDCreationModule):
         'A_v': (
             'float',
             'kesako',
-            'kesako',
             'None'
         ),
         'ebv': (
             'float',
-            'kesako',
             'kesako',
             'None'
         ),
         'R_v': (
             'float',
             'kesako',
-            'kesako',
             3.1
         ),
         'contribution_name': (
             'string',
-            None,
             'Name of the contribution the dust extinction will be applied '
             'to. If None, it will be applied to the whole spectrum.',
             'None'
