@@ -77,6 +77,47 @@ class Module(common.SEDCreationModule):
         )
     }
 
+    out_parametre_list = {
+        'galaxy_age': 'Age (in Gyr) of the oldest stars in the galaxy.',
+        'sfr': 'Instantaneous Star Formation Rate in solar mass per year, '
+               'at the age of the galaxy.',
+        'average_sfr': 'Average SFR in the last 0.1 Gyr (default) of the '
+                       'galaxy history.',
+        'mass_total': 'Total stellar mass of the galaxy in solar mass.',
+        'mass_alive': 'Mass of alive stars in solar mass.',
+        'mass_white_dwarf': 'Mass of white dwarf stars in solar mass.',
+        'mass_neutrino': 'Mass of neutrino stars in solar mass.',
+        'mass_black_hole': 'Mass of black holes in solar mass.',
+        'mass_turn_off': 'Mass in the turn-off in solar mass.',
+        'old_young_separation_age': 'Age (in Gyr) separating the old and '
+                                    'the young star populations (0 if there '
+                                    'is only one population).',
+        'mass_total_old': 'Total stellar mass of the old population in solar '
+                          'mass.',
+        'mass_alive_old': 'Mass of alive stars in solar mass (old '
+                          'population).',
+        'mass_white_dwarf_old': 'Mass of white dwarf stars in solar mass '
+                                '(old population).',
+        'mass_neutrino_old': 'Mass of neutrino stars in solar mass '
+                             '(old population).',
+        'mass_black_hole_old': 'Mass of black holes in solar mass '
+                               '(old population).',
+        'mass_turn_off_old': 'Mass in the turn-off in solar mass '
+                             '(old population).',
+        'mass_total_young': 'Total stellar mass of the young population '
+                            'in solar mass.',
+        'mass_alive_young': 'Mass of alive stars in solar mass '
+                            '(young population).',
+        'mass_white_dwarf_young': 'Mass of white dwarf stars in solar mass '
+                                  '(young population).',
+        'mass_neutrino_young': 'Mass of neutrino stars in solar mass '
+                               '(young population).',
+        'mass_black_hole_young': 'Mass of black holes in solar mass '
+                                 '(young population).',
+        'mass_turn_off_young': 'Mass in the turn-off in solar mass '
+                               '(young population).'
+    }
+
     def _process(self, sed, parametres):
         """Add the convolution of a Maraston 2005 SSP to the SED
 

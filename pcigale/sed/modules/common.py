@@ -20,6 +20,15 @@ class SEDCreationModule(object):
     # default value, use the 'None' string instead.
     parametre_list = {}
 
+    # out_parametre_list is a dictionnary containing all the SED parametres
+    # that are added to the SED info dictionnary and for which a statistical
+    # analysis may be done. Each parametre name is associated with its
+    # description. In the SED info dictionary, the parametre name in prefixed
+    # with the name of the module plus an underscore (to allow several
+    # modules to add a parametre with the same name, for instance a repeated
+    # module.)
+    out_parametre_list = {}
+
     # comments is the text that is used to comment the module section in
     # the configuration file. For instance, it can be used to give special
     # instructions for the configuration.

@@ -40,6 +40,8 @@ class Module(common.SEDCreationModule):
         )
     }
 
+    out_parametre_list = {'alpha': 'Alpha slope.'}
+
     def _process(self, sed, parametres):
         """Add the IR re-emission contributions
 
