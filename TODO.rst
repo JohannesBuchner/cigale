@@ -1,1 +1,1 @@
- Add the redshift to be taken from the observation table.
+* Check the age of the Universe at observation redshift.
