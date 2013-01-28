@@ -23,13 +23,13 @@ def genconf(config):
     "Generate the full configuration."
     config.generate_conf()
     print("The configuration file has been updated. Please complete the "
-          "various module parametres and the data file columns to use in "
+          "various module parameters and the data file columns to use in "
           "the analysis.")
 
 
 def check(config):
     "Check the configuration."
-    # TODO : Check if all the parametres that don't have default values are
+    # TODO : Check if all the parameters that don't have default values are
     # given for each module.
     print ("With this configuration, pcigale must compute {} "
            "SEDs.".format(len(config.sed_modules_conf_array)))
@@ -50,7 +50,7 @@ def run(config):
         print("Object {}:".format(index))
         print("Best SED Chi2: {}".format(chi2))
         print("Best SED factor: {}".format(norm_factor))
-        print("Best SED parametres:")
+        print("Best SED parameters:")
         print(params)
         print("Best SED info:")
         for (key, value) in sed.info.items():

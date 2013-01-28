@@ -25,7 +25,7 @@ from ..stats import common as analysis
 def list_modules(package_name):
     """Lists the modules available in a package
 
-    Parametres
+    Parameters
     ----------
     package_name : string
         Name of the package (e.g. pcigale.sed.modules).
@@ -58,7 +58,7 @@ def evaluate_description(description):
     - Then the function tries to evaluate the description as a Numpy array of
       float and returns the mere list if this fails.
 
-    Parametres
+    Parameters
     ----------
     description : string or list
         The description to be evaluated.
@@ -99,7 +99,7 @@ class Configuration(object):
     def __init__(self, filename="pcigale.ini"):
         """Initialise a pcigale configuration.
 
-        Parametres
+        Parameters
         ----------
         filename : string
             Name of the configuration file (pcigale.conf by default).
@@ -172,7 +172,7 @@ class Configuration(object):
             "the fitting.")
 
         # SED creation modules configurations. For each module, we generate
-        # the configuration section from its parametre list.
+        # the configuration section from its parameter list.
         self.config['sed_creation_modules'] = {}
         self.config.comments['sed_creation_modules'] = ["", ""] + wrap(
             "Configuration of the SED creation modules.")
@@ -182,7 +182,7 @@ class Configuration(object):
             sub_config = self.config["sed_creation_modules"][module_name]
 
             for name, (typ, unit, description, default) in \
-                    modules.get_module(module_name).parametre_list.items():
+                    modules.get_module(module_name).parameter_list.items():
                 if default is None:
                     default = ''
                 sub_config[name] = default
@@ -197,7 +197,7 @@ class Configuration(object):
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
         for name, (typ, unit, desc, default) in \
-                analysis.get_module(module_name).parametre_list.items():
+                analysis.get_module(module_name).parameter_list.items():
             if default is None:
                 default = ''
             self.config['analysis_configuration'][name] = default
@@ -207,7 +207,7 @@ class Configuration(object):
 
     @property
     def configuration(self):
-        """Returns a dictionnary for the session configuration.
+        """Returns a dictionary for the session configuration.
 
         Returns
         -------
@@ -218,13 +218,13 @@ class Configuration(object):
         configuration['sed_modules'] : list of strings
             List of the modules (in the right order) used to create the SEDs.
         configuration['sed_modules_params'] : list of dictionaries
-            Configuration parametres for each module. To each parametre, the
-            dictionnary associates a list of possible values (possibly only
+            Configuration parameters for each module. To each parameter, the
+            dictionary associates a list of possible values (possibly only
             one).
         configuration['analysis_method'] : string
             Statistical analysis module used to fit the data.
-        configuration['analysis_method_params'] : dictionnary
-            Parametres for the statistical analysis module. To each parametre
+        configuration['analysis_method_params'] : dictionary
+            Parameters for the statistical analysis module. To each parameter
             is associated a list of possible values.
         """
         configuration = {}
@@ -233,7 +233,7 @@ class Configuration(object):
                         'analysis_method']:
             configuration[section] = self.config[section]
 
-        # Parsing the SED modules parametres
+        # Parsing the SED modules parameters
         configuration['sed_modules_params'] = []
         for module in self.config['sed_modules']:
             module_params = {}
@@ -242,7 +242,7 @@ class Configuration(object):
                 module_params[key] = evaluate_description(value)
             configuration['sed_modules_params'].append(module_params)
 
-        # Parsing the statistical analysis parametres
+        # Parsing the statistical analysis parameters
         configuration['analysis_method_params'] = {}
         for key, value in self.config['analysis_configuration'].items():
             configuration['analysis_method_params'][key] = \
@@ -252,24 +252,24 @@ class Configuration(object):
 
     @property
     def sed_modules_conf_array(self):
-        """Return the array of all the possible parametre sets from the
+        """Return the array of all the possible parameter sets from the
         SED creation modules.
 
         TODO: Maybe it would be more optimal to create an iterator that would
-              iterate over the whole parametre combinations instead of
+              iterate over the whole parameter combinations instead of
               creating the array.
 
         Returns
         -------
         result : array of arrays of dictionaries
-            The inner arrays contains the various parametre dictionaries
+            The inner arrays contains the various parameter dictionaries
             for the modules listed in configuration['sed_modules'].
 
         """
 
         # First, for each module, we transform the dictionary containing all
-        # the possible value for each parametre in a list of dictionaries
-        # containing one value for each parametre. We put this list in a list
+        # the possible value for each parameter in a list of dictionaries
+        # containing one value for each parameter. We put this list in a list
         # corresponding to the SED modules one.
         tmp_list = [param_dict_combine(dictionary) for dictionary in
                     self.configuration['sed_modules_params']]

@@ -19,7 +19,7 @@ class SED(object):
     This class represents a Spectral Energy Distribution (SED) as constructed
     by pCigale. Such a SED is characterised by:
 
-    - A list of tuples (module name, parametre dictionnary) describing all the
+    - A list of tuples (module name, parameter dictionary) describing all the
       pCigale modules the SED 'went through'.
 
     - The wavelengths grid (in nm).
@@ -33,7 +33,7 @@ class SED(object):
       separated from the list of the modules so that one module can result in
       various contributions to the SED.
 
-    - A dictionnary of arbitrary information associated with the SED.
+    - A dictionary of arbitrary information associated with the SED.
 
     - The list of the keys from the info dictionary whose value is
       proportional to the galaxy mass.
@@ -89,7 +89,7 @@ class SED(object):
         Return the (redshifted if asked) total Fν flux density vs wavelength
         spectrum of the SED.
 
-        Parametres
+        Parameters
         ----------
         redshift : float, default = 0
             If 0 (the default), the flux at 10 pc is computed.
@@ -116,11 +116,11 @@ class SED(object):
         """
         Add a key / value to the information dictionary
 
-        If the key is present in the dictionnary, it will raise an exception.
+        If the key is present in the dictionary, it will raise an exception.
         Use this method (instead of direct value assignment ) to avoid
         overriding a yet present information.
 
-        Parametres
+        Parameters
         ----------
         key : any immutable
            The key used to retrieve the information.
@@ -142,15 +142,15 @@ class SED(object):
     def add_module(self, module_name, module_conf):
         """Add a new module information to the SED.
 
-        Parametres
+        Parameters
         ----------
         module_name : string
             Name of the module. This name can be suffixed with anything
             using a dot.
         module_conf : dictionary
-            Dictionary containing the module parametres.
+            Dictionary containing the module parameters.
 
-        TODO: Complete the parametre dictionary with the default values from
+        TODO: Complete the parameter dictionary with the default values from
               the module if they are not present.
 
         """
@@ -168,7 +168,7 @@ class SED(object):
         luminosity set to 0. Also, the name of the contribution is added to
         the contribution names array.
 
-        Parametres
+        Parameters
         ----------
         contribution_name : string
             Name of the contribution added. This name is used to retrieve the
@@ -229,7 +229,7 @@ class SED(object):
         If the name of the contribution is not unique in the SED, the flux of
         the last one is returned.
 
-        Parametres
+        Parameters
         ----------
         name : string
             Name of the contribution
@@ -269,7 +269,7 @@ class SED(object):
         If the SED spectrum does not cover all the filter response table,
         -99 is returned.
 
-        Parametres
+        Parameters
         ----------
         transmission : 2D array of floats
             A numpy 2D array containing the filter response profile

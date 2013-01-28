@@ -15,7 +15,7 @@ def param_dict_combine(dictionary):
     """Given a dictionary associating to each key an array, returns all the
     possible dictionaries associating a single element to each key.
 
-    Parametres
+    Parameters
     ----------
     dictionary : dict
         Dictionary associating an array to its (or some of its) keys.

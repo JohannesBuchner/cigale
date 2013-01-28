@@ -10,31 +10,31 @@ from . import SED
 from .modules import common as sed_modules
 
 
-def create_sed(module_list, parametre_list):
-    """Create a new SED using the given modules and parametres
+def create_sed(module_list, parameter_list):
+    """Create a new SED using the given modules and parameters
 
-    Parametres
+    Parameters
     ----------
     module_list : list
         List of module names in the order they have to be used to create
         the SED.
-    parametre_list : list of dictionaries
-        List of the parametre dictionaries corresponding to each module of
+    parameter_list : list of dictionaries
+        List of the parameter dictionaries corresponding to each module of
         the module_list list.
 
     Returns
     -------
     sed : pcigale.sed
-        The SED made from the given modules with the given parametres.
+        The SED made from the given modules with the given parameters.
 
     """
 
     # We start from an empty SED.
     sed = SED()
 
-    for (module, parametres) in zip(module_list, parametre_list):
+    for (module, parameters) in zip(module_list, parameter_list):
         mod = sed_modules.get_module(module)
-        mod.parametres = parametres
+        mod.parameters = parameters
         mod.process(sed)
 
     return sed

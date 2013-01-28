@@ -12,22 +12,22 @@ class SEDCreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 
-    # parametre_list is a dictionnary containing all the parametres used by
-    # the module. Each parametre name is associate to a tuple (variable type,
+    # parameter_list is a dictionary containing all the parameters used by
+    # the module. Each parameter name is associate to a tuple (variable type,
     # description [string], default value). Each module must define its
-    # parametre list, unless it does not use any parametre. Using None means
+    # parameter list, unless it does not use any parameter. Using None means
     # that there is no description or default value. If None should be the
     # default value, use the 'None' string instead.
-    parametre_list = {}
+    parameter_list = {}
 
-    # out_parametre_list is a dictionnary containing all the SED parametres
-    # that are added to the SED info dictionnary and for which a statistical
-    # analysis may be done. Each parametre name is associated with its
-    # description. In the SED info dictionary, the parametre name in prefixed
+    # out_parameter_list is a dictionary containing all the SED parameters
+    # that are added to the SED info dictionary and for which a statistical
+    # analysis may be done. Each parameter name is associated with its
+    # description. In the SED info dictionary, the parameter name in prefixed
     # with the name of the module plus an underscore (to allow several
-    # modules to add a parametre with the same name, for instance a repeated
+    # modules to add a parameter with the same name, for instance a repeated
     # module.)
-    out_parametre_list = {}
+    out_parameter_list = {}
 
     # comments is the text that is used to comment the module section in
     # the configuration file. For instance, it can be used to give special
@@ -38,101 +38,101 @@ class SEDCreationModule(object):
         """Instantiate a SED creation module
 
         A name can be given to the module. This can be useful when a same
-        module is used several times with different parametres in the SED
+        module is used several times with different parameters in the SED
         creation process.
 
-        The module parametres values can be passed as keyworded paramatres.
+        The module parameters values can be passed as keyworded paramatres.
         """
         self.name = name
 
-        # parametres is a dictionnary containing the actual values for each
-        # module parametre.
-        self.parametres = kwargs
+        # parameters is a dictionary containing the actual values for each
+        # module parameter.
+        self.parameters = kwargs
 
-    def _process(self, sed, parametres):
+    def _process(self, sed, parameters):
         """Do the actual processing of the module on a SED object
 
-        This method is called with an object and a complete parametres
-        dictionnary. It is not meant to be called directly but through the
+        This method is called with an object and a complete parameters
+        dictionary. It is not meant to be called directly but through the
         process method.
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parametres : dictionnary of the module parametres
+        parameters : dictionary of the module parameters
 
         """
         raise NotImplementedError()
 
-    def process(self, sed, parametres=None):
+    def process(self, sed, parameters=None):
         """Process a SED object with the module
 
-        This method is responsible for checking the module parametres (whether
-        they are given in the method call or are taken from parametres class
+        This method is responsible for checking the module parameters (whether
+        they are given in the method call or are taken from parameters class
         attribute) before doing the actual processing (_process method). If a
-        parametre is not given but exists in the parametre_list with a default
+        parameter is not given but exists in the parameter_list with a default
         value, this value is used.
 
         The SED object is updated during the process, one must take care of
         copying it before, if needed.
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parametres : dictionnary
-            Dictionnary containing the module parametre values, if it is not
-            given, the module parametre values are used
+        parameters : dictionary
+            Dictionary containing the module parameter values, if it is not
+            given, the module parameter values are used
 
         Raises
         ------
-        KeyError : when not all the needed parametres are given.
+        KeyError : when not all the needed parameters are given.
 
         """
 
-        # If the parametre dictionnary is not passed, use the module one
-        if not parametres:
-            parametres = self.parametres
+        # If the parameter dictionary is not passed, use the module one
+        if not parameters:
+            parameters = self.parameters
 
-        # For parametres that are present on the parametre_list with a default
-        # value and that are not in the parametres dictionnary, we add them
+        # For parameters that are present on the parameter_list with a default
+        # value and that are not in the parameters dictionary, we add them
         # with their default value.
-        for key in self.parametre_list:
-            if (not key in parametres) and (
-                    self.parametre_list[key][2] is not None):
-                parametres[key] = self.parametre_list[key][2]
+        for key in self.parameter_list:
+            if (not key in parameters) and (
+                    self.parameter_list[key][2] is not None):
+                parameters[key] = self.parameter_list[key][2]
 
-        # If the keys of the parametres dictionnary are different from the one
-        # of the parametre_list dictionnary, we raises a KeyError. That means
-        # that a parametre is missing (and has no default value) or that an
+        # If the keys of the parameters dictionary are different from the one
+        # of the parameter_list dictionary, we raises a KeyError. That means
+        # that a parameter is missing (and has no default value) or that an
         # unexpected one was given.
-        if not set(parametres.keys()) == set(self.parametre_list.keys()):
-            missing_parametres = (set(self.parametre_list.keys())
-                                  - set(parametres.keys()))
-            unexpected_parametres = (set(parametres.keys())
-                                     - set(self.parametre_list.keys()))
+        if not set(parameters.keys()) == set(self.parameter_list.keys()):
+            missing_parameters = (set(self.parameter_list.keys())
+                                  - set(parameters.keys()))
+            unexpected_parameters = (set(parameters.keys())
+                                     - set(self.parameter_list.keys()))
             message = ""
-            if missing_parametres:
-                message += ("Missing parametres: " +
-                            ", ".join(missing_parametres) +
+            if missing_parameters:
+                message += ("Missing parameters: " +
+                            ", ".join(missing_parameters) +
                             ".")
-            if unexpected_parametres:
-                message += ("Unexpected parametres: " +
-                            ", ".join(unexpected_parametres) +
+            if unexpected_parameters:
+                message += ("Unexpected parameters: " +
+                            ", ".join(unexpected_parameters) +
                             ".")
-            raise KeyError("The parametres passed are different from the "
+            raise KeyError("The parameters passed are different from the "
                            "expected one." + message)
 
-        # TODO: We should also check that all parametres is from the right
+        # TODO: We should also check that all parameters is from the right
         # type.
 
         # We do the actual processing.
-        self._process(sed, parametres)
+        self._process(sed, parameters)
 
 
 def get_module(name):
     """Get a SED creation module from its name
 
-    Parametres
+    Parameters
     ----------
     module_name : string
         The name of the module we want to get the class. This name can be

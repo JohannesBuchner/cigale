@@ -22,7 +22,7 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parametre_list = {
+    parameter_list = {
         "redshift": (
             'float',
             "Redshift to apply to the galaxy.",
@@ -36,23 +36,23 @@ class Module(common.SEDCreationModule):
         ),
         "rtau": (
             'float',
-            "Parametre which scale the tau value at each wavelength.",
+            "Parameter which scale the tau value at each wavelength.",
             1.
         )
     }
 
-    def _process(self, sed, parametres):
+    def _process(self, sed, parameters):
         """Add the redshift + IGM attenuation effect to the SED
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parametres : dictionnary
-           Dictionnary with the module parametres (redshift and rtau)
+        parameters : dictionary
+           Dictionary with the module parameters (redshift and rtau)
 
         """
 
-        if parametres['redshift'] == 0:
+        if parameters['redshift'] == 0:
             # If redshift is 0, we do nothing
             pass
         else:
@@ -60,14 +60,14 @@ class Module(common.SEDCreationModule):
             lsstSed = lsst.Sed()
 
             # First, we get the redshifted spectrum of the galaxy
-            wavelen, flambda = lsstSed.redshiftSED(parametres['redshift'],
-                                                   parametres['dimming'],
+            wavelen, flambda = lsstSed.redshiftSED(parameters['redshift'],
+                                                   parameters['dimming'],
                                                    sed.wavelength_grid,
                                                    sed.luminosity)
 
             wavelen, red_l_lambda = lsstSed.addIGMattenuation(
-                parametres['redshift'],
-                parametres['rtau'],
+                parameters['redshift'],
+                parameters['rtau'],
                 wavelen=wavelen,
                 flambda=flambda
             )
@@ -86,10 +86,10 @@ class Module(common.SEDCreationModule):
             # Base name for adding information to the SED.
             name = self.name or 'igmattenuation'
 
-            sed.add_module(name, parametres)
+            sed.add_module(name, parameters)
 
-            sed.add_info(name + '_redshift', parametres['redshift'])
-            sed.add_info(name + '_rtau', parametres['rtau'])
+            sed.add_info(name + '_redshift', parameters['redshift'])
+            sed.add_info(name + '_rtau', parameters['rtau'])
 
             sed.add_contribution(
                 name,

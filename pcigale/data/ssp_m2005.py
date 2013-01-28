@@ -35,7 +35,7 @@ class SspM2005(object):
                  mass_table, spec_table):
         """Create a new single stellar population as defined in Maraston 2005.
 
-        Parametres
+        Parameters
         ----------
         imf : string
             Initial mass function (IMF): either 'ss' for single Salpeter
@@ -92,7 +92,7 @@ class SspM2005(object):
         If 'age' is a float, the computation is a lot faster, based on the
         fact that the SFR is given at each age of the SSP age grid.
 
-        Parametres
+        Parameters
         ----------
         sfh : array of floats
             Star Formation Rates in Msun/y for each age of the SSP age grid.
@@ -127,7 +127,7 @@ class SspM2005(object):
             raise ValueError("The star formation rate must be base"
                              "on the same grid than the SSP.")
 
-        # Check if the age parametre is a unique float or an array.
+        # Check if the age parameter is a unique float or an array.
         try:
             age = float(age)
             isAgeUnique = True
@@ -164,7 +164,7 @@ class SspM2005(object):
             spectra = 1.e9 * step * np.dot(spec_table, sfh[::-1])
 
         else:
-            # If the age parametre is an array, we do the full convolution.
+            # If the age parameter is an array, we do the full convolution.
             # 1. We limit sfh, mass_table, spec_table and time_grid for time
             # up to the maximum age.
             # Index of the time nearest to the maximum age in the grid.

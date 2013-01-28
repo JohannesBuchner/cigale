@@ -26,7 +26,7 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parametre_list = {
+    parameter_list = {
         'alpha': (
             'float',
             "Alpha slope.",
@@ -40,19 +40,19 @@ class Module(common.SEDCreationModule):
         )
     }
 
-    out_parametre_list = {'alpha': 'Alpha slope.'}
+    out_parameter_list = {'alpha': 'Alpha slope.'}
 
-    def _process(self, sed, parametres):
+    def _process(self, sed, parameters):
         """Add the IR re-emission contributions
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parametres : dictionnary containing the parametres
+        parameters : dictionary containing the parameters
 
         """
-        alpha = parametres["alpha"]
-        extinction_value_names = parametres["extinction_value_names"]
+        alpha = parameters["alpha"]
+        extinction_value_names = parameters["extinction_value_names"]
 
         # Get the template set out of the database
         database = Database()
@@ -64,7 +64,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'dh2002_ir'
 
-        sed.add_module(name, parametres)
+        sed.add_module(name, parameters)
         sed.add_info(name + '_alpha', alpha)
 
         for extinction in extinction_value_names:

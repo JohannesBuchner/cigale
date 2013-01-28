@@ -15,7 +15,7 @@ from pcigale.data import Database
 
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
-# number of parametres. The value is in Gyr.
+# number of parameters. The value is in Gyr.
 AV_LAPSE = 0.1
 
 
@@ -44,7 +44,7 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parametre_list = {
+    parameter_list = {
         'imf': (
             'string',
             "Initial mass function: ss (Salpeter) or kr (Krupa)",
@@ -77,7 +77,7 @@ class Module(common.SEDCreationModule):
         )
     }
 
-    out_parametre_list = {
+    out_parameter_list = {
         'galaxy_age': 'Age (in Gyr) of the oldest stars in the galaxy.',
         'sfr': 'Instantaneous Star Formation Rate in solar mass per year, '
                'at the age of the galaxy.',
@@ -118,23 +118,23 @@ class Module(common.SEDCreationModule):
                                '(young population).'
     }
 
-    def _process(self, sed, parametres):
+    def _process(self, sed, parameters):
         """Add the convolution of a Maraston 2005 SSP to the SED
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED
             SED object.
-        parametres : dictionnary
-            Dictionnary containing the parametres
+        parameters : dictionary
+            Dictionary containing the parameters
 
         """
 
-        imf = self.parametres['imf']
-        metallicity = self.parametres['metallicity']
-        sfh = np.copy(self.parametres['sfh'])
-        oldest_age = self.parametres['oldest_age']
-        separation_age = self.parametres['separation_age']
+        imf = self.parameters['imf']
+        metallicity = self.parameters['metallicity']
+        sfh = np.copy(self.parameters['sfh'])
+        oldest_age = self.parameters['oldest_age']
+        separation_age = self.parameters['separation_age']
 
         # First, we take the SSP out of the database.
         database = Database()
@@ -186,7 +186,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'm2005_sfh'
 
-        sed.add_module(name, parametres)
+        sed.add_module(name, parameters)
 
         sed.add_info('imf', imf)
         sed.add_info('metallicity', metallicity)

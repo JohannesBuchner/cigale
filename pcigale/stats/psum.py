@@ -8,11 +8,11 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 This file implements the statistical analysis as performed by the calcX2_psum
 programme of the Fortran Cigale code.
 
-The models corresponding to all possible combinations of parametres are
+The models corresponding to all possible combinations of parameters are
 computed are the integrated flux in the same filters as the observations are
 used to compute the χ² of the fitting. This χ² give a propability that is
-associated with the model values for the parametres. At the end, for each
-parametre, the (probability) weighted mean and standard deviation are computed
+associated with the model values for the parameters. At the end, for each
+parameter, the (probability) weighted mean and standard deviation are computed
 and the best fitting model (the one with the least reduced χ²) is given.
 
 TODO: Factorise the way the analysis is done to have general methods in the
@@ -42,7 +42,7 @@ class Module(common.AnalysisModule):
     TODO: Description of the PSUM method.
     """
 
-    parametre_list = {
+    parameter_list = {
         'analysed_variables': (
             'array of strings',
             None,
@@ -60,7 +60,7 @@ class Module(common.AnalysisModule):
         over each theoretical SEDs. We first loop over the SEDs to limit the
         number of time the SEDs are created.
 
-        Parametres
+        Parameters
         ----------
         data_file: string
             Name of the file containing the observations to fit.
@@ -70,7 +70,7 @@ class Module(common.AnalysisModule):
             List of the module names (in the right order) to use for creating
             the SEDs.
         sed_modules_params: list of dictionaries
-            List of the parametre dictionaries for each module.
+            List of the parameter dictionaries for each module.
         analysed_variables: list of strings
             List of the variables (from the SED info dictionaries) to be
             statistically analysed.
@@ -80,7 +80,7 @@ class Module(common.AnalysisModule):
         best_sed: list of tuples (pcigale.sed object, dict, float, float)
             There is one tuple per observed object: the first element is the
             best fitting SED for this object, the second dictionary of
-            parametre used to produce it, the third is the reduced Chi-square
+            parameter used to produce it, the third is the reduced Chi-square
             of the fit and the fourth is the normalisation factor to be
             applied to the SED to fit the observation.
         results: dictionary
@@ -142,9 +142,9 @@ class Module(common.AnalysisModule):
         comp_table[:, :, :] = np.nan
 
         # We loop over all the possible theoretical SEDs
-        for model_index, parametres in enumerate(sed_modules_params):
+        for model_index, parameters in enumerate(sed_modules_params):
 
-            sed = create_sed(sed_modules, parametres)
+            sed = create_sed(sed_modules, parameters)
 
             # Compute the reduced Chi-square, the galaxy mass (normalisation
             # factor) and probability for each observed SEDs. Add these and
@@ -224,7 +224,7 @@ def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
     The systematic deviation change the error to:
     sqrt( error² + (flux * deviation)² )
 
-    Parametres
+    Parameters
     ----------
     flux : array of floats
         Fluxes.
@@ -264,7 +264,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
     """Compute chi square value and normalisation factor for the comparison
     of a model fluxes to observational ones.
 
-    Parametres
+    Parameters
     ----------
     model_fluxes : array of floats
         Model fluxes.
@@ -342,7 +342,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
 def w_mean_sigma(values, weights):
     """Return the weighted average and standard deviation
 
-    Parametres
+    Parameters
     ----------
     values : list of floats
         List of values.

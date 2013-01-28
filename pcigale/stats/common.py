@@ -12,28 +12,28 @@ class AnalysisModule(object):
     """Abstract class, the pCigale analysis modules are based on.
     """
 
-    # parametre_list is a dictionnary containing all the parametres used by
-    # the module. Each parametre name is associate to a tuple (variable type,
+    # parameter_list is a dictionary containing all the parameters used by
+    # the module. Each parameter name is associate to a tuple (variable type,
     # unit [string], description [string], default value). Each module must
-    # define its parametre list, unless it does not use any parametre. Using
+    # define its parameter list, unless it does not use any parameter. Using
     # None means that there is no description, unit or default value. If None
     # should be the default value, use the 'None' string instead.
-    parametre_list = {}
+    parameter_list = {}
 
     def __init__(self, **kwargs):
         """Instantiate a analysis module
 
-        The module parametres values can be passed as keyworded paramatres.
+        The module parameters values can be passed as keyworded paramatres.
         """
-        # parametres is a dictionnary containing the actual values for each
-        # module parametre.
-        self.parametres = kwargs
+        # parameters is a dictionary containing the actual values for each
+        # module parameter.
+        self.parameters = kwargs
 
 
 def get_module(module_name):
     """Return the main class of the module provided
 
-    Parametres
+    Parameters
     ----------
     module_name : string
         The name of the module we want to get the class.
