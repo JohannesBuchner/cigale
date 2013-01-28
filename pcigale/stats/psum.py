@@ -170,8 +170,12 @@ class Module(common.AnalysisModule):
                 comp_table[model_index, obs_index, 2] = galaxy_mass
 
                 for index, variable in enumerate(analysed_variables):
-                    comp_table[model_index, obs_index, index + 3] = \
-                        sed.info[variable]
+                    if variable in sed.mass_proportional_info:
+                        comp_table[model_index, obs_index, index + 3] = \
+                            galaxy_mass * sed.info[variable]
+                    else:
+                        comp_table[model_index, obs_index, index + 3] = \
+                            sed.info[variable]
 
         # Find the model corresponding to the least reduced Chi-square for
         # each observation.

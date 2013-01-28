@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -14,8 +14,7 @@ from scipy.constants import c
 
 
 class SED(object):
-    """
-    Spectral Energy Distribution with associated information
+    """Spectral Energy Distribution with associated information
 
     This class represents a Spectral Energy Distribution (SED) as constructed
     by pCigale. Such a SED is characterised by:
@@ -36,6 +35,9 @@ class SED(object):
 
     - A dictionnary of arbitrary information associated with the SED.
 
+    - The list of the keys from the info dictionary whose value is
+      proportional to the galaxy mass.
+
     """
 
     def __init__(self):
@@ -44,6 +46,7 @@ class SED(object):
         self.lumin_contributions = None
         self.contribution_names = []
         self.info = {}
+        self.mass_proportional_info = []
 
     @property
     def wavelength_grid(self):
@@ -109,7 +112,7 @@ class SED(object):
 
         return wavelength, f_nu
 
-    def add_info(self, key, value):
+    def add_info(self, key, value, mass_proportional=False):
         """
         Add a key / value to the information dictionary
 
@@ -123,10 +126,15 @@ class SED(object):
            The key used to retrieve the information.
         value : anything
            The information.
+        mass_proportional : boolean
+           If True, the added variable is set as proportional to the
+           mass.
 
         """
         if key not in self.info:
             self.info[key] = value
+            if mass_proportional:
+                self.mass_proportional_info.append(key)
         else:
             raise KeyError("The information %s is yet present "
                            "in the SED. " % key)
