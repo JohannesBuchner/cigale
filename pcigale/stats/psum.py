@@ -22,6 +22,8 @@ TODO: Factorise the way the analysis is done to have general methods in the
 
 """
 
+import os
+import sys
 import atpy
 import numpy as np
 from scipy import stats
@@ -35,6 +37,8 @@ from ..data import Database
 TOLERANCE = 1.e-12
 # Name of the fits file containing the results
 RESULT_FILE = 'psum_results.xml'
+# Directory where the output files are storeds
+OUT_DIR = 'out/'
 
 
 class Module(common.AnalysisModule):
@@ -93,6 +97,14 @@ class Module(common.AnalysisModule):
             disk.
 
         """
+
+        # Create the output directory and stop it exists.
+        try:
+            os.mkdir(OUT_DIR)
+        except OSError:
+            print("pcigale can't create the {} directory, maybe "
+                  "it yet exists.".format(OUT_DIR))
+            sys.exit()
 
         best_sed_list = []
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}
@@ -210,7 +222,7 @@ class Module(common.AnalysisModule):
             ax.set_title(obs_name +
                          ' best fitting SED - chi2min=' +
                          str(best_chi2))
-            figure.savefig(obs_name + '_bestSED.pdf')
+            figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
 
             # Compute the statistics for the desired variables.
             for index, variable in enumerate(['galaxy_mass'] +
@@ -234,7 +246,8 @@ class Module(common.AnalysisModule):
                 ax.set_xlabel('value')
                 ax.set_ylabel('reduced chi square')
                 ax.set_title(variable)
-                figure.savefig(obs_name + '_' + variable + '_plot.pdf')
+                figure.savefig(OUT_DIR +
+                               obs_name + '_' + variable + '_plot.pdf')
 
         # Write the results to the fits file
         result_table = atpy.Table()
@@ -242,7 +255,7 @@ class Module(common.AnalysisModule):
             result_table.add_column(variable, results[variable])
             result_table.add_column(variable + '_err',
                                     results[variable + '_err'])
-        result_table.write(RESULT_FILE)
+        result_table.write(OUT_DIR + RESULT_FILE)
 
         return best_sed_list
 
