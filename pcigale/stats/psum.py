@@ -25,6 +25,7 @@ TODO: Factorise the way the analysis is done to have general methods in the
 import atpy
 import numpy as np
 from scipy import stats
+from matplotlib import pyplot as plt
 from . import common
 from ..sed.warehouse import create_sed
 from ..data import Database
@@ -143,7 +144,6 @@ class Module(common.AnalysisModule):
 
         # We loop over all the possible theoretical SEDs
         for model_index, parameters in enumerate(sed_modules_params):
-
             sed = create_sed(sed_modules, parameters)
 
             # Compute the reduced Chi-square, the galaxy mass (normalisation
@@ -180,7 +180,7 @@ class Module(common.AnalysisModule):
         # Find the model corresponding to the least reduced Chi-square for
         # each observation.
         # Now we loop over the observations.
-        for obs_index in range(obs_table.data.shape[0]):
+        for obs_index, obs_name in enumerate(obs_table['id']):
             # Find the model corresponding to the least reduced Chi-square;
             # if there more than one model with the minimal chi-square value
             # only the first is returned.
@@ -194,17 +194,47 @@ class Module(common.AnalysisModule):
                                   best_chi2,
                                   best_norm_factor))
 
+            # Plot the best SED
+            best_sed_lambda_fnu = best_sed.lambda_fnu(
+                redshift=obs_table['redshift'][obs_index])
+            figure = plt.figure()
+            ax = figure.add_subplot(111)
+            ax.loglog(best_sed_lambda_fnu[0],
+                      best_norm_factor * best_sed_lambda_fnu[1],
+                      '-b')
+            ax.loglog([effective_wavelength[name] for name in filter_list],
+                      [obs_table[name][obs_index] for name in filter_list],
+                      'or')
+            ax.set_xlabel('Wavelength [nm]')
+            ax.set_ylabel('Flux [mJy]')
+            ax.set_title(obs_name +
+                         ' best fitting SED - chi2min=' +
+                         str(best_chi2))
+            figure.savefig(obs_name + '_bestSED.pdf')
+
             # Compute the statistics for the desired variables.
             for index, variable in enumerate(['galaxy_mass'] +
                                              analysed_variables):
                 # The 'variable' axis in comp_table as chi2 and probability
-                # values at the beginnng.
+                # values at the beginning.
                 idx = index + 2
+
                 mean, sigma = w_mean_sigma(comp_table[:, obs_index, idx],
                                            comp_table[:, obs_index, 1])
 
                 results[variable].append(mean)
                 results[variable + '_err'].append(sigma)
+
+                # We plot all the (value, chi2min) tuples.
+                figure = plt.figure()
+                ax = figure.add_subplot(111)
+                ax.plot(comp_table[:, obs_index, idx],
+                        comp_table[:, obs_index, 0],
+                        '.')
+                ax.set_xlabel('value')
+                ax.set_ylabel('reduced chi square')
+                ax.set_title(variable)
+                figure.savefig(obs_name + '_' + variable + '_plot.pdf')
 
         # Write the results to the fits file
         result_table = atpy.Table()
