@@ -58,7 +58,7 @@ class Module(common.AnalysisModule):
     }
 
     def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, analysed_variables):
+                sed_modules_params, parameters):
         """Process with the psum analysis.
 
         The analysis is done in two nested loops: over each observation and
@@ -76,9 +76,8 @@ class Module(common.AnalysisModule):
             the SEDs.
         sed_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
-        analysed_variables: list of strings
-            List of the variables (from the SED info dictionaries) to be
-            statistically analysed.
+        parameters: dictionary
+            Dictionnary containing the parameters.
 
         Returns
         -------
@@ -105,6 +104,9 @@ class Module(common.AnalysisModule):
             print("pcigale can't create the {} directory, maybe "
                   "it yet exists.".format(OUT_DIR))
             sys.exit()
+
+
+        analysed_variables = parameters["analysed_variables"]
 
         best_sed_list = []
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}

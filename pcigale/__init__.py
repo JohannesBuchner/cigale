@@ -9,7 +9,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 import argparse
 from .session.configuration import Configuration
-from .stats import psum as stats_module
+from .stats.common import get_module as get_stats_module
 
 
 def init(config):
@@ -41,21 +41,11 @@ def run(config):
     column_list = config.configuration['column_list']
     sed_modules = config.configuration['sed_modules']
     sed_modules_params = config.sed_modules_conf_array
-    analysed_variables = \
-        config.configuration['analysis_method_params']['analysed_variables']
-    psum = stats_module.Module()
-    psum_results = psum.process(data_file, column_list, sed_modules,
-                                sed_modules_params, analysed_variables)
-    for (index, (sed, params, chi2, norm_factor)) in enumerate(psum_results):
-        print("Object {}:".format(index))
-        print("Best SED Chi2: {}".format(chi2))
-        print("Best SED factor: {}".format(norm_factor))
-        print("Best SED parameters:")
-        print(params)
-        print("Best SED info:")
-        for (key, value) in sed.info.items():
-            print("{} : {}".format(key, value))
-        print("##################################")
+    stat_module = get_stats_module(config.configuration['analysis_method'])
+    stat_module_params = config.configuration['analysis_method_params']
+
+    stat_module.process(data_file, column_list, sed_modules,
+                        sed_modules_params, stat_module_params)
 
 
 def main():
