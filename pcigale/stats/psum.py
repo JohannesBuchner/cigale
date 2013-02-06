@@ -22,6 +22,7 @@ import sys
 import atpy
 import numpy as np
 from scipy import stats
+from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
 from ..sed.warehouse import create_sed
@@ -171,6 +172,7 @@ class Module(common.AnalysisModule):
         comp_table[:, :, :] = np.nan
 
         # We loop over all the possible theoretical SEDs
+        progress_bar = ProgressBar(maxval=len(sed_modules_params)).start()
         for model_index, parameters in enumerate(sed_modules_params):
             sed = create_sed(sed_modules, parameters)
 
@@ -205,6 +207,9 @@ class Module(common.AnalysisModule):
                         comp_table[model_index, obs_index, index + 3] = \
                             sed.info[variable]
 
+            progress_bar.update(model_index + 1)
+
+        progress_bar.finish()
         # Find the model corresponding to the least reduced Chi-square for
         # each observation.
         # Now we loop over the observations.
