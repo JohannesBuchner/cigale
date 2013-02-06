@@ -49,6 +49,11 @@ class Module(common.AnalysisModule):
             "the statistical analysis will be done.",
             ["sfr", "average_sfr"]
         ),
+        "save_best_sed": (
+            "boolean",
+            "If true, save the best SED for each observation to a file.",
+            False
+        ),
         "plot_best_sed": (
             "boolean",
             "If true, for each observation save a plot of the best SED "
@@ -113,6 +118,7 @@ class Module(common.AnalysisModule):
 
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
+        save_best_sed = parameters["save_best_sed"]
         plot_best_sed = parameters["plot_best_sed"]
         plot_chi2_distribution = parameters["plot_chi2_distribution"]
 
@@ -215,6 +221,23 @@ class Module(common.AnalysisModule):
                                   best_params,
                                   best_chi2,
                                   best_norm_factor))
+
+            # Save best SED
+            # TODO: For now, we only save the lambda vs fnu table. Once
+            # we develop a way to serialise the SED, we should save the
+            # complete SED object.
+            if save_best_sed:
+                best_sed_lambda_fnu = best_sed.lambda_fnu(
+                    redshift=obs_table['redshift'][obs_index])
+                best_sed_table = atpy.Table()
+                best_sed_table.add_column("wavelength",
+                                          best_sed_lambda_fnu[0],
+                                          "nm")
+                best_sed_table.add_column("fnu",
+                                          best_norm_factor
+                                          * best_sed_lambda_fnu[1],
+                                          "mJy")
+                best_sed_table.write(OUT_DIR + obs_name + 'bestSED.xml')
 
             # Plot the best SED
             if plot_best_sed:
