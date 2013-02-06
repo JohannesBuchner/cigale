@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -181,7 +181,7 @@ class Configuration(object):
             self.config["sed_creation_modules"][module_name] = {}
             sub_config = self.config["sed_creation_modules"][module_name]
 
-            for name, (typ, unit, description, default) in \
+            for name, (typ, description, default) in \
                     modules.get_module(module_name).parameter_list.items():
                 if default is None:
                     default = ''
@@ -196,7 +196,7 @@ class Configuration(object):
         self.config.comments['analysis_configuration'] = ["", ""] + wrap(
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
-        for name, (typ, unit, desc, default) in \
+        for name, (typ, desc, default) in \
                 analysis.get_module(module_name).parameter_list.items():
             if default is None:
                 default = ''
