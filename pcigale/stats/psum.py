@@ -66,6 +66,26 @@ class Module(common.AnalysisModule):
             "If true, for each observation and each analysed variable "
             "plot the value vs reduced chi-square distribution.",
             False
+        ),
+        "save_pdf": (
+            "boolean",
+            "If true, for each observation and each analysed variable "
+            "save the probability density function.",
+            False
+        ),
+        "plot_pdf": (
+            "boolean",
+            "If true, for each observation and each analysed variable "
+            "plot the probability density function.",
+            False
+        ),
+        "pdf_max_bin_number": (
+            "integer",
+            "Maximum number of bins used to compute the probability density "
+            "function. This is only used when saving or printing the PDF. "
+            "If there are less values, the probability is given for each "
+            "one.",
+            50
         )
     }
 
@@ -122,6 +142,9 @@ class Module(common.AnalysisModule):
         save_best_sed = parameters["save_best_sed"]
         plot_best_sed = parameters["plot_best_sed"]
         plot_chi2_distribution = parameters["plot_chi2_distribution"]
+        save_pdf = parameters["save_pdf"]
+        plot_pdf = parameters["plot_pdf"]
+        pdf_max_bin_number = parameters["pdf_max_bin_number"]
 
         best_sed_list = []
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}
@@ -274,8 +297,10 @@ class Module(common.AnalysisModule):
                 # values at the beginning.
                 idx = index + 2
 
-                mean, sigma = w_mean_sigma(comp_table[:, obs_index, idx],
-                                           comp_table[:, obs_index, 1])
+                values = comp_table[:, obs_index, idx]
+                probabilities = comp_table[:, obs_index, 1]
+
+                mean, sigma = w_mean_sigma(values, probabilities)
 
                 results[variable].append(mean)
                 results[variable + '_err'].append(sigma)
@@ -292,6 +317,69 @@ class Module(common.AnalysisModule):
                     ax.set_title(variable)
                     figure.savefig(OUT_DIR +
                                    obs_name + '_' + variable + '_chi2plot.pdf')
+
+                # Probability Distribution Function
+                if save_pdf or plot_pdf:
+                    pdf_values = []
+                    pdf_probs = []
+
+                    # The maximum number of bins is the least between
+                    # pdf_max_bin_number and the number of distinct values
+                    # for the analyse variable.
+                    pdf_bin_number = min(pdf_max_bin_number,
+                                         len(np.unique(values)))
+
+                    pdf_bin_boundaries, pdf_bins = bin_evenly(values,
+                                                              pdf_bin_number)
+
+                    for bin in range(1, pdf_bin_number + 1):
+                        # The bin probability is the sum of the probabilities.
+                        bin_prob = np.sum(probabilities[pdf_bins == bin])
+                        # We use the weighted mean inside the bin as the bin
+                        # value unless the sum of the probability is 0, in that
+                        # case we use the mean.
+                        if bin_prob != 0:
+                            bin_mean = np.average(
+                                values[pdf_bins == bin],
+                                weights=probabilities[pdf_bins == bin]
+                            )
+                        else:
+                            bin_mean = np.mean(values)
+
+                        pdf_values.append(bin_mean)
+                        pdf_probs.append(bin_prob)
+
+                    if save_pdf:
+                        pdf_table = atpy.Table()
+                        pdf_table.add_column("bin_start",
+                                             pdf_bin_boundaries[:-1])
+                        pdf_table.add_column("bin_end",
+                                             pdf_bin_boundaries[1:])
+                        pdf_table.add_column("bin_weighted_mean", pdf_values)
+                        pdf_table.add_column("probability", pdf_probs)
+                        pdf_table.write(OUT_DIR + obs_name + "_" + variable +
+                                        "_pdf.xml")
+
+                    if plot_pdf:
+                        pdf_bin_sizes = [
+                            pdf_bin_boundaries[i+1] - pdf_bin_boundaries[i]
+                            for i in range(len(pdf_bin_boundaries)-1)
+                        ]
+                        figure = plt.figure()
+                        ax = figure.add_subplot(111)
+                        ax.bar(
+                            pdf_bin_boundaries[:-1],
+                            pdf_probs,
+                            pdf_bin_sizes
+                        )
+                        ax.axvline(mean, color="r")
+                        ax.axvline(mean - sigma, color="r", linestyle="-.")
+                        ax.axvline(mean + sigma, color="r", linestyle="-.")
+                        ax.set_title(obs_name + ' ' + variable + ' PDF')
+                        ax.set_xlabel(variable)
+                        ax.set_ylabel('Probability')
+                        figure.savefig(OUT_DIR + obs_name + "_" + variable +
+                                       "_pdf.pdf")
 
         # Write the results to the fits file
         result_table = atpy.Table()
@@ -447,3 +535,45 @@ def w_mean_sigma(values, weights):
     variance = np.dot(weights, (values - mean) ** 2) / np.sum(weights)
 
     return (mean, np.sqrt(variance))
+
+
+def bin_evenly(values, max_bins):
+    """Divide some values in evenly populated bins
+
+    Given a list of values and a desired number of bins, this method computes
+    the bins boundaries to have bins with the same number of elements in each
+    one and digitises the value list with these boundaries.
+
+    Parameters
+    ----------
+    values : list of floats
+        List of values to be binned.
+    max_bins : integer
+        Maximum number of bins. If there are less distinct value, every value
+        is in it's own bin.
+
+    Returns
+    -------
+    boundaries : array of floats
+        The value of the boundaries of the bins.
+    bins_digits : numpy array of integers
+        Array of the same length as the value list giving for each value the
+        bin number (between 1 and nb_of_bins) it belongs to.
+
+    """
+    # If there are less values than asked bins, raise an error.
+    if max_bins > len(values):
+        max_bins = len(values)
+
+    # The bin boundaries are the nb_of_bins + 1 quantiles.
+    quantiles = np.linspace(0, 1, max_bins + 1)
+    boundaries = stats.mstats.mquantiles(values, quantiles)
+
+    # Because of the way np.digitize works, we must have the last boundary
+    # higher than the value maximum to have this maximum belong to the last
+    # bin.
+    digitize_boundaries = np.copy(boundaries)
+    digitize_boundaries[-1] += 1
+    bin_digits = np.digitize(values, digitize_boundaries)
+
+    return (boundaries, bin_digits)
