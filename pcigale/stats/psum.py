@@ -15,11 +15,6 @@ associated with the model values for the parameters. At the end, for each
 parameter, the (probability) weighted mean and standard deviation are computed
 and the best fitting model (the one with the least reduced χ²) is given.
 
-TODO: Factorise the way the analysis is done to have general methods in the
-      AnalysisModule class that are defined in the specific class; in order
-      to make the statistical analysis modular as the SED creation modules
-      are.
-
 """
 
 import os
@@ -48,12 +43,23 @@ class Module(common.AnalysisModule):
     """
 
     parameter_list = {
-        'analysed_variables': (
-            'array of strings',
-            None,
+        "analysed_variables": (
+            "array of strings",
             "List of the variables (in the SEDs info dictionaries) for which "
             "the statistical analysis will be done.",
-            ['sfr', 'average_sfr']
+            ["sfr", "average_sfr"]
+        ),
+        "plot_best_sed": (
+            "boolean",
+            "If true, for each observation save a plot of the best SED "
+            "and the observed fluxes.",
+            False
+        ),
+        "plot_chi2_distribution": (
+            "boolean",
+            "If true, for each observation and each analysed variable "
+            "plot the value vs reduced chi-square distribution.",
+            False
         )
     }
 
@@ -105,8 +111,10 @@ class Module(common.AnalysisModule):
                   "it yet exists.".format(OUT_DIR))
             sys.exit()
 
-
+        # Get the parameters
         analysed_variables = parameters["analysed_variables"]
+        plot_best_sed = parameters["plot_best_sed"]
+        plot_chi2_distribution = parameters["plot_chi2_distribution"]
 
         best_sed_list = []
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}
@@ -209,22 +217,23 @@ class Module(common.AnalysisModule):
                                   best_norm_factor))
 
             # Plot the best SED
-            best_sed_lambda_fnu = best_sed.lambda_fnu(
-                redshift=obs_table['redshift'][obs_index])
-            figure = plt.figure()
-            ax = figure.add_subplot(111)
-            ax.loglog(best_sed_lambda_fnu[0],
-                      best_norm_factor * best_sed_lambda_fnu[1],
-                      '-b')
-            ax.loglog([effective_wavelength[name] for name in filter_list],
-                      [obs_table[name][obs_index] for name in filter_list],
-                      'or')
-            ax.set_xlabel('Wavelength [nm]')
-            ax.set_ylabel('Flux [mJy]')
-            ax.set_title(obs_name +
-                         ' best fitting SED - chi2min=' +
-                         str(best_chi2))
-            figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
+            if plot_best_sed:
+                best_sed_lambda_fnu = best_sed.lambda_fnu(
+                    redshift=obs_table['redshift'][obs_index])
+                figure = plt.figure()
+                ax = figure.add_subplot(111)
+                ax.loglog(best_sed_lambda_fnu[0],
+                          best_norm_factor * best_sed_lambda_fnu[1],
+                          '-b')
+                ax.loglog([effective_wavelength[name] for name in filter_list],
+                          [obs_table[name][obs_index] for name in filter_list],
+                          'or')
+                ax.set_xlabel('Wavelength [nm]')
+                ax.set_ylabel('Flux [mJy]')
+                ax.set_title(obs_name +
+                             ' best fitting SED - chi2min=' +
+                             str(best_chi2))
+                figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
 
             # Compute the statistics for the desired variables.
             for index, variable in enumerate(['galaxy_mass'] +
@@ -240,16 +249,17 @@ class Module(common.AnalysisModule):
                 results[variable + '_err'].append(sigma)
 
                 # We plot all the (value, chi2min) tuples.
-                figure = plt.figure()
-                ax = figure.add_subplot(111)
-                ax.plot(comp_table[:, obs_index, idx],
-                        comp_table[:, obs_index, 0],
-                        '.')
-                ax.set_xlabel('value')
-                ax.set_ylabel('reduced chi square')
-                ax.set_title(variable)
-                figure.savefig(OUT_DIR +
-                               obs_name + '_' + variable + '_plot.pdf')
+                if plot_chi2_distribution:
+                    figure = plt.figure()
+                    ax = figure.add_subplot(111)
+                    ax.plot(values,
+                            comp_table[:, obs_index, 0],
+                            '.')
+                    ax.set_xlabel('value')
+                    ax.set_ylabel('reduced chi square')
+                    ax.set_title(variable)
+                    figure.savefig(OUT_DIR +
+                                   obs_name + '_' + variable + '_chi2plot.pdf')
 
         # Write the results to the fits file
         result_table = atpy.Table()
