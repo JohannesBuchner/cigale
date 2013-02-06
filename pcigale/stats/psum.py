@@ -210,6 +210,10 @@ class Module(common.AnalysisModule):
             progress_bar.update(model_index + 1)
 
         progress_bar.finish()
+
+        #Save the numpy table
+        np.save(OUT_DIR + "comp_table.npy", comp_table)
+
         # Find the model corresponding to the least reduced Chi-square for
         # each observation.
         # Now we loop over the observations.
