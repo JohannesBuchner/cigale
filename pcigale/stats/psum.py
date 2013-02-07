@@ -187,7 +187,7 @@ class Module(common.AnalysisModule):
         # three axis numpy array: axis 1 is the model (based on the index of
         # the sed_module_params list), axis 2 is the observation (base on the
         # data table row index) and axis 3 is the considered variable (based
-        # on the analysed variables list + chi2min, probability and
+        # on the analysed variables list + reduced_chi2, probability and
         # galaxy_mass at the beginning).
         comp_table = np.zeros((len(sed_modules_params),
                                obs_table.data.shape[0],
@@ -215,10 +215,9 @@ class Module(common.AnalysisModule):
                                                 obs_redshift)
                                 for name in filter_list]
 
-                chi2min, galaxy_mass, probability = compute_chi2(theor_fluxes,
-                                                                 obs_fluxes,
-                                                                 obs_errors)
-                comp_table[model_index, obs_index, 0] = chi2min
+                reduced_chi2, galaxy_mass, probability = compute_chi2(
+                    theor_fluxes, obs_fluxes, obs_errors)
+                comp_table[model_index, obs_index, 0] = reduced_chi2
                 comp_table[model_index, obs_index, 1] = probability
                 comp_table[model_index, obs_index, 2] = galaxy_mass
 
@@ -286,7 +285,7 @@ class Module(common.AnalysisModule):
                 ax.set_xlabel('Wavelength [nm]')
                 ax.set_ylabel('Flux [mJy]')
                 ax.set_title(obs_name +
-                             ' best fitting SED - chi2min=' +
+                             ' best fitting SED - reduced chi2:' +
                              str(best_chi2))
                 figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
 
@@ -305,7 +304,7 @@ class Module(common.AnalysisModule):
                 results[variable].append(mean)
                 results[variable + '_err'].append(sigma)
 
-                # We plot all the (value, chi2min) tuples.
+                # We plot all the (value, reduced_chi2) tuples.
                 if plot_chi2_distribution:
                     figure = plt.figure()
                     ax = figure.add_subplot(111)
