@@ -470,7 +470,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
                          "observation errors arrays must have the "
                          "same length.")
 
-    # We copy the dictionaries not to modify the original ones.
+    # We copy the arrays not to modify the original ones.
     model_fluxes = np.copy(model_fluxes)
     obs_fluxes = np.copy(obs_fluxes)
     obs_errors = np.copy(obs_errors)
@@ -491,7 +491,9 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
              obs_fluxes[obs_errors > TOLERANCE],
              obs_errors[obs_errors > TOLERANCE])
 
-        #FIXME
+        # We consider that we fit the observation to the SED, independently of
+        # the number of parameters used to build it). So the number of degrees
+        # of freedom depends only on the number of fluxes.
         degrees_of_freedom = len(model_fluxes) - 1
 
         if degrees_of_freedom == 0:
@@ -508,7 +510,8 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
-            probability = stats.chi2.sf(chi2, degrees_of_freedom)
+            # We use the exponential probability of the chi square.
+            probability = np.exp(-chi2 / 2)
 
     return reduced_chi2, normalisation_factor, probability
 
