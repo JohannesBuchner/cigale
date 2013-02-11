@@ -235,9 +235,8 @@ class Module(common.AnalysisModule):
         #Save the numpy table
         np.save(OUT_DIR + "comp_table.npy", comp_table)
 
-        # Find the model corresponding to the least reduced Chi-square for
-        # each observation.
-        # Now we loop over the observations.
+        # Loop over the observations to find the best fitting model and
+        # compute the parametre statistics.
         for obs_index, obs_name in enumerate(obs_table['id']):
             # Find the model corresponding to the least reduced Chi-square;
             # if there more than one model with the minimal chi-square value
@@ -284,19 +283,76 @@ class Module(common.AnalysisModule):
                              str(best_chi2))
                 figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
 
-            # Compute the statistics for the desired variables.
+            # Compute the statistics for the desired variables. First, we
+            # build the probability distribution function (PDF) for the
+            # variable, then we use it to compute the expected value and
+            # the standard deviation.
             for index, variable in enumerate(['galaxy_mass'] +
                                              analysed_variables):
-                # The 'variable' axis in comp_table as chi2 and probability
+                # The variable index in the last axis of comp_table is
+                # index+2 as chi2 and probability are at the beginning.
                 # values at the beginning.
                 idx = index + 2
 
                 values = comp_table[:, obs_index, idx]
                 probabilities = comp_table[:, obs_index, 1]
 
-                mean, sigma = w_mean_sigma(values, probabilities)
+                # We compute the Probability Density Function by binning the
+                # data into evenly populated bins. To estimate the binning
+                # quality, we also provide the standard deviation of the
+                # variable and probability values in the bin.
+                pdf_values = []
+                pdf_probs = []
+                pdf_value_sigma = []
+                pdf_prob_sigma = []
 
-                results[variable].append(mean)
+                # The maximum number of bins is the least between
+                # pdf_max_bin_number and the number of distinct values
+                # for the analyse variable.
+                pdf_bin_number = min(pdf_max_bin_number,
+                                     len(np.unique(values)))
+
+                pdf_bin_boundaries, pdf_bins = bin_evenly(values,
+                                                          pdf_bin_number)
+                pdf_bin_sizes = [
+                    pdf_bin_boundaries[i + 1] - pdf_bin_boundaries[i]
+                    for i in range(pdf_bin_number)
+                ]
+
+                for bin in range(1, pdf_bin_number + 1):
+                    # The bin probability is the average of the probabilities
+                    # in the bin.
+                    pdf_probs.append(
+                        np.average(probabilities[pdf_bins == bin]))
+                    pdf_prob_sigma.append(
+                        np.std(probabilities[pdf_bins == bin])
+                    )
+                    pdf_values.append(
+                        (pdf_bin_boundaries[bin] +
+                         pdf_bin_boundaries[bin - 1]) / 2
+                    )
+                    pdf_value_sigma.append(
+                        np.std(values[pdf_bins == bin])
+                    )
+
+                pdf_probs = np.array(pdf_probs)
+                pdf_prob_sigma = np.array(pdf_prob_sigma)
+                pdf_values = np.array(pdf_values)
+                pdf_value_sigma = np.array(pdf_value_sigma)
+
+                # From the PDF, compute the expected value and standard
+                # deviation.
+                expected_value = (
+                    np.sum(pdf_values * pdf_bin_sizes * pdf_probs)
+                    / np.sum(pdf_bin_sizes * pdf_probs)
+                )
+                sigma = (np.sqrt(
+                    np.sum((pdf_values - expected_value) ** 2 *
+                           pdf_bin_sizes *
+                           pdf_probs)
+                    / np.sum(pdf_bin_sizes * pdf_probs)
+                ))
+                results[variable].append(expected_value)
                 results[variable + '_err'].append(sigma)
 
                 # We plot all the (value, reduced_chi2) tuples.
@@ -312,71 +368,43 @@ class Module(common.AnalysisModule):
                     figure.savefig(OUT_DIR +
                                    obs_name + '_' + variable + '_chi2plot.pdf')
 
-                # Probability Distribution Function
-                if save_pdf or plot_pdf:
-                    pdf_values = []
-                    pdf_probs = []
+                if save_pdf:
+                    pdf_table = atpy.Table()
+                    pdf_table.add_column("bin_start",
+                                         pdf_bin_boundaries[:-1])
+                    pdf_table.add_column("bin_end",
+                                         pdf_bin_boundaries[1:])
+                    pdf_table.add_column("value", pdf_values)
+                    pdf_table.add_column("value_sigma", pdf_value_sigma)
+                    pdf_table.add_column("probability", pdf_probs)
+                    pdf_table.add_column("probability_sigma", pdf_prob_sigma)
+                    pdf_table.write(OUT_DIR + obs_name + "_" + variable +
+                                    "_pdf.xml")
 
-                    # The maximum number of bins is the least between
-                    # pdf_max_bin_number and the number of distinct values
-                    # for the analyse variable.
-                    pdf_bin_number = min(pdf_max_bin_number,
-                                         len(np.unique(values)))
-
-                    pdf_bin_boundaries, pdf_bins = bin_evenly(values,
-                                                              pdf_bin_number)
-
-                    for bin in range(1, pdf_bin_number + 1):
-                        # The bin probability is the sum of the probabilities.
-                        bin_prob = np.sum(probabilities[pdf_bins == bin])
-                        # We use the weighted mean inside the bin as the bin
-                        # value unless the sum of the probability is 0, in that
-                        # case we use the mean.
-                        if bin_prob != 0:
-                            bin_mean = np.average(
-                                values[pdf_bins == bin],
-                                weights=probabilities[pdf_bins == bin]
-                            )
-                        else:
-                            bin_mean = np.mean(values)
-
-                        pdf_values.append(bin_mean)
-                        pdf_probs.append(bin_prob)
-
-                    if save_pdf:
-                        pdf_table = atpy.Table()
-                        pdf_table.add_column("bin_start",
-                                             pdf_bin_boundaries[:-1])
-                        pdf_table.add_column("bin_end",
-                                             pdf_bin_boundaries[1:])
-                        pdf_table.add_column("bin_weighted_mean", pdf_values)
-                        pdf_table.add_column("probability", pdf_probs)
-                        pdf_table.write(OUT_DIR + obs_name + "_" + variable +
-                                        "_pdf.xml")
-
-                    if plot_pdf:
-                        pdf_bin_sizes = [
-                            pdf_bin_boundaries[i+1] - pdf_bin_boundaries[i]
-                            for i in range(len(pdf_bin_boundaries)-1)
-                        ]
-                        figure = plt.figure()
-                        ax = figure.add_subplot(111)
-                        ax.bar(
-                            pdf_bin_boundaries[:-1],
-                            pdf_probs,
-                            pdf_bin_sizes
-                        )
-                        ax.axvline(mean, color="r")
-                        ax.axvline(mean - sigma, color="r", linestyle="-.")
-                        ax.axvline(mean + sigma, color="r", linestyle="-.")
-                        ax.set_title(obs_name + ' ' + variable + ' PDF')
-                        ax.set_xlabel(variable)
-                        ax.set_ylabel('Probability')
-                        figure.savefig(OUT_DIR + obs_name + "_" + variable +
-                                       "_pdf.pdf")
+                if plot_pdf:
+                    figure = plt.figure()
+                    ax = figure.add_subplot(111)
+                    ax.bar(
+                        pdf_bin_boundaries[:-1],
+                        pdf_probs,
+                        pdf_bin_sizes
+                    )
+                    ax.axvline(expected_value, color="r")
+                    ax.axvline(expected_value - sigma,
+                               color="r",
+                               linestyle="-.")
+                    ax.axvline(expected_value + sigma,
+                               color="r",
+                               linestyle="-.")
+                    ax.set_title(obs_name + ' ' + variable + ' PDF')
+                    ax.set_xlabel(variable)
+                    ax.set_ylabel('Probability')
+                    figure.savefig(OUT_DIR + obs_name + "_" + variable +
+                                   "_pdf.pdf")
 
         # Write the results to the fits file
         result_table = atpy.Table()
+        result_table.add_column('id', obs_table['id'])
         for variable in (['galaxy_mass'] + analysed_variables):
             result_table.add_column(variable, results[variable])
             result_table.add_column(variable + '_err',
@@ -451,8 +479,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
         Normalisation factor that must be applied to the model to fit the
         observation.
     probability: float
-        Probability associated with the chi-square and the considered number
-        of degrees of freedom.
+        Probability associated with the chi-square.
 
     """
 
@@ -513,29 +540,6 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
                            np.exp(-chi2 / 2))
 
     return reduced_chi2, normalisation_factor, probability
-
-
-def w_mean_sigma(values, weights):
-    """Return the weighted average and standard deviation
-
-    Parameters
-    ----------
-    values : list of floats
-        List of values.
-    weights : list of floats
-        List of weights, must have the same shape as value list.
-
-    Returns
-    -------
-    mean: float
-        Weighted average.
-    sigma: float
-        Standard deviation.
-    """
-    mean = np.average(values, weights=weights)
-    variance = np.dot(weights, (values - mean) ** 2) / np.sum(weights)
-
-    return (mean, np.sqrt(variance))
 
 
 def bin_evenly(values, max_bins):
