@@ -22,7 +22,7 @@ class IrTemplatesDH2002(object):
     def __init__(self, alpha_grid, wavelength_grid, templates):
         """Create a new IR template set
 
-        Parametres
+        Parameters
         ----------
         alpha_grid : array
             Vector of the various values for the α slope in the templates.
@@ -46,7 +46,7 @@ class IrTemplatesDH2002(object):
         (2002) template set. The new template is normalised in case of errors
         in the interpolation.
 
-        Parametres
+        Parameters
         ----------
         alpha : float
             α slope of the IR.

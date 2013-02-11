@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -14,13 +14,12 @@ from scipy.constants import c
 
 
 class SED(object):
-    """
-    Spectral Energy Distribution with associated information
+    """Spectral Energy Distribution with associated information
 
     This class represents a Spectral Energy Distribution (SED) as constructed
     by pCigale. Such a SED is characterised by:
 
-    - A list of tuples (module name, parametre dictionnary) describing all the
+    - A list of tuples (module name, parameter dictionary) describing all the
       pCigale modules the SED 'went through'.
 
     - The wavelengths grid (in nm).
@@ -34,7 +33,10 @@ class SED(object):
       separated from the list of the modules so that one module can result in
       various contributions to the SED.
 
-    - A dictionnary of arbitrary information associated with the SED.
+    - A dictionary of arbitrary information associated with the SED.
+
+    - The list of the keys from the info dictionary whose value is
+      proportional to the galaxy mass.
 
     """
 
@@ -44,6 +46,7 @@ class SED(object):
         self.lumin_contributions = None
         self.contribution_names = []
         self.info = {}
+        self.mass_proportional_info = []
 
     @property
     def wavelength_grid(self):
@@ -86,7 +89,7 @@ class SED(object):
         Return the (redshifted if asked) total Fν flux density vs wavelength
         spectrum of the SED.
 
-        Parametres
+        Parameters
         ----------
         redshift : float, default = 0
             If 0 (the default), the flux at 10 pc is computed.
@@ -109,36 +112,54 @@ class SED(object):
 
         return wavelength, f_nu
 
-    def add_info(self, key, value):
+    def add_info(self, key, value, mass_proportional=False):
         """
         Add a key / value to the information dictionary
 
-        If the key is present in the dictionnary, it will raise an exception.
+        If the key is present in the dictionary, it will raise an exception.
         Use this method (instead of direct value assignment ) to avoid
         overriding a yet present information.
 
-        Parametres
+        Parameters
         ----------
         key : any immutable
            The key used to retrieve the information.
         value : anything
            The information.
+        mass_proportional : boolean
+           If True, the added variable is set as proportional to the
+           mass.
 
         """
         if key not in self.info:
             self.info[key] = value
+            if mass_proportional:
+                self.mass_proportional_info.append(key)
         else:
             raise KeyError("The information %s is yet present "
                            "in the SED. " % key)
 
-    def add_component(self, module_name, module_conf, contribution_name,
-                      results_wavelengths, results_lumin, infos):
-        """
-        Add a new module contribution to the SED
+    def add_module(self, module_name, module_conf):
+        """Add a new module information to the SED.
 
-        The module name and parametres are added to the module list of the
-        SED. If the module adds some information to the SED, it is added to
-        the info dictionnary.
+        Parameters
+        ----------
+        module_name : string
+            Name of the module. This name can be suffixed with anything
+            using a dot.
+        module_conf : dictionary
+            Dictionary containing the module parameters.
+
+        TODO: Complete the parameter dictionary with the default values from
+              the module if they are not present.
+
+        """
+        self.modules.append((module_name, module_conf))
+
+    def add_contribution(self, contribution_name, results_wavelengths,
+                         results_lumin):
+        """
+        Add a new luminosity contribution to the SED.
 
         The luminosity contribution of the module is added to the contribution
         table doing an interpolation between the current wavelength grid and
@@ -147,14 +168,8 @@ class SED(object):
         luminosity set to 0. Also, the name of the contribution is added to
         the contribution names array.
 
-        Parametres
+        Parameters
         ----------
-        module_name : string
-            Name of the SED creation module used.
-
-        module_conf : dictionary
-            The dictionnary containing the module parametres.
-
         contribution_name : string
             Name of the contribution added. This name is used to retrieve the
             luminosity contribution and allows one module to add more than
@@ -166,16 +181,8 @@ class SED(object):
         results_lumin : array of floats
             The vector of the Lλ luminosities (in W/nm) of the module results.
 
-        infos : dictionary
-            The dictionary of the informations added by the module to the SED.
-            If a key of the dictionary is yet present in __info, its value
-            will be overwritten.
-
         """
-        self.modules.append((module_name, module_conf))
         self.contribution_names.append(contribution_name)
-        for key, value in infos.items():
-            self.add_info(key, value)
 
         # If the SED luminosity table is empty, then there is nothing to
         # compute.
@@ -222,7 +229,7 @@ class SED(object):
         If the name of the contribution is not unique in the SED, the flux of
         the last one is returned.
 
-        Parametres
+        Parameters
         ----------
         name : string
             Name of the contribution
@@ -262,7 +269,7 @@ class SED(object):
         If the SED spectrum does not cover all the filter response table,
         -99 is returned.
 
-        Parametres
+        Parameters
         ----------
         transmission : 2D array of floats
             A numpy 2D array containing the filter response profile

@@ -61,7 +61,7 @@ class _SspM2005(BASE):
 
     imf = Column(String, primary_key=True)
     metallicity = Column(Float, primary_key=True)
-    age_grid = Column(PickleType)
+    time_grid = Column(PickleType)
     wavelength_grid = Column(PickleType)
     mass_table = Column(PickleType)
     spec_table = Column(PickleType)
@@ -69,7 +69,7 @@ class _SspM2005(BASE):
     def __init__(self, ssp):
         self.imf = ssp.imf
         self.metallicity = ssp.metallicity
-        self.age_grid = ssp.age_grid
+        self.time_grid = ssp.time_grid
         self.wavelength_grid = ssp.wavelength_grid
         self.mass_table = ssp.mass_table
         self.spec_table = ssp.spec_table
@@ -102,7 +102,7 @@ class Database(object):
         """
         Create a collection giving access to access the pcigale database.
 
-        Parametres
+        Parameters
         ----------
         writable : boolean
             If True the user will be able to write new data in the database
@@ -132,7 +132,7 @@ class Database(object):
         """
         Add a filter to pcigale database.
 
-        Parametres
+        Parameters
         ----------
         pcigale_filter : pcigale.data.Filter
         """
@@ -150,7 +150,7 @@ class Database(object):
         """
         Add a Maraston 2005 SSP to pcigale database
 
-        Parametres
+        Parameters
         ----------
         ssp : pcigale.base.SspM2005
 
@@ -170,7 +170,7 @@ class Database(object):
         """
         Add Dale and Helou (2002) templates the collection.
 
-        Parametres
+        Parameters
         ----------
         data : array
             Array containing the templates data.
@@ -201,7 +201,7 @@ class Database(object):
         """
         Get a specific filter from the collection
 
-        Parametres
+        Parameters
         ----------
         name : string
             Name of the filter
@@ -227,7 +227,7 @@ class Database(object):
         Query the database for a Maraston 2005 SSP corresponding to the given
         initial mass function and metallicity.
 
-        Parametres
+        Parameters
         ----------
         imf : string
             Initial mass function (ss for Salpeter, kr for Kroupa)
@@ -246,7 +246,7 @@ class Database(object):
             .filter(_SspM2005.metallicity == metallicity)\
             .first()
         if result:
-            return SspM2005(result.imf, result.metallicity, result.age_grid,
+            return SspM2005(result.imf, result.metallicity, result.time_grid,
                             result.wavelength_grid, result.mass_table,
                             result.spec_table)
         else:
@@ -277,9 +277,9 @@ class Database(object):
 
         Returns
         -------
-        names, lamdba_eff : array, dictionnary
+        names, lamdba_eff : array, dictionary
             names is the list of the filter names and lambda_eff is a
-            dictionnary associating the effective wavelength (in nm) to the
+            dictionary associating the effective wavelength (in nm) to the
             filter name
         """
         result = self.session.query(_Filter.name,
@@ -289,13 +289,13 @@ class Database(object):
 
     def parse_filters(self):
         """Generator to parse the filter database."""
-        for filt in self.session.query(Filter):
+        for filt in self.session.query(_Filter):
             yield Filter(filt.name, filt.description, filt.trans_type,
                          filt.trans_table, filt.effective_wavelength)
 
     def parse_ssp_m2005(self):
         """Generator to parse the Maraston 2005 SSP database."""
-        for ssp in self.session.query(SspM2005):
-            yield SspM2005(ssp.imf, ssp.metallicity, ssp.age_grid,
+        for ssp in self.session.query(_SspM2005):
+            yield SspM2005(ssp.imf, ssp.metallicity, ssp.time_grid,
                            ssp.wavelength_grid, ssp.mass_table,
                            ssp.spec_table)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -8,51 +8,51 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 """
 
 
-import numpy as np
 from . import common
 from pcigale.data import Database
 
 
 class Module(common.SEDCreationModule):
     """
-    Compute the infra-red re-emission of absorbed energy using Dale and Helou
-    (2002) templates.
+    Module computing the infra-red re-emission corresponding to an amount of
+    attenuation using the Dale and Helou (2002) templates.
 
-    This module integrates the energy absorbed by the dust and normalises the
-    Dale and Helou (2002) template corresponding to the given α to this amount
-    of energy. This module can only be used on a SED that has gone through a
-    dust extinction module that has produced at least one extinction
-    (negative) contribution.
+    Given an amount of attenuation (e.g. resulting from the action of a dust
+    extinction module) this module normalises the Dale and Helou (2002)
+    template corresponding to a given α to this amount of energy and add it
+    to the SED.
+
+    Information added to the SED: NAME_alpha.
 
     """
 
-    parametre_list = {
+    parameter_list = {
         'alpha': (
             'float',
-            None,
             "Alpha slope.",
             None
         ),
-        'extinction_contrib_names': (
+        'extinction_value_names': (
             'array of strings',
-            None,
-            "List of the extinction contributions to process. This module "
-            "will a new re-emission contribution for each.",
+            "List of extinction value names (in the SED's info dictionary). "
+            "A new re-emission contribution will be added for each one.",
             None
         )
     }
 
-    def _process(self, sed, parametres):
+    out_parameter_list = {'alpha': 'Alpha slope.'}
+
+    def _process(self, sed, parameters):
         """Add the IR re-emission contributions
 
-        Parametres
+        Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parametres : dictionnary containing the parametres
+        parameters : dictionary containing the parameters
 
         """
-        alpha = parametres["alpha"]
-        extinction_contrib_names = parametres["extinction_contrib_names"]
+        alpha = parameters["alpha"]
+        extinction_value_names = parameters["extinction_value_names"]
 
         # Get the template set out of the database
         database = Database()
@@ -61,19 +61,15 @@ class Module(common.SEDCreationModule):
 
         ir_template = dh2002.get_template(alpha)
 
-        sed.add_info('ir_alpha_slope', alpha)
+        # Base name for adding information to the SED.
+        name = self.name or 'dh2002_ir'
 
-        for contrib_name in extinction_contrib_names:
-            # The extinction contribution is negative
-            extinction = -1. * np.trapz(
-                sed.get_lumin_contribution(contrib_name),
-                sed.wavelength_grid
-            )
-            sed.add_component(
-                'dh2002_ir',
-                parametres,
-                'dh2002_ir_' + contrib_name,
+        sed.add_module(name, parameters)
+        sed.add_info(name + '_alpha', alpha)
+
+        for extinction in extinction_value_names:
+            sed.add_contribution(
+                name + '_' + extinction,
                 dh2002.wavelength_grid,
-                extinction * ir_template,
-                {}
+                sed.info[extinction] * ir_template
             )

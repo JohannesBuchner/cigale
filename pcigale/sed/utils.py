@@ -17,7 +17,7 @@ from scipy.constants import c, pi, parsec
 def lambda_to_nu(wavelength):
     """Convert wavelength (nm) to frequency (Hz)
 
-    Parametres
+    Parameters
     ----------
     wavelength : float or array of floats
         The wavelength(s) in nm.
@@ -34,7 +34,7 @@ def lambda_to_nu(wavelength):
 def nu_to_lambda(frequency):
     """Convert frequency (Hz) to wavelength (nm)
 
-    Parametres
+    Parameters
     ----------
     frequency : float or numpy.array of floats
         The frequency(ies) in Hz.
@@ -52,11 +52,11 @@ def best_grid(wavelengths1, wavelengths2):
     """
     Return the best wavelength grid to regrid to arrays
 
-    Considering the two wavelength grids passed in parametres, this function
+    Considering the two wavelength grids passed in parameters, this function
     compute the best new grid that will be used to regrid the two spectra
     before combining them.
 
-    Parametres
+    Parameters
     ----------
     wavelengths1, wavelengths2 : array of floats
         The wavelength grids to be 'regrided'.
@@ -79,7 +79,7 @@ def luminosity_distance(z, h0=71., omega_m=0.27, omega_l=0.73):
     Computes luminosity distance at redshift z in Mpc for given Λ cosmology
     (H_0 in (km/s)/Mpc, Ω_M, and Ω_Λ) Ref.: Hogg (1999) astro-ph/9905116
 
-    Parametres
+    Parameters
     ----------
     z : float
         Redshift
@@ -126,7 +126,7 @@ def luminosity_to_flux(luminosity, redshift=0):
 
     F = L / (4πDl2)
 
-    Parametres
+    Parameters
     ----------
     luminosity : float or array of floats
         Luminosity (typically in W) or luminosity density (W/nm or W/Hz).
@@ -151,7 +151,7 @@ def luminosity_to_flux(luminosity, redshift=0):
 def redshift_wavelength(wavelength, redshift):
     """Redshift a wavelength grid
 
-    Parametres
+    Parameters
     ----------
     wavelength : array of floats
         Wavelength vector.
@@ -174,7 +174,7 @@ def lambda_flambda_to_lambda_fnu(spectrum):
     """
     Convert a Fλ vs λ spectrum to Fν vs λ
 
-    Parametres
+    Parameters
     ----------
     spectrum : array of floats
         spectrum[0] must contain the wavelength in nm and spectrum[1] must
@@ -200,7 +200,7 @@ def lambda_fnu_to_lambda_flambda(spectrum):
     """
     Convert a Fν vs λ spectrum to Fλ vs λ
 
-    Parametres
+    Parameters
     ----------
     spectrum : array of floats
         spectrum[0] must contain the wavelength in nm and spectrum[1] must
@@ -227,7 +227,7 @@ def redshift_spectrum(spectrum, redshift, dimming=False, is_fnu=False):
 
     FIXME: Is this usefull?
 
-    Parametres
+    Parameters
     ----------
     spectrum : array of floats
         spectrum[0] must contain the wavelength in nm and spectrum[1] must
