@@ -146,7 +146,6 @@ class Module(common.AnalysisModule):
         plot_pdf = parameters["plot_pdf"]
         pdf_max_bin_number = parameters["pdf_max_bin_number"]
 
-        best_sed_list = []
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}
         for variable in analysed_variables:
             results[variable] = []
@@ -248,10 +247,6 @@ class Module(common.AnalysisModule):
             best_norm_factor = comp_table[best_index, obs_index, 2]
             best_params = sed_modules_params[best_index]
             best_sed = create_sed(sed_modules, best_params)
-            best_sed_list.append((best_sed,
-                                  best_params,
-                                  best_chi2,
-                                  best_norm_factor))
 
             # Save best SED
             # TODO: For now, we only save the lambda vs fnu table. Once
@@ -387,8 +382,6 @@ class Module(common.AnalysisModule):
             result_table.add_column(variable + '_err',
                                     results[variable + '_err'])
         result_table.write(OUT_DIR + RESULT_FILE)
-
-        return best_sed_list
 
 
 def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
