@@ -503,8 +503,14 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
-            # We use the exponential probability of the chi square.
-            probability = np.exp(-chi2 / 2)
+            # The probability associated with the chi square is
+            # $\prod(\frac{1}{\sqrt{2\pi}\sigma})
+            # .exp(\frac{-\chi\text{\texttwosuperior}}{2})$ TODO: If we
+            # consider that the raw probability is not meaningful, we would
+            # rather drop the first par to speed up the computation, it is not
+            # needed as we normalise.
+            probability = (np.prod(1 / (np.sqrt(2 * np.pi) * obs_errors)) *
+                           np.exp(-chi2 / 2))
 
     return reduced_chi2, normalisation_factor, probability
 
