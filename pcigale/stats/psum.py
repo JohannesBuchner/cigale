@@ -32,7 +32,7 @@ from ..data import Database
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1.e-12
 # Name of the fits file containing the results
-RESULT_FILE = 'psum_results.xml'
+RESULT_FILE = 'psum_results.fits'
 # Directory where the output files are storeds
 OUT_DIR = 'out/'
 
@@ -255,6 +255,7 @@ class Module(common.AnalysisModule):
                 best_sed_lambda_fnu = best_sed.lambda_fnu(
                     redshift=obs_table['redshift'][obs_index])
                 best_sed_table = atpy.Table()
+                best_sed_table.table_name = "Best SED"
                 best_sed_table.add_column("wavelength",
                                           best_sed_lambda_fnu[0],
                                           "nm")
@@ -262,7 +263,7 @@ class Module(common.AnalysisModule):
                                           best_norm_factor
                                           * best_sed_lambda_fnu[1],
                                           "mJy")
-                best_sed_table.write(OUT_DIR + obs_name + 'bestSED.xml')
+                best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits')
 
             # Plot the best SED
             if plot_best_sed:
@@ -370,6 +371,7 @@ class Module(common.AnalysisModule):
 
                 if save_pdf:
                     pdf_table = atpy.Table()
+                    pdf_table.table_name = "Probability Density Function"
                     pdf_table.add_column("bin_start",
                                          pdf_bin_boundaries[:-1])
                     pdf_table.add_column("bin_end",
@@ -379,7 +381,7 @@ class Module(common.AnalysisModule):
                     pdf_table.add_column("probability", pdf_probs)
                     pdf_table.add_column("probability_sigma", pdf_prob_sigma)
                     pdf_table.write(OUT_DIR + obs_name + "_" + variable +
-                                    "_pdf.xml")
+                                    "_pdf.fits")
 
                 if plot_pdf:
                     figure = plt.figure()
@@ -404,6 +406,7 @@ class Module(common.AnalysisModule):
 
         # Write the results to the fits file
         result_table = atpy.Table()
+        result_table.table_name = "Analysis results"
         result_table.add_column('id', obs_table['id'])
         for variable in (['galaxy_mass'] + analysed_variables):
             result_table.add_column(variable, results[variable])
