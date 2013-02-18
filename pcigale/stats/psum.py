@@ -531,8 +531,8 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             reduced_chi2 = min(reduced_chi2, 99)
 
             # The probability associated with the chi square is
-            # $\prod(\frac{1}{\sqrt{2\pi}\sigma})
-            # .exp(\frac{-\chi\text{\texttwosuperior}}{2})$ TODO: If we
+            # $\prod\left(\frac{1}{\sqrt{2\pi}\sigma}\right).
+            # \exp(-\frac{\chi^{2}}{2})$  TODO: If we
             # consider that the raw probability is not meaningful, we would
             # rather drop the first par to speed up the computation, it is not
             # needed as we normalise.
