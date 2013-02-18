@@ -29,9 +29,8 @@ setup(
     version="0.1a",
     packages=find_packages(exclude=["database_builder"]),
 
-    install_requires=['numpy', 'scipy', 'sqlalchemy'],
-    requires=['numpy', 'scipy', 'sqlalchemy', 'atpy', 'matplotlib',
-              'progressbar'],
+    install_requires=['numpy', 'scipy', 'sqlalchemy', 'atpy', 'matplotlib'
+                      'configobj', 'progressbar'],
 
     entry_points=entry_points,
 
