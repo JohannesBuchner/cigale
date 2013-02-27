@@ -515,7 +515,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
              obs_errors[obs_errors > TOLERANCE])
 
         # We consider that we fit the observation to the SED, independently of
-        # the number of parameters used to build it). So the number of degrees
+        # the number of parameters used to build it. So the number of degrees
         # of freedom depends only on the number of fluxes.
         degrees_of_freedom = len(model_fluxes) - 1
 
@@ -533,14 +533,9 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
-            # The probability associated with the chi square is
-            # $\prod\left(\frac{1}{\sqrt{2\pi}\sigma}\right).
-            # \exp(-\frac{\chi^{2}}{2})$  TODO: If we
-            # consider that the raw probability is not meaningful, we would
-            # rather drop the first par to speed up the computation, it is not
-            # needed as we normalise.
-            probability = (np.prod(1 / (np.sqrt(2 * np.pi) * obs_errors)) *
-                           np.exp(-chi2 / 2))
+            # We use the probability from the chi-square law for the
+            # considered degrees of freedom.
+            probability = stats.chi2.sf(chi2, degrees_of_freedom)
 
     return reduced_chi2, normalisation_factor, probability
 
