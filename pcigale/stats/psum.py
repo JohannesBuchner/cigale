@@ -341,18 +341,18 @@ class Module(common.AnalysisModule):
                 pdf_values = np.array(pdf_values)
                 pdf_value_sigma = np.array(pdf_value_sigma)
 
+                # We normalise the PDF to 1 over all the parameter values.
+                pdf_probs = pdf_probs / np.sum(pdf_bin_sizes * pdf_probs)
+
                 # From the PDF, compute the expected value and standard
                 # deviation.
-                expected_value = (
-                    np.sum(pdf_values * pdf_bin_sizes * pdf_probs)
-                    / np.sum(pdf_bin_sizes * pdf_probs)
-                )
-                sigma = (np.sqrt(
+                expected_value = np.sum(pdf_values * pdf_bin_sizes * pdf_probs)
+
+                sigma = np.sqrt(
                     np.sum((pdf_values - expected_value) ** 2 *
                            pdf_bin_sizes *
                            pdf_probs)
-                    / np.sum(pdf_bin_sizes * pdf_probs)
-                ))
+                )
                 results[variable].append(expected_value)
                 results[variable + '_err'].append(sigma)
 
