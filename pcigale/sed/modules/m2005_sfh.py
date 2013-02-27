@@ -33,6 +33,7 @@ class Module(common.SEDCreationModule):
         - average_sfr: SFR averaged on the last 0.1 Gyr of the galaxy history
         - mass_total, mass_alive, mass_white_dwarf,mass_neutrino,
           mass_black_hole, mass_turn_off : stellar masses in solar mass.
+        - age: age of the oldest stars in the galaxy.
         - old_young_separation_age: age (in Gyr) separating the young and the
               old star populations (if 0, there is only one population)
         - mass_total_old, mass_alive_old, mass_white_dwarf_old,
@@ -89,6 +90,7 @@ class Module(common.SEDCreationModule):
         'mass_neutrino': 'Mass of neutrino stars in solar mass.',
         'mass_black_hole': 'Mass of black holes in solar mass.',
         'mass_turn_off': 'Mass in the turn-off in solar mass.',
+        'age': 'Age of the oldest stars in the galaxy.',
         'old_young_separation_age': 'Age (in Gyr) separating the old and '
                                     'the young star populations (0 if there '
                                     'is only one population).',
@@ -190,6 +192,7 @@ class Module(common.SEDCreationModule):
 
         sed.add_info('imf', imf)
         sed.add_info('metallicity', metallicity)
+        sed.add_info('age', oldest_age)
         sed.add_info('old_young_separation_age', separation_age)
 
         sed.add_info('sfr', sfr, True)
