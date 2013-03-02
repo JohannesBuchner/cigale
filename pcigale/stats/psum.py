@@ -238,6 +238,15 @@ class Module(common.AnalysisModule):
         # Loop over the observations to find the best fitting model and
         # compute the parametre statistics.
         for obs_index, obs_name in enumerate(obs_table['id']):
+            # We will save the part of the computation table corresponding to
+            # the model as a FITS file.
+            fits_table = atpy.Table()
+            fits_table.table_name = "Analysis computation table"
+            fits_table.add_column("reduced_chi-square",
+                                  comp_table[:, obs_index, 0])
+            fits_table.add_column("probability",
+                                  comp_table[:, obs_index, 1])
+
             # Find the model corresponding to the least reduced Chi-square;
             # if there more than one model with the minimal chi-square value
             # only the first is returned.
@@ -297,6 +306,8 @@ class Module(common.AnalysisModule):
 
                 values = comp_table[:, obs_index, idx]
                 probabilities = comp_table[:, obs_index, 1]
+
+                fits_table.add_column(variable, values)
 
                 # We compute the Probability Density Function by binning the
                 # data into evenly populated bins. To estimate the binning
@@ -403,6 +414,9 @@ class Module(common.AnalysisModule):
                     ax.set_ylabel('Probability')
                     figure.savefig(OUT_DIR + obs_name + "_" + variable +
                                    "_pdf.pdf")
+
+        # Write the computation table FITS
+        fits_table.write(OUT_DIR + obs_name + '_comptable.fits')
 
         # Write the results to the fits file
         result_table = atpy.Table()
