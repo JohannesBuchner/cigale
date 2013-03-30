@@ -102,14 +102,14 @@ class Module(common.SEDCreationModule):
             "string",
             "Name of the contribution containing the spectrum of the "
             "young population.",
-            "m2005_sfh_young"
+            "m2005_young"
         ),
         "old_contribution_name": (
             "string",
             "Name of the contribution containing the spectrum of the "
             "old population. If it is set to 'None', only one population "
             "is considered.",
-            "m2005_sfh_old"
+            "m2005_old"
         ),
         "filters": (
             "list of strings",
