@@ -12,7 +12,6 @@ import numpy as np
 from . import common
 from pcigale.data import Database
 
-
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
 # number of parameters. The value is in Gyr.
@@ -58,28 +57,22 @@ class Module(common.SEDCreationModule):
             None
         ),
         'sfh': (
-            'numpy array of floats',
-            "Star formation history (in solar mass per year) as an array "
-            "based on the age grid used for the Maraston 2005 SSP, i.e. "
-            "np.arange(1e-3,13.701,1e-3).",
-            None
-        ),
-        'oldest_age': (
-            'float',
-            "Age of the oldest stars in the galaxy in Gyr.",
+            'string',
+            "Name of the key in the SED info dictionary, associated with the "
+            "SFH tuple (time, sfr). The SFH must be normalised to 1 solar "
+            "mass produced.",
             None
         ),
         'separation_age': (
             'float',
             "Age [Gyr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (0.01 Gyr). Set "
-            "to 0 not to differentiate ages.",
+            "to 0 not to differentiate ages (only an old population).",
             0.01
         )
     }
 
     out_parameter_list = {
-        'galaxy_age': 'Age (in Gyr) of the oldest stars in the galaxy.',
         'sfr': 'Instantaneous Star Formation Rate in solar mass per year, '
                'at the age of the galaxy.',
         'average_sfr': 'Average SFR in the last 0.1 Gyr (default) of the '
@@ -90,7 +83,6 @@ class Module(common.SEDCreationModule):
         'mass_neutrino': 'Mass of neutrino stars in solar mass.',
         'mass_black_hole': 'Mass of black holes in solar mass.',
         'mass_turn_off': 'Mass in the turn-off in solar mass.',
-        'age': 'Age of the oldest stars in the galaxy.',
         'old_young_separation_age': 'Age (in Gyr) separating the old and '
                                     'the young star populations (0 if there '
                                     'is only one population).',
@@ -132,58 +124,36 @@ class Module(common.SEDCreationModule):
 
         """
 
-        imf = self.parameters['imf']
-        metallicity = self.parameters['metallicity']
-        sfh = np.copy(self.parameters['sfh'])
-        oldest_age = self.parameters['oldest_age']
-        separation_age = self.parameters['separation_age']
+        imf = self.parameters["imf"]
+        metallicity = self.parameters["metallicity"]
+        separation_age = self.parameters["separation_age"]
+        sfh_time, sfh_sfr = np.copy(sed.info[parameters["sfh"]])
+
+        # Age of the galaxy at each time of the SFH
+        sfh_age = np.max(sfh_time) - sfh_time
 
         # First, we take the SSP out of the database.
         database = Database()
         ssp = database.get_ssp_m2005(imf, metallicity)
         database.session.close_all()
-        # We check that the sfh array length corresponds to the one of the
-        # SSP age grid.
-        if len(ssp.time_grid) != len(sfh):
-            raise ValueError("The SFH array must be based on the same age "
-                             "grid as the Maraston 2005 SSPs.")
 
-        # We limit the star formation history to the age of the oldest stars
-        # and set SFR=0 for every age after (we need to keep the same age
-        # grid for the computations.)
-        sfh[ssp.time_grid > oldest_age] = 0
+        # First, we process the young population (age lower than the
+        # separation age.)
+        young_sfh = np.copy(sfh_sfr)
+        young_sfh[sfh_age <= separation_age] = 0
+        young_masses, young_spectrum = ssp.convolve(sfh_time, young_sfh)
 
-        # The age of the galaxy is taken from the age grid.
-        galaxy_age = np.max(ssp.time_grid[ssp.time_grid <= oldest_age])
-
-        # We normalise the SFH to have 1 solar mass formed at the age of the
-        # galaxy.
-        sfh = sfh / np.trapz(sfh * 1e9, ssp.time_grid)
-
-        # First, we process the old population (age greater than the
-        # separation age).
-        old_sfh = np.copy(sfh)
-        old_sfh[(galaxy_age - ssp.time_grid) < separation_age] = 0
-        old_masses, old_spectrum = ssp.convolve(old_sfh, galaxy_age)
-
-        # If there is a separation between young and old galaxies, we process
-        # the young population else we set everything to 0 for the young
-        # population (always having a young population can be help full e.g.
-        # to probe various separation ages including 0).
-        if separation_age:
-            young_sfh = np.copy(sfh)
-            young_sfh[(galaxy_age - ssp.time_grid) >= separation_age] = 0
-            young_masses, young_spectrum = ssp.convolve(young_sfh, galaxy_age)
-        else:
-            young_masses = np.zeros(6)
-            young_spectrum = np.zeros(len(ssp.wavelength_grid))
+        # Then, we process the old population. If the SFH is shorter than the
+        # separation age then all the arrays will consist only of 0.
+        old_sfh = np.copy(sfh_sfr)
+        old_sfh[sfh_age > separation_age] = 0
+        old_masses, old_spectrum = ssp.convolve(sfh_time, old_sfh)
 
         # SFR of the galaxy
-        sfr = sfh[ssp.time_grid == galaxy_age][0]
+        sfr = sfh_sfr[len(sfh_sfr) - 1]
 
         # Average SFR on the last AV_LAPSE Gyr of its history
-        average_sfr = np.mean(sfh[(ssp.time_grid <= oldest_age) &
-                                  (ssp.time_grid >= (oldest_age - AV_LAPSE))])
+        average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
 
         # Base name for adding information to the SED.
         name = self.name or 'm2005_sfh'
@@ -192,7 +162,6 @@ class Module(common.SEDCreationModule):
 
         sed.add_info('imf', imf)
         sed.add_info('metallicity', metallicity)
-        sed.add_info('age', oldest_age)
         sed.add_info('old_young_separation_age', separation_age)
 
         sed.add_info('sfr', sfr, True)
