@@ -18,7 +18,7 @@ class Module(common.SEDCreationModule):
     attenuation using the Dale and Helou (2002) templates.
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
-    extinction module) this module normalises the Dale and Helou (2002)
+    attenuation module) this module normalises the Dale and Helou (2002)
     template corresponding to a given α to this amount of energy and add it
     to the SED.
 
@@ -32,9 +32,9 @@ class Module(common.SEDCreationModule):
             "Alpha slope.",
             None
         ),
-        'extinction_value_names': (
+        'attenuation_value_names': (
             'array of strings',
-            "List of extinction value names (in the SED's info dictionary). "
+            "List of attenuation value names (in the SED's info dictionary). "
             "A new re-emission contribution will be added for each one.",
             None
         )
@@ -52,7 +52,7 @@ class Module(common.SEDCreationModule):
 
         """
         alpha = parameters["alpha"]
-        extinction_value_names = parameters["extinction_value_names"]
+        attenuation_value_names = parameters["attenuation_value_names"]
 
         # Get the template set out of the database
         database = Database()
@@ -67,9 +67,9 @@ class Module(common.SEDCreationModule):
         sed.add_module(name, parameters)
         sed.add_info(name + '_alpha', alpha)
 
-        for extinction in extinction_value_names:
+        for attenuation in attenuation_value_names:
             sed.add_contribution(
-                name + '_' + extinction,
+                name + '_' + attenuation,
                 dh2002.wavelength_grid,
-                sed.info[extinction] * ir_template
+                sed.info[attenuation] * ir_template
             )
