@@ -104,7 +104,7 @@ class Module(common.SEDCreationModule):
         sfr = sfr / np.trapz(sfr * 1e9, time_grid)
 
         # Base name for adding information to the SED.
-        name = self.name or "sfh_2exp"
+        name = self.name or "sfh2exp"
 
         # Add the sfh and the output parameters to the SED.
         sed.add_info(name + "_sfh", (time_grid, sfr))

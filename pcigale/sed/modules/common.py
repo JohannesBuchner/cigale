@@ -137,8 +137,8 @@ def get_module(name):
     module_name : string
         The name of the module we want to get the class. This name can be
         prefixed by anything using a dot, then the part before the dot is
-        used to determine the module to load (e.g. 'dh2002_ir.1' will return
-        the 'dh2002_ir' module).
+        used to determine the module to load (e.g. 'dh2002.1' will return
+        the 'dh2002' module).
 
     Returns
     -------

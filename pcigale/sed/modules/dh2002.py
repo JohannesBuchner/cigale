@@ -62,7 +62,7 @@ class Module(common.SEDCreationModule):
         ir_template = dh2002.get_template(alpha)
 
         # Base name for adding information to the SED.
-        name = self.name or 'dh2002_ir'
+        name = self.name or 'dh2002'
 
         sed.add_module(name, parameters)
         sed.add_info(name + '_alpha', alpha)
