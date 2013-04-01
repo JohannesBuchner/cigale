@@ -50,7 +50,7 @@ class Module(common.SEDCreationModule):
 
         """
         filename = parameters['filename']
-        table = atpy.Table(filename)
+        table = atpy.Table(filename, verbose=False)
 
         # Base name for adding information to the SED.
         name = self.name or 'loadfile'

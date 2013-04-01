@@ -152,7 +152,7 @@ class Configuration(object):
         base.close()
 
         # Finding the known filters in the data table
-        obs_table = atpy.Table(self.config['data_file'])
+        obs_table = atpy.Table(self.config['data_file'], verbose=False)
         column_list = []
         for column in obs_table.columns:
             filter_name = column[:-4] if column.endswith('_err') else column

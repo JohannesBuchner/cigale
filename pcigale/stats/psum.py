@@ -166,7 +166,7 @@ class Module(common.AnalysisModule):
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
-        obs_table = atpy.Table(data_file)
+        obs_table = atpy.Table(data_file, verbose=False)
         for name in filter_list:
             name_err = name + '_err'
             if name_err not in column_list:
@@ -272,7 +272,8 @@ class Module(common.AnalysisModule):
                                           best_norm_factor
                                           * best_sed_lambda_fnu[1],
                                           "mJy")
-                best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits')
+                best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits',
+                                     verbose=False)
 
             # Plot the best SED
             if plot_best_sed:
@@ -392,7 +393,7 @@ class Module(common.AnalysisModule):
                     pdf_table.add_column("probability", pdf_probs)
                     pdf_table.add_column("probability_sigma", pdf_prob_sigma)
                     pdf_table.write(OUT_DIR + obs_name + "_" + variable +
-                                    "_pdf.fits")
+                                    "_pdf.fits", verbose=False)
 
                 if plot_pdf:
                     figure = plt.figure()
@@ -416,7 +417,7 @@ class Module(common.AnalysisModule):
                                    "_pdf.pdf")
 
         # Write the computation table FITS
-        fits_table.write(OUT_DIR + obs_name + '_comptable.fits')
+        fits_table.write(OUT_DIR + obs_name + '_comptable.fits', verbose=False)
 
         # Write the results to the fits file
         result_table = atpy.Table()
@@ -426,7 +427,7 @@ class Module(common.AnalysisModule):
             result_table.add_column(variable, results[variable])
             result_table.add_column(variable + '_err',
                                     results[variable + '_err'])
-        result_table.write(OUT_DIR + RESULT_FILE)
+        result_table.write(OUT_DIR + RESULT_FILE, verbose=False)
 
 
 def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
