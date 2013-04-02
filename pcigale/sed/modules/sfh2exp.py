@@ -112,4 +112,4 @@ class Module(common.SEDCreationModule):
         sed.add_info(name + "_tau_burst", tau_burst)
         sed.add_info(name + "_f_burst", f_burst)
         sed.add_info(name + "_age", age)
-        sed.add_info(name + "_burst_age", age)
+        sed.add_info(name + "_burst_age", burst_age)
