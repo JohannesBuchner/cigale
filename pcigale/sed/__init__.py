@@ -246,7 +246,8 @@ class SED(object):
                - self.contribution_names[::-1].index(name))
         return self.lumin_contributions[idx]
 
-    def compute_fnu(self, transmission, lambda_eff, redshift=0):
+    def compute_fnu(self, transmission, lambda_eff,
+                    redshift=0, redshift_spectrum=False):
         """
         Compute the Fν flux density corresponding the filter which
         transmission is given.
@@ -281,6 +282,11 @@ class SED(object):
         redshift : float
             The redshift of the galaxy. If 0, the flux is computed at 10 pc.
 
+        redshift_spectrum : boolean
+            If true, the spectrum will be redshifted before computing the
+            flux. The default is False because we generally use a specific
+            module to apply the redshift.
+
         Return
         ------
         fnu : float
@@ -295,8 +301,12 @@ class SED(object):
             f_nu = -99.
 
         else:
-            wavelength = utils.redshift_wavelength(self.wavelength_grid,
-                                                   redshift)
+            if redshift_spectrum:
+                wavelength = utils.redshift_wavelength(self.wavelength_grid,
+                                                       redshift)
+            else:
+                wavelength = np.copy(self.wavelength_grid)
+
             l_lambda = self.luminosity
 
             # We regrid both spectrum and filter to the best wavelength grid
