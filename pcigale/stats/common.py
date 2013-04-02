@@ -30,7 +30,8 @@ class AnalysisModule(object):
         self.parameters = kwargs
 
     def _process(self, data_file, column_list, sed_modules,
-                 sed_modules_params, parameters):
+                 sed_modules_params, redshift_module,
+                 redshift_configuration, parameters):
         """Do the actual analysis
 
         This method is responsible for the fitting / analysis process
@@ -49,6 +50,10 @@ class AnalysisModule(object):
             for the sed_modules. Each 'inner' array has the same length as the
             sed_modules array and contains the configuration dictionary for
             the corresponding module.
+        redshift_module : string
+            Name of the module used to redshift the SED.
+        redshift_configuration : dictionary
+            Configuration dictionary for the module used to redshift the SED.
         parameters : dictionary
             Configuration for the module.
 
@@ -60,7 +65,8 @@ class AnalysisModule(object):
         raise NotImplementedError()
 
     def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, parameters):
+                sed_modules_params, redshift_module,
+                redshift_configuration, parameters):
         """Process with the analysis
 
         This method is responsible for checking the module parameters before
@@ -81,6 +87,10 @@ class AnalysisModule(object):
             for the sed_modules. Each 'inner' array has the same length as the
             sed_modules array and contains the configuration dictionary for
             the corresponding module.
+        redshift_module : string
+            Name of the module used to redshift the SED.
+        redshift_configuration : dictionary
+            Configuration dictionary for the module used to redshift the SED.
         parameters : dictionary
             Configuration for the module.
 
@@ -124,7 +134,8 @@ class AnalysisModule(object):
 
         #We do the actual processing
         self._process(data_file, column_list, sed_modules,
-                      sed_modules_params, parameters)
+                      sed_modules_params, redshift_module,
+                      redshift_configuration, parameters)
 
 
 def get_module(module_name):

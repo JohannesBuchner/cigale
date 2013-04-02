@@ -41,11 +41,14 @@ def run(config):
     column_list = config.configuration['column_list']
     sed_modules = config.configuration['sed_modules']
     sed_modules_params = config.sed_modules_conf_array
+    redshift_module = config.configuration['redshift_module']
+    redshift_configuration = config.configuration['redshift_configuration']
     stat_module = get_stats_module(config.configuration['analysis_method'])
     stat_module_params = config.configuration['analysis_method_params']
 
     stat_module.process(data_file, column_list, sed_modules,
-                        sed_modules_params, stat_module_params)
+                        sed_modules_params, redshift_module,
+                        redshift_configuration, stat_module_params)
 
 
 def main():

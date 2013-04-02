@@ -21,11 +21,13 @@ import os
 import sys
 import atpy
 import numpy as np
+from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
 from ..sed.warehouse import create_sed
+from ..sed.modules.common import get_module
 from ..data import Database
 
 
@@ -90,7 +92,8 @@ class Module(common.AnalysisModule):
     }
 
     def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, parameters):
+                sed_modules_params, redshift_module_name,
+                redshift_configuration, parameters):
         """Process with the psum analysis.
 
         The analysis is done in two nested loops: over each observation and
@@ -108,24 +111,12 @@ class Module(common.AnalysisModule):
             the SEDs.
         sed_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
+        redshift_module_name : string
+            Name of the module used to redshift the SED.
+        redshift_configuration : dictionary
+            Configuration dictionary for the module used to redshift the SED.
         parameters: dictionary
             Dictionnary containing the parameters.
-
-        Returns
-        -------
-        best_sed: list of tuples (pcigale.sed object, dict, float, float)
-            There is one tuple per observed object: the first element is the
-            best fitting SED for this object, the second dictionary of
-            parameter used to produce it, the third is the reduced Chi-square
-            of the fit and the fourth is the normalisation factor to be
-            applied to the SED to fit the observation.
-        results: dictionary
-            Dictionary associating to NAME and NAME_err the weighted average
-            and standard deviation lists, where name is galaxy_mass or the
-            content of the analysed variables list. Each key is associated
-            to an array which index corresponds to the rows in the observation
-            data file. This dictionary is also saved as a FITS file to the
-            disk.
 
         """
 
@@ -163,6 +154,10 @@ class Module(common.AnalysisModule):
             transmission[name] = filt.trans_table
             effective_wavelength[name] = filt.effective_wavelength
         base.close()
+
+        # We get the redshift module.
+        redshift_module = get_module(redshift_module_name)
+        redshift_module.parameters = redshift_configuration
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
@@ -208,10 +203,15 @@ class Module(common.AnalysisModule):
                 obs_errors = [obs_table[name + '_err'][obs_index]
                               for name in filter_list]
 
+                # We copy the SED before redshifting it.
+                red_sed = deepcopy(sed)
+                redshift_module.parameters["redshift"] = obs_redshift
+                redshift_module.process(red_sed)
+
                 # Theoretical fluxes
-                theor_fluxes = [sed.compute_fnu(transmission[name],
-                                                effective_wavelength[name],
-                                                obs_redshift)
+                theor_fluxes = [red_sed.compute_fnu(transmission[name],
+                                                    effective_wavelength[name],
+                                                    obs_redshift)
                                 for name in filter_list]
 
                 reduced_chi2, galaxy_mass, probability = compute_chi2(
