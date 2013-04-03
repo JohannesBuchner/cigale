@@ -30,20 +30,6 @@ class SedWarehouse(object):
         if cache_type == "memory":
             dict_cache = {}
 
-            def is_cached(key):
-                """Return true is the key is in the cache.
-
-                Parameters
-                ----------
-                key : any immutable
-
-                Returns
-                -------
-                boolean
-
-                """
-                return (key in dict_cache)
-
             def get_from_cache(key):
                 """Return the value corresponding to the key in the cache.
 
@@ -73,7 +59,6 @@ class SedWarehouse(object):
                 # We store a copy not to modify the stored object.
                 dict_cache[key] = deepcopy(value)
 
-        self.is_cached = is_cached
         self.get_from_cache = get_from_cache
         self.add_to_cache = add_to_cache
 
