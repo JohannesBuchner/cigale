@@ -26,7 +26,7 @@ from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
-from ..sed.warehouse import create_sed
+from ..sed.warehouse import SedWarehouse
 from ..sed.modules.common import get_module
 from ..data import Database
 
@@ -128,6 +128,9 @@ class Module(common.AnalysisModule):
                   "it yet exists.".format(OUT_DIR))
             sys.exit()
 
+        # Open the warehouse
+        sed_warehouse = SedWarehouse()
+
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
         save_best_sed = parameters["save_best_sed"]
@@ -191,7 +194,7 @@ class Module(common.AnalysisModule):
         # We loop over all the possible theoretical SEDs
         progress_bar = ProgressBar(maxval=len(sed_modules_params)).start()
         for model_index, parameters in enumerate(sed_modules_params):
-            sed = create_sed(sed_modules, parameters)
+            sed = sed_warehouse.get_sed(sed_modules, parameters)
 
             # Compute the reduced Chi-square, the galaxy mass (normalisation
             # factor) and probability for each observed SEDs. Add these and
@@ -254,7 +257,7 @@ class Module(common.AnalysisModule):
             best_chi2 = comp_table[best_index, obs_index, 0]
             best_norm_factor = comp_table[best_index, obs_index, 2]
             best_params = sed_modules_params[best_index]
-            best_sed = create_sed(sed_modules, best_params)
+            best_sed = sed_warehouse.get_sed(sed_modules, best_params)
 
             # Save best SED
             # TODO: For now, we only save the lambda vs fnu table. Once
