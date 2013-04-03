@@ -26,7 +26,7 @@ from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
-from ..sed.warehouse import SedWarehouse
+from ..warehouse import SedWarehouse
 from ..sed.modules.common import get_module
 from ..data import Database
 
@@ -88,6 +88,11 @@ class Module(common.AnalysisModule):
             "If there are less values, the probability is given for each "
             "one.",
             50
+        ),
+        "storage_type": (
+            "string",
+            "Type of storage used to cache the generate SED.",
+            "memory"
         )
     }
 
@@ -129,7 +134,9 @@ class Module(common.AnalysisModule):
             sys.exit()
 
         # Open the warehouse
-        sed_warehouse = SedWarehouse()
+        # TODO Why is parameters["storage_type"] an array?
+        sed_warehouse = SedWarehouse(
+            cache_type=parameters["storage_type"][0])
 
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
@@ -234,9 +241,6 @@ class Module(common.AnalysisModule):
             progress_bar.update(model_index + 1)
 
         progress_bar.finish()
-
-        #Save the numpy table
-        np.save(OUT_DIR + "comp_table.npy", comp_table)
 
         # Loop over the observations to find the best fitting model and
         # compute the parametre statistics.
@@ -431,6 +435,8 @@ class Module(common.AnalysisModule):
             result_table.add_column(variable + '_err',
                                     results[variable + '_err'])
         result_table.write(OUT_DIR + RESULT_FILE, verbose=False)
+
+        sed_warehouse.close()
 
 
 def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
