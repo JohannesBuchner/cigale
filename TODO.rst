@@ -10,3 +10,4 @@
 * Write documentation.
 * When a default parameter is an array, use the "eval ..." the the generated
   ini file.
+* Change metallicity numbering (ex. 0.02 for solar).
