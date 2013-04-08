@@ -20,6 +20,7 @@ and the best fitting model (the one with the least reduced χ²) is given.
 import os
 import sys
 import atpy
+import json
 import numpy as np
 from copy import deepcopy
 from scipy import stats
@@ -281,6 +282,11 @@ class Module(common.AnalysisModule):
                                           "mJy")
                 best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits',
                                      verbose=False)
+                # Write the SED modules parameters to a file
+                with open(OUT_DIR + obs_name + "bestSED.params", "w") as f:
+                    f.write(json.dumps(zip(sed_modules, best_params),
+                                       indent=2,
+                                       separators=(',', ': ')))
 
             # Plot the best SED
             if plot_best_sed:
