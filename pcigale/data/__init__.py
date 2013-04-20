@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -23,6 +23,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .filters import Filter
 from .ssp_m2005 import SspM2005
+from .ssp_bc03 import SspBC03
 from .ir_templates_dh2002 import IrTemplatesDH2002
 
 
@@ -73,6 +74,28 @@ class _SspM2005(BASE):
         self.wavelength_grid = ssp.wavelength_grid
         self.mass_table = ssp.mass_table
         self.spec_table = ssp.spec_table
+
+
+class _SspBC03(BASE):
+    """Storage for Bruzual and Charlot 2003 SSP
+    """
+
+    __tablename__ = "bc03"
+
+    imf = Column(String, primary_key=True)
+    metallicity = Column(Float, primary_key=True)
+    time_grid = Column(PickleType)
+    wavelength_grid = Column(PickleType)
+    color_table = Column(PickleType)
+    lumin_table = Column(PickleType)
+
+    def __init__(self, ssp):
+        self.imf = ssp.imf
+        self.metallicity = ssp.metallicity
+        self.time_grid = ssp.time_grid
+        self.wavelength_grid = ssp.wavelength_grid
+        self.color_table = ssp.color_table
+        self.lumin_table = ssp.lumin_table
 
 
 class _DH2002InfraredTemplates(BASE):
@@ -166,6 +189,26 @@ class Database(object):
         else:
             raise StandardError('The database is not writable.')
 
+    def add_ssp_bc03(self, ssp_bc03):
+        """
+        Add a Bruzual and Charlot 2003 SSP to pcigale database
+
+        Parameters
+        ----------
+        ssp : pcigale.data.SspBC03
+
+        """
+        if self.is_writable:
+            ssp = _SspBC03(ssp_bc03)
+            self.session.add(ssp)
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise StandardError('The SSP is yet in the base.')
+        else:
+            raise StandardError('The database is not writable.')
+
     def add_dh2002_infrared_templates(self, data):
         """
         Add Dale and Helou (2002) templates the collection.
@@ -219,6 +262,35 @@ class Database(object):
             return Filter(result.name, result.description,
                           result.trans_type, result.trans_table,
                           result.effective_wavelength)
+        else:
+            return None
+
+    def get_ssp_bc03(self, imf, metallicity):
+        """
+        Query the database for the Bruzual and Charlot 2003 SSP corresponding
+        to the given initial mass function and metallicity.
+
+        Parameters
+        ----------
+        imf : string
+            Initial mass function (salp for Salpeter, chab for Chabrier)
+        metallicity : float
+            0.02 for Solar metallicity
+        Returns
+        -------
+        ssp : pcigale.data.SspBC03
+            The SspBC03 object. If no SSP corresponds to the given imf and
+            metallicity, returns None.
+
+        """
+        result = self.session.query(_SspBC03)\
+            .filter(_SspBC03.imf == imf)\
+            .filter(_SspBC03.metallicity == metallicity)\
+            .first()
+        if result:
+            return SspBC03(result.imf, result.metallicity, result.time_grid,
+                           result.wavelength_grid, result.color_table,
+                           result.lumin_table)
         else:
             return None
 

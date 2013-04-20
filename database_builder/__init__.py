@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -15,14 +15,128 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 import glob
+import itertools
 import numpy as np
 from scipy import interpolate
-from pcigale.data import Database, Filter, SspM2005
+from pcigale.data import Database, Filter, SspM2005, SspBC03
 
 
 filters_dir = os.path.join(os.path.dirname(__file__), 'filters/')
 m2005_dir = os.path.join(os.path.dirname(__file__), 'maraston2005/')
+bc03_dir = os.path.join(os.path.dirname(__file__), 'bc03//')
 dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
+
+
+def read_bc03_ssp(filename):
+    """Read a Bruzual and Charlot 2003 ASCII SSP file
+
+    The ASCII SSP files of Bruzual and Charlot 2003 have se special structure.
+    A vector is stored with the number of values followed by the values
+    sepateded by a space (or a carriage return). There are the time vector, 5
+    (for Chabrier IMF) or 6 lines (for Salpeter IMF) that we don't care of,
+    then the wavelength vector, then the luminosity vectors, each followed by
+    a 52 value table, then a bunch of other table of information that are also
+    in the *colors files.
+
+    Parameters
+    ----------
+    filename : string
+
+    Returns
+    -------
+    time_grid: numpy 1D array of floats
+              Vector of the time grid of the SSP in Gyr.
+    wavelength: numpy 1D array of floats
+                Vector of the wavelength grid of the SSP in nm.
+    spectra: numpy 2D array of floats
+             Array containing the SSP spectra, first axis is the wavelength,
+             second one is the time.
+
+    """
+
+    def file_structure_generator():
+        """Generator used to identify table lines in the SSP file
+
+        In the SSP file, the vectors are store one next to the other, but
+        there are 5 informational lines after the time vector. We use this
+        generator to the if we are on lines to read or not.
+        """
+        if "chab" in filename:
+            bad_line_number = 5
+        else:
+            bad_line_number = 6
+        yield("data")
+        for i in range(bad_line_number):
+            yield("bad")
+        while True:
+            yield("data")
+
+    file_structure = file_structure_generator()
+    # Are we in a data line or a bad one.
+    what_line = file_structure.next()
+    # Variable conting, in reverse order, the number of value still to
+    # read for the read vector.
+    counter = 0
+
+    time_grid = []
+    full_table = []
+    tmp_table = []
+
+    with open(filename) as file_:
+        # We read the file line by line.
+        for line in file_:
+            if what_line == "data":
+                # If we are in a "data" line, we analyse each number.
+                for item in line.split():
+                    if counter == 0:
+                        # If counter is 0, then we are not reading a vector
+                        # and the first number is the length of the next
+                        # vector.
+                        counter = int(item)
+                    else:
+                        # If counter > 0, we are currently reading a vector.
+                        tmp_table.append(float(item))
+                        counter -= 1
+                        if counter == 0:
+                            # We reached the end of the vector. If we have not
+                            # yet store the time grid (the first table) we are
+                            # currently reading it.
+                            if time_grid == []:
+                                time_grid = tmp_table[:]
+                            # Else, we store the vector in the full table,
+                            # only if its length is superior to 250 to get rid
+                            # of the 52 item unknown vector and the 221 (time
+                            # grid length) item vectors at the end of the
+                            # file.
+                            elif len(tmp_table) > 250:
+                                full_table.append(tmp_table[:])
+
+                            tmp_table = []
+
+            # If at the end of a line, we have finished reading a vector, it's
+            # time to change to the next structure context.
+            if counter == 0:
+                what_line = file_structure.next()
+
+    # The time grid is in year, we want Gyr.
+    time_grid = np.array(time_grid, dtype=float)
+    time_grid = time_grid * 1.e-9
+
+    # The first "long" vector encountered is the wavelength grid. The value
+    # are in Ångström, we convert it to nano-meter.
+    wavelength = np.array(full_table.pop(0), dtype=float)
+    wavelength = wavelength * 0.1
+
+    # The luminosities are in Solar luminosity (3.826.10^33 ergs.s-1) per
+    # Ångström, we convert it to W/nm.
+    luminosity = np.array(full_table, dtype=float)
+    luminosity = luminosity * 3.826e27
+    # Transposition to have the time in the second axis.
+    luminosity = luminosity.transpose()
+
+    # In the SSP, the time grid begins at 0, but not in the *colors file, so
+    # we remove t=0 from the SSP.
+    return time_grid[1:], wavelength, luminosity[:, 1:]
 
 
 def build_base():
@@ -127,9 +241,65 @@ def build_base():
     print('#' * 78)
 
     ########################################################################
+    # Bruzual and Charlot SSP insertion                                    #
+    ########################################################################
+    print("3- Importing Bruzual and Charlot 2003 SSP\n")
+
+    # Time grid (1My to 20Gy with 1My step)
+    time_grid = np.arange(1e-3, 20., 1e-3)
+
+    # Metallicities associated to each key
+    metallicity = {
+        "m22": 0.0001,
+        "m32": 0.0004,
+        "m42": 0.004,
+        "m52": 0.008,
+        "m62": 0.02,
+        "m72": 0.05
+    }
+
+    for key, imf in itertools.product(metallicity, ["salp", "chab"]):
+        base_filename = bc03_dir + "bc2003_lr_" + key + "_" + imf + "_ssp"
+        ssp_filename = base_filename + ".ised_ASCII"
+        color3_filename = base_filename + ".3color"
+        color4_filename = base_filename + ".4color"
+
+        print("Importing %s..." % base_filename)
+
+        # Read the desired information from the color files
+        color_table = []
+        color3_table = np.genfromtxt(color3_filename).transpose()
+        color4_table = np.genfromtxt(color4_filename).transpose()
+        color_table.append(color4_table[6])  # Mstar
+        color_table.append(color4_table[7])  # Mgas
+        color_table.append(color3_table[5])  # NLy
+        color_table.append(color3_table[1])  # B4000
+        color_table.append(color3_table[2])  # B4_VN
+        color_table.append(color3_table[3])  # B4_SDSS
+        color_table.append(color3_table[4])  # B(912)
+
+        color_table = np.array(color_table)
+
+        ssp_time, ssp_wave, ssp_lumin = read_bc03_ssp(ssp_filename)
+
+        # Regrid the SSP data to the evenly spaced time grid.
+        color_table = interpolate.interp1d(ssp_time, color_table)(time_grid)
+        ssp_lumin = interpolate.interp1d(ssp_time,
+                                         ssp_lumin)(time_grid)
+
+        base.add_ssp_bc03(SspBC03(
+            imf,
+            metallicity[key],
+            time_grid,
+            ssp_wave,
+            color_table,
+            ssp_lumin
+        ))
+
+    ########################################################################
     # Dale and Helou 2002 templates insertion                              #
     ########################################################################
-    print("3- Importing Dale and Helou 2002 templates\n")
+    print("4- Importing Dale and Helou 2002 templates\n")
 
     # Getting the alpha grid for the templates
     dhcal = np.genfromtxt(dh2002_dir + 'dhcal.dat')
