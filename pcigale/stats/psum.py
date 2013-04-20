@@ -38,6 +38,9 @@ TOLERANCE = 1.e-12
 RESULT_FILE = 'psum_results.fits'
 # Directory where the output files are storeds
 OUT_DIR = 'out/'
+# Wavelength limits when plotting the best SED.
+PLOT_L_MIN = 91
+PLOT_L_MAX = 1e6
 
 
 class Module(common.AnalysisModule):
@@ -294,8 +297,10 @@ class Module(common.AnalysisModule):
                     redshift=obs_table['redshift'][obs_index])
                 figure = plt.figure()
                 ax = figure.add_subplot(111)
-                ax.loglog(best_sed_lambda_fnu[0],
-                          best_norm_factor * best_sed_lambda_fnu[1],
+                plot_x, plot_y = best_sed_lambda_fnu
+                plot_mask = (plot_x >= PLOT_L_MIN) & (plot_x <= PLOT_L_MAX)
+                ax.loglog(plot_x[plot_mask],
+                          best_norm_factor * plot_y[plot_mask],
                           '-b')
                 ax.loglog([effective_wavelength[name] for name in filter_list],
                           [obs_table[name][obs_index] for name in filter_list],
