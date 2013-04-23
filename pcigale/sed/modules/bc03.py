@@ -93,13 +93,13 @@ class Module(common.SEDCreationModule):
         # First, we process the young population (age lower than the
         # separation age.)
         young_sfh = np.copy(sfh_sfr)
-        young_sfh[sfh_age <= separation_age] = 0
+        young_sfh[sfh_age > separation_age] = 0
         young_wave, young_lumin, young_info = ssp.convolve(sfh_time, young_sfh)
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
         old_sfh = np.copy(sfh_sfr)
-        old_sfh[sfh_age > separation_age] = 0
+        old_sfh[sfh_age <= separation_age] = 0
         old_wave, old_lumin, old_info = ssp.convolve(sfh_time, old_sfh)
 
         # SFR of the galaxy
