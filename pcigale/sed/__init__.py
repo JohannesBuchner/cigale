@@ -120,7 +120,7 @@ class SED(object):
 
         return wavelength, f_nu
 
-    def add_info(self, key, value, mass_proportional=False):
+    def add_info(self, key, value, mass_proportional=False, force=False):
         """
         Add a key / value to the information dictionary
 
@@ -137,9 +137,13 @@ class SED(object):
         mass_proportional : boolean
            If True, the added variable is set as proportional to the
            mass.
+        force : boolean
+           If false (default), adding a key that yet exists in the info
+           dictionary will raise an error. If true, doing this will update
+           the associated value.
 
         """
-        if key not in self.info:
+        if (key not in self.info) or force:
             self.info[key] = value
             if mass_proportional:
                 self.mass_proportional_info.append(key)
