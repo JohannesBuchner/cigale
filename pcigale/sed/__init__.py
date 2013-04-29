@@ -84,7 +84,7 @@ class SED(object):
         """
         return self.lumin_contributions.sum(0)
 
-    def lambda_fnu(self, redshift=0):
+    def lambda_fnu(self, redshift=0, redshift_spectrum=False):
         """
         Return the (redshifted if asked) total Fν flux density vs wavelength
         spectrum of the SED.
@@ -93,6 +93,10 @@ class SED(object):
         ----------
         redshift : float, default = 0
             If 0 (the default), the flux at 10 pc is computed.
+        redshift_spectrum : boolean, default = None
+            If true, the spectrum will be redshifted before computing the
+            flux. The default is False because we generally use a specific
+            module to apply the redshift.
 
         Returns
         -------
@@ -108,7 +112,11 @@ class SED(object):
                 * 1.e-9 * self.wavelength_grid / c
                 * 1.e29)
 
-        wavelength = utils.redshift_wavelength(self.wavelength_grid, redshift)
+        if redshift_spectrum:
+            wavelength = utils.redshift_wavelength(self.wavelength_grid,
+                                                   redshift)
+        else:
+            wavelength = np.copy(self.wavelength_grid)
 
         return wavelength, f_nu
 
