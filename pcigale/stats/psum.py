@@ -568,9 +568,9 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
-            # We use the probability from the chi-square law for the
-            # considered degrees of freedom.
-            probability = stats.chi2.sf(chi2, degrees_of_freedom)
+            # We use the exponential probability associated with the
+            # chi square.
+            probability = np.exp(-chi2 / 2)
 
     return reduced_chi2, normalisation_factor, probability
 
