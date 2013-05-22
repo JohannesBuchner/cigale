@@ -228,6 +228,8 @@ class Module(common.SEDCreationModule):
     out_parameter_list = {
         "NAME_E_BVs_young": "E(B-V)*, the colour excess of the stellar "
                             "continuum light for the young population.",
+        "NAME_E_BVs_old": "E(B-V)*, the colour excess of the stellar "
+                          "continuum light for the old population.",
         "NAME_attenuation_young": "Amount of luminosity attenuated from the "
                                   "young population in W.",
         "NAME_E_BVs_old_factor": "Ratio of the old population E(B-V)* to the "
@@ -253,7 +255,7 @@ class Module(common.SEDCreationModule):
         """
 
         # Base name for adding information to the SED.
-        name = self.name or 'dustatt'
+        name = self.name or 'dustatt_calzleit_'
 
         wavelength = sed.wavelength_grid
         ebvs_young = parameters["E_BVs_young"]
