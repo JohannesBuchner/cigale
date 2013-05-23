@@ -18,13 +18,14 @@ import glob
 import itertools
 import numpy as np
 from scipy import interpolate
-from pcigale.data import Database, Filter, SspM2005, SspBC03
+from pcigale.data import Database, Filter, SspM2005, SspBC03, AgnFritz2006
 
 
 filters_dir = os.path.join(os.path.dirname(__file__), 'filters/')
 m2005_dir = os.path.join(os.path.dirname(__file__), 'maraston2005/')
 bc03_dir = os.path.join(os.path.dirname(__file__), 'bc03//')
 dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
+fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
 
 def read_bc03_ssp(filename):
@@ -328,6 +329,37 @@ def build_base():
     data = (alpha_grid, lambda_grid, templates)
 
     base.add_dh2002_infrared_templates(data)
+
+    ########################################################################
+    # Fritz et al. (2006) AGN insertion                                    #
+    ########################################################################
+    print("5- Importing Fritz et al. (2006) models\n")
+
+    model_list = np.genfromtxt(fritz2006_dir + "fritz.dat")
+
+    for model_line in model_list:
+
+        (model_nb, agn_type, r_ratio, tau,
+         beta, gamma, theta, psy) = model_line
+
+        # Convert some floats to int
+        model_nb = int(model_nb)
+        agn_type = int(agn_type)
+
+        wave, lumin = np.genfromtxt("{}AGN_fritz{}.spec".format(fritz2006_dir,
+                                                                model_nb),
+                                    skip_header=1).transpose()
+
+        # Convert the wavelength from Å to nm
+        wave = wave * 0.1
+
+        # Convert the luminosity from erg/s^-1/Å to W/nm
+        lumin = lumin * 10 * 1.e-7
+
+        agn = AgnFritz2006(model_nb, agn_type, r_ratio, tau, beta, gamma,
+                           theta, psy, wave, lumin)
+
+        base.add_fritz2006_agn(agn)
 
     print("\nDONE\n")
     print('#' * 78)
