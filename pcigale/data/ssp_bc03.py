@@ -33,7 +33,7 @@ class SspBC03(object):
             The metallicity. Possible values are 0.0001, 0.0004, 0.004, 0.008,
             0.02 (solar metallicity) and 0.05.
         time_grid : array of floats
-            The time [Gyr] grid used in the colors_table and the lumin_table.
+            The time [Myr] grid used in the colors_table and the lumin_table.
         wavelength_grid : array of floats
             The wavelength [nm] grid used in the lumin_table.
         color_table: 2 axis array of floats
@@ -78,9 +78,9 @@ class SspBC03(object):
         Parameters
         ----------
         sfh_time : array of floats
-            Time grid of the star formation history. It must be increasing and
-            not run beyond 20 Gyr. The SFH will be regrided to the SSP time
-            grid.
+            Time grid [Myr] of the star formation history. It must be
+            increasing and not run beyond 20 Gyr. The SFH will be regrided to
+            the SSP time.
         sfh_sfr: array of floats
             Star Formation Rates in Msun/yr at each time of the SFH time grid.
         norm: boolean
@@ -102,6 +102,7 @@ class SspBC03(object):
             - "b4_vn": Amplitude of 4000 Å narrow break (Balogh et al. 1999)
             - "b4_sdss" : Amplitude of 4000 Å break (Stoughton et al. 2002)
             - "b_912": Amplitude of Lyman discontinuity
+
         """
         # We work on a copy of SFH (as we change it)
         sfh_time, sfh_sfr = np.copy((sfh_time, sfh_sfr))
@@ -117,12 +118,12 @@ class SspBC03(object):
                             sfh_time, sfh_sfr,
                             left=0., right=0.)
 
-        # Step between two item in the time grid in Gyr
+        # Step between two item in the time grid in Myr
         step = self.time_grid[1] - self.time_grid[0]
 
         # If needed, we normalise the SFH to 1 solar mass produced.
         if norm:
-            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1e9,
+            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1.e6,
                                          self.time_grid[:idx + 1])
 
         # As both the SFH and the SSP (limited to the age of the SFH) data now
@@ -132,9 +133,9 @@ class SspBC03(object):
         color_table = self.color_table[:, :idx + 1]
         lumin_table = self.lumin_table[:, :idx + 1]
 
-        # The 1.e9 * step is because the SFH is in solar mass per year.
-        color_info = 1.e9 * step * np.dot(color_table, sfh_sfr[::-1])
-        luminosity = 1.e9 * step * np.dot(lumin_table, sfh_sfr[::-1])
+        # The 1.e6 * step is because the SFH is in solar mass per year.
+        color_info = 1.e6 * step * np.dot(color_table, sfh_sfr[::-1])
+        luminosity = 1.e6 * step * np.dot(lumin_table, sfh_sfr[::-1])
 
         bc03_info = dict(zip(
             ["m_star", "m_gas", "n_ly", "b_4000", "b4_vn", "b4_sdss", "b_912"],

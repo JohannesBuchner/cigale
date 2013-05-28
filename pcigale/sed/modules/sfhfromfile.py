@@ -16,7 +16,7 @@ class Module(common.SEDCreationModule):
     """Module reading the SFH from a file
 
     This module is used to read the Star Formation Histories from a FITS or
-    VO-Table file. The first column must contain the time values (in Gyr) and
+    VO-Table file. The first column must contain the time values (in Myr) and
     each other column may contain the Star Formation Rates (in solar mass per
     year) corresponding. Each SFR may be cut and normalised to 1 solar mass
     produced at the desired age.
@@ -27,7 +27,7 @@ class Module(common.SEDCreationModule):
         "filename": (
             "str",
             "Name of the file containing the SFH. The first column must be "
-            "the time [Gyr] and the other column must contain the SFR "
+            "the time [Myr] and the other column must contain the SFR "
             "[Msun/yr].",
             None
         ),
@@ -39,7 +39,7 @@ class Module(common.SEDCreationModule):
         ),
         "age": (
             "float",
-            "List of ages where each SFH will be looked at.",
+            "List of ages [Myr] where each SFH will be looked at.",
             None
         )
     }
@@ -71,7 +71,7 @@ class Module(common.SEDCreationModule):
         time_grid = time_grid[time_grid <= age]
 
         # The we normalise it to 1 solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1e9, time_grid)
+        sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
         # Base name for adding information to the SED.
         name = self.name or 'loadfile'

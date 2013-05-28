@@ -14,8 +14,8 @@ from pcigale.data import Database
 
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
-# number of parameters. The value is in Gyr.
-AV_LAPSE = 0.1
+# number of parameters. The value is in Myr.
+AV_LAPSE = 100
 
 
 class Module(common.SEDCreationModule):
@@ -29,11 +29,11 @@ class Module(common.SEDCreationModule):
         - imf, metallicity, galaxy_age
         - sfr: star formation rate normalised to 1 solar mass formed at the
               age of the galaxy.
-        - average_sfr: SFR averaged on the last 0.1 Gyr of the galaxy history
+        - average_sfr: SFR averaged on the last 100 Myr of the galaxy history
         - mass_total, mass_alive, mass_white_dwarf,mass_neutrino,
           mass_black_hole, mass_turn_off : stellar masses in solar mass.
         - age: age of the oldest stars in the galaxy.
-        - old_young_separation_age: age (in Gyr) separating the young and the
+        - old_young_separation_age: age (in Myr) separating the young and the
               old star populations (if 0, there is only one population)
         - mass_total_old, mass_alive_old, mass_white_dwarf_old,
           mass_neutrino_old, mass_black_hole_old, mass_turn_off_old: old
@@ -65,17 +65,17 @@ class Module(common.SEDCreationModule):
         ),
         'separation_age': (
             'float',
-            "Age [Gyr] of the separation between the young and the old star "
-            "populations. The default value in 10^7 years (0.01 Gyr). Set "
-            "to 0 not to differentiate ages (only an old population).",
-            0.01
+            "Age [Myr] of the separation between the young and the old star "
+            "populations. The default value in 10^7 years (10 Myr). Set to "
+            "0 not to differentiate ages (only an old population).",
+            10
         )
     }
 
     out_parameter_list = {
         'sfr': 'Instantaneous Star Formation Rate in solar mass per year, '
                'at the age of the galaxy.',
-        'average_sfr': 'Average SFR in the last 0.1 Gyr (default) of the '
+        'average_sfr': 'Average SFR in the last 100 Myr (default) of the '
                        'galaxy history.',
         'mass_total': 'Total stellar mass of the galaxy in solar mass.',
         'mass_alive': 'Mass of alive stars in solar mass.',
@@ -83,7 +83,7 @@ class Module(common.SEDCreationModule):
         'mass_neutrino': 'Mass of neutrino stars in solar mass.',
         'mass_black_hole': 'Mass of black holes in solar mass.',
         'mass_turn_off': 'Mass in the turn-off in solar mass.',
-        'old_young_separation_age': 'Age (in Gyr) separating the old and '
+        'old_young_separation_age': 'Age (in Myr) separating the old and '
                                     'the young star populations (0 if there '
                                     'is only one population).',
         'mass_total_old': 'Total stellar mass of the old population in solar '
@@ -152,7 +152,7 @@ class Module(common.SEDCreationModule):
         # SFR of the galaxy
         sfr = sfh_sfr[len(sfh_sfr) - 1]
 
-        # Average SFR on the last AV_LAPSE Gyr of its history
+        # Average SFR on the last AV_LAPSE Myr of its history
         average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
 
         # Base name for adding information to the SED.

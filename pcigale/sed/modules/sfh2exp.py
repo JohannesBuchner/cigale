@@ -10,9 +10,9 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 import numpy as np
 from . import common
 
-# Time lapse used in the age grid in Gyr. If should be consistent with the
+# Time lapse used in the age grid in Myr. If should be consistent with the
 # time lapse in the SSP modules.
-AGE_LAPSE = 1e-3
+AGE_LAPSE = 1
 
 
 class Module(common.SEDCreationModule):
@@ -27,12 +27,12 @@ class Module(common.SEDCreationModule):
     parameter_list = {
         "tau_main": (
             "float",
-            "e-folding time of the main stellar population model in Gyr.",
+            "e-folding time of the main stellar population model in Myr.",
             None
         ),
         "tau_burst": (
             "float",
-            "e-folding time of the late starburst population model in Gyr.",
+            "e-folding time of the late starburst population model in Myr.",
             None
         ),
         "f_burst": (
@@ -42,25 +42,25 @@ class Module(common.SEDCreationModule):
         ),
         "age": (
             "float",
-            "Age of the oldest stars in the galaxy in Gyr. The precision "
+            "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
             None
         ),
         "burst_age": (
             "float",
-            "Age of the late burst in Gyr. Precision is 1 Myr.",
+            "Age of the late burst in Myr. Precision is 1 Myr.",
             None
         )
     }
 
     out_parameter_list = {
         "tau_main": "e-folding time of the main stellar population model "
-                    "in Gyr.",
+                    "in Myr.",
         "tau_burst": "e-folding time of the late starburst population model "
-                     "in Gyr.",
+                     "in Myr.",
         "f_burst": "Produced mass fraction of the late burst population.",
-        "age": "Age of the oldest stars in the galaxy in Gyr.",
-        "burst_age": "Age of the late burst in Gyr."
+        "age": "Age of the oldest stars in the galaxy in Myr.",
+        "burst_age": "Age of the late burst in Myr."
     }
 
     def _process(self, sed, parameters):
@@ -101,7 +101,7 @@ class Module(common.SEDCreationModule):
             (-time_grid[mask] + age - burst_age) / tau_burst)
 
         # We normalise the SFH to have one solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1e9, time_grid)
+        sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
         # Base name for adding information to the SED.
         name = self.name or "sfh2exp"

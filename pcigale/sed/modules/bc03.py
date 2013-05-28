@@ -14,8 +14,8 @@ from pcigale.data import Database
 
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
-# number of parameters. The value is in Gyr.
-AV_LAPSE = 0.1
+# number of parameters. The value is in Myr.
+AV_LAPSE = 100
 
 
 class Module(common.SEDCreationModule):
@@ -43,17 +43,17 @@ class Module(common.SEDCreationModule):
         ),
         "separation_age": (
             "float",
-            "Age [Gyr] of the separation between the young and the old star "
-            "populations. The default value in 10^7 years (0.01 Gyr). Set "
+            "Age [Myr] of the separation between the young and the old star "
+            "populations. The default value in 10^7 years (10 Myr). Set "
             "to 0 not to differentiate ages (only an old population).",
-            0.01
+            10
         )
     }
 
     out_parameter_list = {
         "sfr": "Instantaneous Star Formation Rate in solar mass per year, "
                "at the age of the galaxy.",
-        "average_sfr": "Average SFR in the last 0.1 Gyr (default) of the "
+        "average_sfr": "Average SFR in the last 100 Myr (default) of the "
                        "galaxy history.",
         "m_star": "Total mass in stars in Solar mass.",
         "m_gas": "Mass returned to the ISM by evolved stars in Solar mass.",
@@ -105,7 +105,7 @@ class Module(common.SEDCreationModule):
         # SFR of the galaxy
         sfr = sfh_sfr[len(sfh_sfr) - 1]
 
-        # Average SFR on the last AV_LAPSE Gyr of its history
+        # Average SFR on the last AV_LAPSE Myr of its history
         average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
 
         # Base name for adding information to the SED.

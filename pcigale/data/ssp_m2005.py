@@ -48,7 +48,7 @@ class SspM2005(object):
                 * -0.33 (corresponding to 0.5 Zsun)
                 * -1.35 (corresponding to 1/50 Zsun)
         time_grid : array of floats
-            The time [Gyr] grid used in the mass_table and the spec_table.
+            The time [Myr] grid used in the mass_table and the spec_table.
         wavelength_grid : array of floats
             The wavelength [nm] grid used in the spec_table.
         mass_table : (6, n) array of floats
@@ -92,10 +92,10 @@ class SspM2005(object):
         Parameters
         ----------
         sfh_time : array of floats
-            Time grid of the star formation history. It must be increasing and
-            not run beyond 13.7 Gyr. As the SFH will be regrided to the SSP
-            time grid, it is better to have a SFH age grid compatible, i.e.
-            with a precision limited to 1e-3 Gyr.
+            Time grid [Myr)] of the star formation history. It must be
+            increasing and not run beyond 13.7 Gyr. As the SFH will be
+            regrided to the SSP time grid, it is better to have a SFH age grid
+            compatible, i.e. with a precision limited to 1 Myr.
         sfh_sfr: array of floats
             Star Formation Rates in Msun/yr at each time of the SFH time grid.
         norm: boolean
@@ -120,34 +120,32 @@ class SspM2005(object):
         # We work on a copy of SFH (as we change it)
         sfh_time, sfh_sfr = np.copy((sfh_time, sfh_sfr))
 
-        # Index, in the SSP time grid, of the time nearest to the age of
-        # the SFH.
-        idx = np.abs(self.time_grid - np.max(sfh_time)).argmin()
+        # Step between two item in the time grid in Myr
+        step = self.time_grid[1] - self.time_grid[0]
 
+        # Number of step to go to the age of the SFH on the SSP age grid.
+        nb_steps = 1 + np.round((np.max(sfh_time) - self.time_grid[0]) / step)
         # We regrid the SFH to the time grid of the SSP using a linear
         # interpolation. If the SFH does no start at 0, the first SFR values
         # will be set to 0.
-        sfh_sfr = np.interp(self.time_grid[:idx + 1],
+        sfh_sfr = np.interp(self.time_grid[:nb_steps],
                             sfh_time, sfh_sfr,
                             left=0., right=0.)
 
-        # Step between two item in the time grid in Gyr
-        step = self.time_grid[1] - self.time_grid[0]
-
         # If needed, we normalise the SFH to 1 solar mass produced.
         if norm:
-            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1e9,
-                                         self.time_grid[:idx + 1])
+            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1.e6,
+                                         self.time_grid[:nb_steps])
 
         # As both the SFH and the SSP (limited to the age of the SFH) data now
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:, :idx + 1]
-        spec_table = self.spec_table[:, :idx + 1]
+        mass_table = self.mass_table[:, :nb_steps]
+        spec_table = self.spec_table[:, :nb_steps]
 
-        # The 1.e9 * step is because the SFH is in solar mass per year.
-        masses = 1.e9 * step * np.dot(mass_table, sfh_sfr[::-1])
-        spectra = 1.e9 * step * np.dot(spec_table, sfh_sfr[::-1])
+        # The 1.e6 * step is because the SFH is in solar mass per year.
+        masses = 1.e6 * step * np.dot(mass_table, sfh_sfr[::-1])
+        spectra = 1.e6 * step * np.dot(spec_table, sfh_sfr[::-1])
 
         return masses, spectra

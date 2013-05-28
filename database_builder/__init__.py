@@ -46,7 +46,7 @@ def read_bc03_ssp(filename):
     Returns
     -------
     time_grid: numpy 1D array of floats
-              Vector of the time grid of the SSP in Gyr.
+              Vector of the time grid of the SSP in Myr.
     wavelength: numpy 1D array of floats
                 Vector of the wavelength grid of the SSP in nm.
     spectra: numpy 2D array of floats
@@ -119,9 +119,9 @@ def read_bc03_ssp(filename):
             if counter == 0:
                 what_line = file_structure.next()
 
-    # The time grid is in year, we want Gyr.
+    # The time grid is in year, we want Myr.
     time_grid = np.array(time_grid, dtype=float)
-    time_grid = time_grid * 1.e-9
+    time_grid = time_grid * 1.e-6
 
     # The first "long" vector encountered is the wavelength grid. The value
     # are in Ångström, we convert it to nano-meter.
@@ -179,8 +179,8 @@ def build_base():
     ########################################################################
     print("2- Importing Maraston 2005 SSP\n")
 
-    # Age grid (1My to 13.7Gy with 1My step)
-    age_grid = np.arange(1e-3, 13.701, 1e-3)
+    # Age grid (1 Myr to 13.7 Gyr with 1 Myr step)
+    age_grid = np.arange(1, 13701)
 
     # Transpose the table to have access to each value vector on the first
     # axis
@@ -208,8 +208,10 @@ def build_base():
         # we don't take the first column which contains metallicity
         mass_table = mass_table[1:, mass_table[0] == metallicity]
 
-        # Interpolate the mass table over the new age grid
-        mass_table = interpolate.interp1d(mass_table[0], mass_table)(age_grid)
+        # Interpolate the mass table over the new age grid. We multiply per
+        # 1000 because the time in Maraston files is given in Gyr.
+        mass_table = interpolate.interp1d(mass_table[0] * 1000,
+                                          mass_table)(age_grid)
 
         # Remove the age column from the mass table
         mass_table = np.delete(mass_table, 0, 0)
@@ -229,6 +231,7 @@ def build_base():
             [age_grid_orig, lambda_grid_orig, flux_orig] = \
                 spec_table[:, spec_table[1, :] == wavelength]
             flux_orig = flux_orig * 10 * 1.e-7  # From erg/s^-1/Å to W/nm
+            age_grid_orig = age_grid_orig * 1000  # Gyr to Myr
             flux_regrid = interpolate.interp1d(age_grid_orig,
                                                flux_orig)(age_grid)
 
@@ -246,8 +249,8 @@ def build_base():
     ########################################################################
     print("3- Importing Bruzual and Charlot 2003 SSP\n")
 
-    # Time grid (1My to 20Gy with 1My step)
-    time_grid = np.arange(1e-3, 20., 1e-3)
+    # Time grid (1 Myr to 20 Gyr with 1 Myr step)
+    time_grid = np.arange(1, 20000)
 
     # Metallicities associated to each key
     metallicity = {
