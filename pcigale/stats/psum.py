@@ -266,6 +266,11 @@ class Module(common.AnalysisModule):
             best_norm_factor = comp_table[best_index, obs_index, 2]
             best_params = sed_modules_params[best_index]
             best_sed = sed_warehouse.get_sed(sed_modules, best_params)
+            # We need to pass the SED through the redshit/IGM module before
+            # plotting it.
+            obs_redshift = obs_table['redshift'][obs_index]
+            redshift_module.parameters["redshift"] = obs_redshift
+            redshift_module.process(best_sed)
 
             # Save best SED
             # TODO: For now, we only save the lambda vs fnu table. Once
