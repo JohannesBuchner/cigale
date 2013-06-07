@@ -28,6 +28,7 @@ from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
 from ..warehouse import SedWarehouse
+from ..sed import utils
 from ..sed.modules.common import get_module
 from ..data import Database
 
@@ -38,7 +39,7 @@ TOLERANCE = 1.e-12
 RESULT_FILE = 'psum_results.fits'
 # Directory where the output files are storeds
 OUT_DIR = 'out/'
-# Wavelength limits when plotting the best SED.
+# Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 91
 PLOT_L_MAX = 1e6
 
@@ -303,7 +304,12 @@ class Module(common.AnalysisModule):
                 figure = plt.figure()
                 ax = figure.add_subplot(111)
                 plot_x, plot_y = best_sed_lambda_fnu
-                plot_mask = (plot_x >= PLOT_L_MIN) & (plot_x <= PLOT_L_MAX)
+                plot_mask = (
+                    (plot_x >= utils.redshift_wavelength(PLOT_L_MIN,
+                                                         obs_redshift)) &
+                    (plot_x <= utils.redshift_wavelength(PLOT_L_MAX,
+                                                         obs_redshift))
+                )
                 ax.loglog(plot_x[plot_mask],
                           best_norm_factor * plot_y[plot_mask],
                           '-b')
