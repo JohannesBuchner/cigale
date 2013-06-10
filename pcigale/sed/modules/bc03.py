@@ -57,7 +57,7 @@ class Module(common.SEDCreationModule):
                        "galaxy history.",
         "m_star": "Total mass in stars in Solar mass.",
         "m_gas": "Mass returned to the ISM by evolved stars in Solar mass.",
-        "n_ly": "log rate of H-ionizing photons in s^-1, per Solar mass "
+        "n_ly": "rate of H-ionizing photons in s^-1, per Solar mass "
                 "of galaxy.",
         "b_4000": "Amplitude of 4000 Å break (Bruzual 2003)",
         "b4_vn": "Amplitude of 4000 Å narrow break (Balogh et al. 1999)",

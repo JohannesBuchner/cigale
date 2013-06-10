@@ -42,7 +42,7 @@ class SspBC03(object):
                 * color_table[0]: Total mass in stars in solar mass
                 * color_table[1]: Mass returned to the ISM by evolved stars
                                    in solar mass
-                * color_table[2]: log rate of H-ionizing photons (s-1)
+                * color_table[2]: rate of H-ionizing photons (s-1)
                 * color_table[3]: Amplitude of 4000 Å break (Bruzual 2003)
                 * color_table[4]: Amplitude of 4000 Å narrow break (Balogh
                                    et al. 1999)
@@ -97,7 +97,7 @@ class SspBC03(object):
             - "m_star": Total mass in stars in solar mass
             - "m_gas": Mass returned to the ISM by evolved stars
                        in solar mass
-            - "n_ly": log rate of H-ionizing photons (s-1)
+            - "n_ly": rate of H-ionizing photons (s-1)
             - "b_4000": Amplitude of 4000 Å break (Bruzual 2003)
             - "b4_vn": Amplitude of 4000 Å narrow break (Balogh et al. 1999)
             - "b4_sdss" : Amplitude of 4000 Å break (Stoughton et al. 2002)
