@@ -58,7 +58,7 @@ def uv_bump(wavelength, central_wave, gamma, ebump):
              + wavelength ** 2 * gamma ** 2))
 
 
-def alamba_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
+def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     """Compute the complete attenuation curve A(λ)/Av
 
     The continuum is a power law (λ / λv) ** δ to with is added a UV bump.
@@ -200,9 +200,9 @@ class Module(common.SEDCreationModule):
         base.close()
 
         # Compute attenuation curve
-        sel_attenuation = alamba_av(wavelength, powerlaw_slope,
-                                    uv_bump_wavelength, uv_bump_width,
-                                    uv_bump_amplitude)
+        sel_attenuation = alambda_av(wavelength, powerlaw_slope,
+                                     uv_bump_wavelength, uv_bump_width,
+                                     uv_bump_amplitude)
 
         # Young population attenuation
         luminosity = sed.get_lumin_contribution(young_contrib)
