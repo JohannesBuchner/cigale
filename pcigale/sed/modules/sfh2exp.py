@@ -109,7 +109,7 @@ class Module(common.SEDCreationModule):
         sed.add_module(name, parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.add_info(name + "_sfh", (time_grid, sfr))
+        sed.sfh = (time_grid, sfr)
         sed.add_info(name + "_tau_main", tau_main)
         sed.add_info(name + "_tau_burst", tau_burst)
         sed.add_info(name + "_f_burst", f_burst)

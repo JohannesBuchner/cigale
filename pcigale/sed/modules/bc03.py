@@ -34,13 +34,6 @@ class Module(common.SEDCreationModule):
             "Mettalicity, 0.02 for Solar metallicity.",
             None
         ),
-        "sfh": (
-            "string",
-            "Name of the key in the SED info dictionary, associated with the "
-            "SFH tuple (time, sfr). The SFH must be normalised to 1 solar "
-            "mass produced.",
-            None
-        ),
         "separation_age": (
             "float",
             "Age [Myr] of the separation between the young and the old star "
@@ -80,7 +73,7 @@ class Module(common.SEDCreationModule):
         imf = self.parameters["imf"]
         metallicity = self.parameters["metallicity"]
         separation_age = self.parameters["separation_age"]
-        sfh_time, sfh_sfr = np.copy(sed.info[parameters["sfh"]])
+        sfh_time, sfh_sfr = sed.sfh
 
         # Age of the galaxy at each time of the SFH
         sfh_age = np.max(sfh_time) - sfh_time

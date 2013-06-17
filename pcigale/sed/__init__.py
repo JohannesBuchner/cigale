@@ -1,57 +1,82 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+"""Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
+
+This class represents a Spectral Energy Distribution (SED) as used by pcigale.
+Such SED is characterised by:
+
+- sfh: a tuple (time [Myr], Star Formation Rate [Msun/yr]) representing the
+  Star Formation History of the galaxy.
+
+- modules: a list of tuples (module name, parameter dictionary) containing all
+  the pcigale modules the SED 'went through'.
+
+- wavelength_grid: the grid of wavelengths [nm] used for the luminosities.
+
+- contribution_names: the list of the names of the luminosity contributions
+  making part of the SED.
+
+- luminosities: a two axis numpy array containing all the luminosity density
+  [W/nm] contributions to the SED. The index in the first axis corresponds to
+  the contribution (in the contribution_names list) and the index of the
+  second axis corresponds to the wavelength in the wavelength grid.
+
+- info: a dictionnary containing various information about the SED.
+
+- mass_proportional_info: the list of keys in the info dictionnary whose value
+  is proportional to the galaxy mass.
 
 """
 
 
 import numpy as np
 from . import utils
+from itertools import chain
 from scipy.constants import c
+from scipy.interpolate import interp1d
 
 
 class SED(object):
     """Spectral Energy Distribution with associated information
-
-    This class represents a Spectral Energy Distribution (SED) as constructed
-    by pCigale. Such a SED is characterised by:
-
-    - A list of tuples (module name, parameter dictionary) describing all the
-      pCigale modules the SED 'went through'.
-
-    - The wavelengths grid (in nm).
-
-    - An array of luminosity densities (in W/nm) containing the luminosity
-      contribution (in positive or negative) of each module the SED 'went
-      through'. The first axis corresponds to the index in the contribution
-      list (see below) and the second axis corresponds to the wavelength grid.
-
-    - The list of the contributions that are in the above array. This list is
-      separated from the list of the modules so that one module can result in
-      various contributions to the SED.
-
-    - A dictionary of arbitrary information associated with the SED.
-
-    - The list of the keys from the info dictionary whose value is
-      proportional to the galaxy mass.
-
     """
 
-    def __init__(self):
+    def __init__(self, sfh=None):
+        """Create a new SED
+
+        Parameters
+        ----------
+        sfh : (numpy.array, numpy.array)
+            Star Formation History: tuple of two numpy array, the first is the
+            time in Myr and the second is the Star Formation Rate in Msun/yr.
+            If no SFH is given, it's set to None.
+
+        """
+        self.sfh = sfh
         self.modules = []
         self.wavelength_grid = None
-        self.lumin_contributions = None
         self.contribution_names = []
+        self.luminosities = None
         self.info = {}
         self.mass_proportional_info = []
 
     @property
+    def sfh(self):
+        """Return a copy of the star formation history
+        """
+        if self._sfh is None:
+            return None
+        else:
+            return np.copy(self._sfh)
+
+    @sfh.setter
+    def sfh(self, value):
+        self._sfh = value
+
+    @property
     def wavelength_grid(self):
-        """ Return a copy of the wavelength grid to avoid involuntary
-        modifications.
+        """ Return a copy of the wavelength grid
         """
         if self._wavelength_grid is None:
             return None
@@ -63,26 +88,29 @@ class SED(object):
         self._wavelength_grid = value
 
     @property
-    def lumin_contributions(self):
-        """ Return a copy of the luminosity contribution table to avoid
-        involuntary modifications.
+    def luminosities(self):
+        """ Return a copy of the luminosity contributions
         """
-        if self._lumin_contributions is None:
+        if self._luminosities is None:
             return None
         else:
-            return np.copy(self._lumin_contributions)
+            return np.copy(self._luminosities)
 
-    @lumin_contributions.setter
-    def lumin_contributions(self, value):
-        self._lumin_contributions = value
+    @luminosities.setter
+    def luminosities(self, value):
+        self._luminosities = value
 
     @property
     def luminosity(self):
-        """
+        """Total luminosity of the SED
+
         Return the total luminosity density vector, i.e. the sum of all the
         contributions in W/nm.
         """
-        return self.lumin_contributions.sum(0)
+        if self._luminosities is None:
+            return None
+        else:
+            return self._luminosities.sum(0)
 
     def lambda_fnu(self, redshift=0, redshift_spectrum=False):
         """
@@ -198,9 +226,9 @@ class SED(object):
 
         # If the SED luminosity table is empty, then there is nothing to
         # compute.
-        if self.lumin_contributions is None:
+        if self.luminosities is None:
             self.wavelength_grid = np.copy(results_wavelengths)
-            self.lumin_contributions = np.array([np.copy(results_lumin)])
+            self.luminosities = np.copy(results_lumin)
         else:
             # Compute the new wavelength grid for the spectrum.
             new_wavelength_grid = utils.best_grid(results_wavelengths,
@@ -208,32 +236,22 @@ class SED(object):
 
             # Interpolate each luminosity component to the new wavelength grid
             # setting everything outside the wavelength domain to 0.
-            new_lumin_table = None
-            for old_lumin in self.lumin_contributions:
-                interp_lumin = np.interp(
-                    new_wavelength_grid,
-                    self.wavelength_grid,
-                    old_lumin,
-                    right=0,
-                    left=0)
+            new_luminosities = interp1d(self.wavelength_grid,
+                                        self.luminosities,
+                                        bounds_error=False,
+                                        fill_value=0.)(new_wavelength_grid)
 
-                if new_lumin_table is None:
-                    new_lumin_table = np.array([interp_lumin])
-                else:
-                    new_lumin_table = np.vstack((new_lumin_table,
-                                                 interp_lumin))
-
-            # Add the new module luminosities
+            # Interpolate the added luminosity array to the new wavelength
+            # grid
             interp_lumin = np.interp(
                 new_wavelength_grid,
                 results_wavelengths,
                 results_lumin,
                 right=0,
                 left=0)
-            new_lumin_table = np.vstack((new_lumin_table, interp_lumin))
 
             self.wavelength_grid = new_wavelength_grid
-            self.lumin_contributions = new_lumin_table
+            self.luminosities = np.vstack((new_luminosities, interp_lumin))
 
     def get_lumin_contribution(self, name):
         """Get the luminosity vector of a given contribution
@@ -256,7 +274,7 @@ class SED(object):
         # Find the index of the _last_ name element
         idx = (len(self.contribution_names) - 1
                - self.contribution_names[::-1].index(name))
-        return self.lumin_contributions[idx]
+        return self.luminosities[idx]
 
     def compute_fnu(self, transmission, lambda_eff,
                     redshift=0, redshift_spectrum=False):
@@ -308,6 +326,7 @@ class SED(object):
         lambda_min = min(transmission[0])
         lambda_max = max(transmission[0])
 
+        # FIXME Shouldn't it be the reverse
         if ((min(self.wavelength_grid) > lambda_min) or
                 (max(self.wavelength_grid) < lambda_max)):
             f_nu = -99.
