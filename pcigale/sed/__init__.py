@@ -23,6 +23,11 @@ Such SED is characterised by:
   the contribution (in the contribution_names list) and the index of the
   second axis corresponds to the wavelength in the wavelength grid.
 
+- lines: a dictionnary containing the emission lines associated with the SED.
+  A dictionnary is used to allow the storage of various sets of lines. The
+  lines are stored in lists of tuples (wavelength [nm], luminosity [W], width
+  [km.s-1]).
+
 - info: a dictionnary containing various information about the SED.
 
 - mass_proportional_info: the list of keys in the info dictionnary whose value
@@ -58,6 +63,7 @@ class SED(object):
         self.wavelength_grid = None
         self.contribution_names = []
         self.luminosities = None
+        self.lines = {}
         self.info = {}
         self.mass_proportional_info = []
 
@@ -365,6 +371,11 @@ class SED(object):
                  np.trapz(transmission_r, wavelength_r)),
                 redshift
             )
+
+            # Add the Fλ fluxes from the spectral lines.
+            for line in chain(*self.lines.values()):
+                if (line[0] >= lambda_min) and (line[0] <= lambda_max):
+                    pass  # TODO write the code
 
             # Fν in W/m²/Hz. The 1.e-9 factor is because λ is in nm.
             f_nu = lambda_eff * f_lambda * lambda_eff * 1.e-9 / c
