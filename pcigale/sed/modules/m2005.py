@@ -19,7 +19,7 @@ AV_LAPSE = 100
 
 
 class Module(common.SEDCreationModule):
-    """Module computing the Star Formation History contribution bases on the
+    """Module computing the Star Formation History contribution based on the
     Maraston (2005) models.
 
     Implements the population syntesis based on the SSP described in Maraston,

@@ -36,7 +36,7 @@ class Module(common.SEDCreationModule):
         ),
         "rtau": (
             'float',
-            "Parameter which scale the tau value at each wavelength.",
+            "Parameter which scales the tau value at each wavelength.",
             1.
         )
     }

@@ -215,7 +215,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The SSP is yet in the base.')
+                raise StandardError('The SSP is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -235,7 +235,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The SSP is yet in the base.')
+                raise StandardError('The SSP is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -266,7 +266,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The template is yet in the base.')
+                raise StandardError('The template is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -285,7 +285,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The agn model is yet in the base.')
+                raise StandardError('The agn model is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
