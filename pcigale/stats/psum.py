@@ -571,8 +571,10 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
             normalisation_factor = np.sum(obs_fluxes) / np.sum(model_fluxes)
             probability = 1
         else:
-            normalisation_factor = (np.sum(obs_fluxes * model_fluxes) /
-                                    np.sum(model_fluxes * model_fluxes))
+            normalisation_factor = (np.sum(obs_fluxes * model_fluxes /
+                                          (obs_errors * obs_errors)) /
+                                    np.sum(model_fluxes * model_fluxes /
+                                           (obs_errors * obs_errors)))
             norm_model_fluxes = normalisation_factor * model_fluxes
             chi2 = np.sum(np.square((obs_fluxes - norm_model_fluxes) /
                                     obs_errors))
