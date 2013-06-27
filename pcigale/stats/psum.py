@@ -568,14 +568,14 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors):
         if degrees_of_freedom == 0:
             #FIXME
             reduced_chi2 = 0
-            normalisation_factor = sum(obs_fluxes) / sum(model_fluxes)
+            normalisation_factor = np.sum(obs_fluxes) / np.sum(model_fluxes)
             probability = 1
         else:
-            normalisation_factor = (sum(obs_fluxes * model_fluxes) /
-                                    sum(model_fluxes * model_fluxes))
+            normalisation_factor = (np.sum(obs_fluxes * model_fluxes) /
+                                    np.sum(model_fluxes * model_fluxes))
             norm_model_fluxes = normalisation_factor * model_fluxes
-            chi2 = sum(np.square((obs_fluxes - norm_model_fluxes) /
-                                 obs_errors))
+            chi2 = np.sum(np.square((obs_fluxes - norm_model_fluxes) /
+                                    obs_errors))
             reduced_chi2 = chi2 / degrees_of_freedom
             reduced_chi2 = min(reduced_chi2, 99)
 
