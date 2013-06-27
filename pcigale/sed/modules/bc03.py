@@ -35,7 +35,7 @@ class Module(common.SEDCreationModule):
             None
         ),
         "separation_age": (
-            "float",
+            "integer",
             "Age [Myr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (10 Myr). Set "
             "to 0 not to differentiate ages (only an old population).",
@@ -71,8 +71,8 @@ class Module(common.SEDCreationModule):
         """
 
         imf = self.parameters["imf"]
-        metallicity = self.parameters["metallicity"]
-        separation_age = self.parameters["separation_age"]
+        metallicity = float(self.parameters["metallicity"])
+        separation_age = int(self.parameters["separation_age"])
         sfh_time, sfh_sfr = sed.sfh
 
         # Age of the galaxy at each time of the SFH

@@ -179,14 +179,14 @@ class Module(common.SEDCreationModule):
         name = self.name or 'dustatt_powerlaw_'
 
         wavelength = sed.wavelength_grid
-        av_young = parameters["Av_young"]
-        av_old = parameters["Av_old_factor"] * av_young
+        av_young = float(parameters["Av_young"])
+        av_old = float(parameters["Av_old_factor"] * av_young)
         young_contrib = parameters["young_contribution_name"]
         old_contrib = parameters["old_contribution_name"]
-        uv_bump_wavelength = parameters["uv_bump_wavelength"]
-        uv_bump_width = parameters["uv_bump_wavelength"]
-        uv_bump_amplitude = parameters["uv_bump_amplitude"]
-        powerlaw_slope = parameters["powerlaw_slope"]
+        uv_bump_wavelength = float(parameters["uv_bump_wavelength"])
+        uv_bump_width = float(parameters["uv_bump_wavelength"])
+        uv_bump_amplitude = float(parameters["uv_bump_amplitude"])
+        powerlaw_slope = float(parameters["powerlaw_slope"])
         filter_list = parameters["filters"]
 
         # Fλ fluxes in each filter before attenuation.

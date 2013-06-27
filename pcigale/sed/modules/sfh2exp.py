@@ -41,13 +41,13 @@ class Module(common.SEDCreationModule):
             None
         ),
         "age": (
-            "float",
+            "integer",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
             None
         ),
         "burst_age": (
-            "float",
+            "integer",
             "Age of the late burst in Myr. Precision is 1 Myr.",
             None
         )
@@ -73,11 +73,11 @@ class Module(common.SEDCreationModule):
 
         """
 
-        tau_main = parameters["tau_main"]
-        tau_burst = parameters["tau_burst"]
-        f_burst = parameters["f_burst"]
-        age = parameters["age"]
-        burst_age = parameters["burst_age"]
+        tau_main = float(parameters["tau_main"])
+        tau_burst = float(parameters["tau_burst"])
+        f_burst = float(parameters["f_burst"])
+        age = int(parameters["age"])
+        burst_age = int(parameters["burst_age"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)

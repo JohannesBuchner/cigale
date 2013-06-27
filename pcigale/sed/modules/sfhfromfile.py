@@ -32,14 +32,14 @@ class Module(common.SEDCreationModule):
             None
         ),
         "sfr_column": (
-            "int",
+            "integer",
             "List of column numbers where the star formation rates will "
             "be read..",
             None
         ),
         "age": (
-            "float",
-            "List of ages [Myr] where each SFH will be looked at.",
+            "integer",
+            "Age [Myr] where each SFH will be looked at.",
             None
         )
     }
@@ -64,7 +64,7 @@ class Module(common.SEDCreationModule):
         sfr_column_name = table.columns.keys[sfr_column_number]
         sfr = table[sfr_column_name]
 
-        age = parameters['age']
+        age = int(parameters['age'])
 
         # We cut the SFH to the desired age.
         sfr = sfr[time_grid <= age]

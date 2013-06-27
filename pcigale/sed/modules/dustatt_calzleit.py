@@ -258,14 +258,14 @@ class Module(common.SEDCreationModule):
         name = self.name or 'dustatt_calzleit_'
 
         wavelength = sed.wavelength_grid
-        ebvs_young = parameters["E_BVs_young"]
-        ebvs_old = parameters["E_BVs_old_factor"] * ebvs_young
+        ebvs_young = float(parameters["E_BVs_young"])
+        ebvs_old = float(parameters["E_BVs_old_factor"]) * ebvs_young
         young_contrib = parameters["young_contribution_name"]
         old_contrib = parameters["old_contribution_name"]
-        uv_bump_wavelength = parameters["uv_bump_wavelength"]
-        uv_bump_width = parameters["uv_bump_wavelength"]
-        uv_bump_amplitude = parameters["uv_bump_amplitude"]
-        powerlaw_slope = parameters["powerlaw_slope"]
+        uv_bump_wavelength = float(parameters["uv_bump_wavelength"])
+        uv_bump_width = float(parameters["uv_bump_wavelength"])
+        uv_bump_amplitude = float(parameters["uv_bump_amplitude"])
+        powerlaw_slope = float(parameters["powerlaw_slope"])
         filter_list = parameters["filters"]
 
         # Fλ fluxes in each filter before attenuation.

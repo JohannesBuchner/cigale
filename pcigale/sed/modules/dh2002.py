@@ -51,7 +51,7 @@ class Module(common.SEDCreationModule):
         parameters : dictionary containing the parameters
 
         """
-        alpha = parameters["alpha"]
+        alpha = float(parameters["alpha"])
         attenuation_value_names = parameters["attenuation_value_names"]
 
         # Get the template set out of the database

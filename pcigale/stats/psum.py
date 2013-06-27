@@ -150,7 +150,7 @@ class Module(common.AnalysisModule):
         plot_chi2_distribution = parameters["plot_chi2_distribution"]
         save_pdf = parameters["save_pdf"]
         plot_pdf = parameters["plot_pdf"]
-        pdf_max_bin_number = parameters["pdf_max_bin_number"]
+        pdf_max_bin_number = int(parameters["pdf_max_bin_number"])
 
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}
         for variable in analysed_variables:
