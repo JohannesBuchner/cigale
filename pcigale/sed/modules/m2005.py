@@ -113,15 +113,13 @@ class Module(common.SEDCreationModule):
         self.ssp = database.get_ssp_m2005(imf, metallicity)
         database.session.close_all()
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add the convolution of a Maraston 2005 SSP to the SED
 
         Parameters
         ----------
         sed  : pcigale.sed.SED
             SED object.
-        parameters : dictionary
-            Dictionary containing the parameters
 
         """
 
@@ -155,7 +153,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'm2005_sfh'
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
 
         sed.add_info('imf', imf)
         sed.add_info('metallicity', metallicity)

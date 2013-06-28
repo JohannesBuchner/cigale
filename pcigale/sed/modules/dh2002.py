@@ -48,30 +48,28 @@ class Module(common.SEDCreationModule):
         self.dh2002 = database.get_dh2002_infrared_templates()
         database.session.close_all()
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add the IR re-emission contributions
 
         Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
 
         """
-        alpha = float(parameters["alpha"])
-        attenuation_value_names = parameters["attenuation_value_names"]
+        alpha = float(self.parameters["alpha"])
+        attenuation_value_names = self.parameters["attenuation_value_names"]
 
-        dh2002 = self.dh2002
-        ir_template = dh2002.get_template(alpha)
+        ir_template = self.dh2002.get_template(alpha)
 
         # Base name for adding information to the SED.
         name = self.name or 'dh2002'
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
         sed.add_info(name + '_alpha', alpha)
 
         for attenuation in attenuation_value_names:
             sed.add_contribution(
                 name + '_' + attenuation,
-                dh2002.wavelength_grid,
+                self.dh2002.wavelength_grid,
                 sed.info[attenuation] * ir_template
             )

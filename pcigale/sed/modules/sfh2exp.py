@@ -63,21 +63,20 @@ class Module(common.SEDCreationModule):
         "burst_age": "Age of the late burst in Myr."
     }
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add a double decreasing exponential Star Formation History.
 
         Parameters
         ----------
         sed : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
 
         """
 
-        tau_main = float(parameters["tau_main"])
-        tau_burst = float(parameters["tau_burst"])
-        f_burst = float(parameters["f_burst"])
-        age = int(parameters["age"])
-        burst_age = int(parameters["burst_age"])
+        tau_main = float(self.parameters["tau_main"])
+        tau_burst = float(self.parameters["tau_burst"])
+        f_burst = float(self.parameters["f_burst"])
+        age = int(self.parameters["age"])
+        burst_age = int(self.parameters["burst_age"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
@@ -106,7 +105,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or "sfh2exp"
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)

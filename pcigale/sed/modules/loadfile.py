@@ -40,25 +40,24 @@ class Module(common.SEDCreationModule):
         )
     }
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add the spectrum from the file to the SED object
 
         Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
 
         """
-        filename = parameters['filename']
+        filename = self.parameters['filename']
         table = atpy.Table(filename, verbose=False)
 
         # Base name for adding information to the SED.
         name = self.name or 'loadfile'
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
 
         sed.add_contribution(
             name + '_' + filename,
-            table[parameters['lambda_column']],
-            table[parameters['l_lambda_column']]
+            table[self.parameters['lambda_column']],
+            table[self.parameters['l_lambda_column']]
         )

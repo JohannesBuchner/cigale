@@ -165,13 +165,20 @@ class Module(common.SEDCreationModule):
         "NAME_FILTER": "Attenuation in the FILTER filter.",
     }
 
-    def _process(self, sed, parameters):
+    def _init_code(self):
+        """Get the filters from the database"""
+        self.filters = {}
+        base = Database()
+        for filter_name in self.parameters["filters"]:
+            self.filters[filter_name] = base.get_filter(filter_name)
+        base.close()
+
+    def _process(self, sed):
         """Add the CCM dust attenuation to the SED.
 
         Parameters
         ----------
         sed : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
 
         """
 
@@ -179,25 +186,22 @@ class Module(common.SEDCreationModule):
         name = self.name or 'dustatt_powerlaw_'
 
         wavelength = sed.wavelength_grid
-        av_young = float(parameters["Av_young"])
-        av_old = float(parameters["Av_old_factor"] * av_young)
-        young_contrib = parameters["young_contribution_name"]
-        old_contrib = parameters["old_contribution_name"]
-        uv_bump_wavelength = float(parameters["uv_bump_wavelength"])
-        uv_bump_width = float(parameters["uv_bump_wavelength"])
-        uv_bump_amplitude = float(parameters["uv_bump_amplitude"])
-        powerlaw_slope = float(parameters["powerlaw_slope"])
-        filter_list = parameters["filters"]
+        av_young = float(self.parameters["Av_young"])
+        av_old = float(self.parameters["Av_old_factor"] * av_young)
+        young_contrib = self.parameters["young_contribution_name"]
+        old_contrib = self.parameters["old_contribution_name"]
+        uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
+        uv_bump_width = float(self.parameters["uv_bump_wavelength"])
+        uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
+        powerlaw_slope = float(self.parameters["powerlaw_slope"])
+        filters = self.parameters["filters"]
 
         # Fλ fluxes in each filter before attenuation.
         flux_noatt = {}
-        base = Database()
-        for filter_name in filter_list:
-            filt = base.get_filter(filter_name)
+        for filter_name, filter_ in filters.items():
             flux_noatt[filter_name] = sed.compute_fnu(
-                filt.trans_table,
-                filt.effective_wavelength)
-        base.close()
+                filter_.trans_table,
+                filter_.effective_wavelength)
 
         # Compute attenuation curve
         sel_attenuation = alambda_av(wavelength, powerlaw_slope,
@@ -213,7 +217,7 @@ class Module(common.SEDCreationModule):
         # spectrum is negative).
         attenuation_young = -1 * np.trapz(attenuation_spectrum, wavelength)
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
         sed.add_info(name + "_Av_young", av_young)
         sed.add_info(name + "_attenuation_young", attenuation_young)
         sed.add_contribution(name + "_young", wavelength, attenuation_spectrum)
@@ -229,7 +233,7 @@ class Module(common.SEDCreationModule):
 
             sed.add_info(name + "_Av_old", av_old)
             sed.add_info(name + "_Av_old_factor",
-                         parameters["Av_old_factor"])
+                         self.parameters["Av_old_factor"])
             sed.add_info(name + "_attenuation_old", attenuation_old)
             sed.add_contribution(name + "_old",
                                  wavelength, attenuation_spectrum)
@@ -242,15 +246,13 @@ class Module(common.SEDCreationModule):
 
         # Fλ fluxes in each filter after attenuation.
         flux_att = {}
-        base = Database()
-        for filter_name in filter_list:
-            filt = base.get_filter(filter_name)
-            flux_att[filter_name] = sed.compute_fnu(filt.trans_table,
-                                                    filt.effective_wavelength)
-        base.close()
+        for filter_name, filter_ in filters.items():
+            flux_att[filter_name] = sed.compute_fnu(
+                filter_.trans_table,
+                filter_.effective_wavelength)
 
         # Attenuation in each filter
-        for filter_name in filter_list:
+        for filter_name in filters:
             sed.add_info(name + "_" + filter_name,
                          -2.5 * np.log(flux_att[filter_name] /
                                        flux_noatt[filter_name]))

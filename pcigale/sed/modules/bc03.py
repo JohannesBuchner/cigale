@@ -66,15 +66,13 @@ class Module(common.SEDCreationModule):
         self.ssp = database.get_ssp_bc03(imf, metallicity)
         database.session.close_all()
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add the convolution of a Bruzual and Charlot SSP to the SED
 
         Parameters
         ----------
         sed  : pcigale.sed.SED
             SED object.
-        parameters : dictionary
-            Dictionary containing the parameters
 
         """
 
@@ -108,7 +106,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or "bc03"
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
 
         sed.add_info(name + "_imf", imf)
         sed.add_info(name + "_metallicity", metallicity)

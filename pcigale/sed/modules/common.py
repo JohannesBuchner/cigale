@@ -142,21 +142,6 @@ class SEDCreationModule(object):
         """
         pass
 
-    def _process(self, sed, parameters):
-        """Do the actual processing of the module on a SED object
-
-        This method is called with an object and a complete parameters
-        dictionary. It is not meant to be called directly but through the
-        process method.
-
-        Parameters
-        ----------
-        sed  : pcigale.sed.SED object
-        parameters : dictionary of the module parameters
-
-        """
-        raise NotImplementedError()
-
     def process(self, sed):
         """Process a SED object with the module
 
@@ -168,7 +153,7 @@ class SEDCreationModule(object):
         sed  : pcigale.sed.SED object
 
         """
-        self._process(sed, self.parameters)
+        raise NotImplementedError()
 
 
 def get_module(name, **kwargs):

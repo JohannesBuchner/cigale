@@ -44,7 +44,7 @@ class Module(common.SEDCreationModule):
         )
     }
 
-    def _process(self, sed, parameters):
+    def process(self, sed):
         """Add the SFH read from the file.
 
         Parameters
@@ -53,18 +53,18 @@ class Module(common.SEDCreationModule):
         parameters : dictionary containing the parameters
 
         """
-        filename = parameters['filename']
+        filename = self.parameters['filename']
         table = atpy.Table(filename, verbose=False)
 
         time_column_name = table.columns.keys[0]
         time_grid = table[time_column_name]
 
         # -1 because Python indexes start to 0.
-        sfr_column_number = int(parameters['sfr_column']) - 1
+        sfr_column_number = int(self.parameters['sfr_column']) - 1
         sfr_column_name = table.columns.keys[sfr_column_number]
         sfr = table[sfr_column_name]
 
-        age = int(parameters['age'])
+        age = int(self.parameters['age'])
 
         # We cut the SFH to the desired age.
         sfr = sfr[time_grid <= age]
@@ -76,7 +76,7 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'loadfile'
 
-        sed.add_module(name, parameters)
+        sed.add_module(name, self.parameters)
         sed.add_info(name + "_sfh", (time_grid, sfr))
         sed.add_info(name + "_age", age)
         sed.add_info(name + "_sfh_id", sfr_column_name)
