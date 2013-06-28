@@ -21,13 +21,6 @@ from scipy import interpolate
 from pcigale.data import Database, Filter, SspM2005, SspBC03, AgnFritz2006
 
 
-filters_dir = os.path.join(os.path.dirname(__file__), 'filters/')
-m2005_dir = os.path.join(os.path.dirname(__file__), 'maraston2005/')
-bc03_dir = os.path.join(os.path.dirname(__file__), 'bc03//')
-dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
-fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
-
-
 def read_bc03_ssp(filename):
     """Read a Bruzual and Charlot 2003 ASCII SSP file
 
@@ -140,15 +133,8 @@ def read_bc03_ssp(filename):
     return time_grid[1:], wavelength, luminosity[:, 1:]
 
 
-def build_base():
-    base = Database(writable=True)
-    base.upgrade_base()
-
-    print('#' * 78)
-    ########################################################################
-    # Filter transmission tables insertion                                 #
-    ########################################################################
-    print("1- Importing filters...\n")
+def build_filters(base):
+    filters_dir = os.path.join(os.path.dirname(__file__), 'filters/')
     for filter_file in glob.glob(filters_dir + '*.dat'):
         with open(filter_file, 'r') as filter_file_read:
             filter_name = filter_file_read.readline().strip('# \n\t')
@@ -171,13 +157,10 @@ def build_base():
         new_filter.normalise()
 
         base.add_filter(new_filter)
-    print("\nDONE\n")
-    print('#' * 78)
 
-    ########################################################################
-    # Maraston 2005 SSP insertion                                          #
-    ########################################################################
-    print("2- Importing Maraston 2005 SSP\n")
+
+def build_m2005(base):
+    m2005_dir = os.path.join(os.path.dirname(__file__), 'maraston2005/')
 
     # Age grid (1 Myr to 13.7 Gyr with 1 Myr step)
     age_grid = np.arange(1, 13701)
@@ -241,13 +224,9 @@ def build_base():
         base.add_ssp_m2005(SspM2005(imf, metallicity, age_grid,
                                     lambda_grid, mass_table, flux_age))
 
-    print("\nDONE\n")
-    print('#' * 78)
 
-    ########################################################################
-    # Bruzual and Charlot SSP insertion                                    #
-    ########################################################################
-    print("3- Importing Bruzual and Charlot 2003 SSP\n")
+def build_bc2003(base):
+    bc03_dir = os.path.join(os.path.dirname(__file__), 'bc03//')
 
     # Time grid (1 Myr to 20 Gyr with 1 Myr step)
     time_grid = np.arange(1, 20000)
@@ -300,10 +279,9 @@ def build_base():
             ssp_lumin
         ))
 
-    ########################################################################
-    # Dale and Helou 2002 templates insertion                              #
-    ########################################################################
-    print("4- Importing Dale and Helou 2002 templates\n")
+
+def build_dh2002(base):
+    dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
 
     # Getting the alpha grid for the templates
     dhcal = np.genfromtxt(dh2002_dir + 'dhcal.dat')
@@ -321,7 +299,7 @@ def build_base():
         print("Importing %s..." % filename)
         table = np.genfromtxt(filename, skip_header=1)[:, 1]  # Luminosity
                                                               # column
-        # The table give the luminosity density in Lsun/Å normalised to 1 Lsun
+        # The table give the luminosity density in Lsun/Å normalised to 1 Lsun
         # over the full spectrum. As we converted the wavelengths to nm, we
         # must multiply the density per 10 to keep the normalisation.
         table = table * 10
@@ -333,10 +311,9 @@ def build_base():
 
     base.add_dh2002_infrared_templates(data)
 
-    ########################################################################
-    # Fritz et al. (2006) AGN insertion                                    #
-    ########################################################################
-    print("5- Importing Fritz et al. (2006) models\n")
+
+def build_fritz2006(base):
+    fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
     model_list = np.genfromtxt(fritz2006_dir + "fritz.dat")
 
@@ -364,10 +341,39 @@ def build_base():
 
         base.add_fritz2006_agn(agn)
 
+    base.session.close_all()
+
+
+def build_base():
+    base = Database(writable=True)
+    base.upgrade_base()
+
+    print('#' * 78)
+    print("1- Importing filters...\n")
+    build_filters(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    base.session.close_all()
+    print("2- Importing Maraston 2005 SSP\n")
+    build_m2005(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
+    print("3- Importing Bruzual and Charlot 2003 SSP\n")
+    build_bc2003(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
+    print("4- Importing Dale and Helou (2002) templates\n")
+    build_dh2002(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
+    print("5- Importing Fritz et al. (2006) models\n")
+    build_fritz2006(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
 
 if __name__ == '__main__':
     build_base()
