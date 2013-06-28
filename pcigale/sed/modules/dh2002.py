@@ -42,6 +42,12 @@ class Module(common.SEDCreationModule):
 
     out_parameter_list = {'alpha': 'Alpha slope.'}
 
+    def _init_code(self):
+        """Get the template set out of the database"""
+        database = Database()
+        self.dh2002 = database.get_dh2002_infrared_templates()
+        database.session.close_all()
+
     def _process(self, sed, parameters):
         """Add the IR re-emission contributions
 
@@ -54,11 +60,7 @@ class Module(common.SEDCreationModule):
         alpha = float(parameters["alpha"])
         attenuation_value_names = parameters["attenuation_value_names"]
 
-        # Get the template set out of the database
-        database = Database()
-        dh2002 = database.get_dh2002_infrared_templates()
-        database.session.close_all()
-
+        dh2002 = self.dh2002
         ir_template = dh2002.get_template(alpha)
 
         # Base name for adding information to the SED.

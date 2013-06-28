@@ -58,6 +58,14 @@ class Module(common.SEDCreationModule):
         "b_912": "Amplitude of Lyman discontinuity"
     }
 
+    def _init_code(self):
+        """Read the SSP from the database."""
+        imf = self.parameters["imf"]
+        metallicity = float(self.parameters["metallicity"])
+        database = Database()
+        self.ssp = database.get_ssp_bc03(imf, metallicity)
+        database.session.close_all()
+
     def _process(self, sed, parameters):
         """Add the convolution of a Bruzual and Charlot SSP to the SED
 
@@ -74,14 +82,10 @@ class Module(common.SEDCreationModule):
         metallicity = float(self.parameters["metallicity"])
         separation_age = int(self.parameters["separation_age"])
         sfh_time, sfh_sfr = sed.sfh
+        ssp = self.ssp
 
         # Age of the galaxy at each time of the SFH
         sfh_age = np.max(sfh_time) - sfh_time
-
-        # First, we take the SSP out of the database.
-        database = Database()
-        ssp = database.get_ssp_bc03(imf, metallicity)
-        database.session.close_all()
 
         # First, we process the young population (age lower than the
         # separation age.)

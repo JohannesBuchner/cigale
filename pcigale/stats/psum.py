@@ -171,8 +171,8 @@ class Module(common.AnalysisModule):
         base.close()
 
         # We get the redshift module.
-        redshift_module = get_module(redshift_module_name)
-        redshift_module.parameters = redshift_configuration
+        redshift_module = get_module(redshift_module_name,
+                                     **redshift_configuration)
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.

@@ -188,14 +188,15 @@ class Configuration(object):
             sub_config = self.config["sed_creation_modules"][module_name]
 
             for name, (typ, description, default) in \
-                    modules.get_module(module_name).parameter_list.items():
+                    modules.get_module(module_name,
+                                       blank=True).parameter_list.items():
                 if default is None:
                     default = ''
                 sub_config[name] = default
                 sub_config.comments[name] = wrap(description)
 
             self.config['sed_creation_modules'].comments[module_name] = [
-                modules.get_module(module_name).comments]
+                modules.get_module(module_name, blank=True).comments]
 
         # Configuration for the redshift module
         self.config['redshift_configuration'] = {}
@@ -205,7 +206,8 @@ class Configuration(object):
             "each.")
         module_name = self.config['redshift_module']
         for name, (typ, desc, default) in \
-                modules.get_module(module_name).parameter_list.items():
+                modules.get_module(module_name,
+                                   blank=True).parameter_list.items():
             if default is None:
                 default = ''
             self.config['redshift_configuration'][name] = default
@@ -217,7 +219,8 @@ class Configuration(object):
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
         for name, (typ, desc, default) in \
-                analysis.get_module(module_name).parameter_list.items():
+                analysis.get_module(module_name,
+                                    blank=True).parameter_list.items():
             if default is None:
                 default = ''
             self.config['analysis_configuration'][name] = default

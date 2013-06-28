@@ -66,8 +66,8 @@ class SedWarehouse(object):
         sed = self.storage.get(sed_key)
 
         if not sed:
-            mod = sed_modules.get_module(module_list.pop())
-            mod.parameters = parameter_list.pop()
+            mod = sed_modules.get_module(module_list.pop(),
+                                         **parameter_list.pop())
 
             if (len(module_list) == 0):
                 sed = SED()

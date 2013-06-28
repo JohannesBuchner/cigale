@@ -8,6 +8,64 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 """
 
 
+def complete_parameters(given_parameters, parameter_list):
+    """Complete the given parameter list with the default values
+
+    Complete the given_parameters dictionary with missing parameters that have
+    a default value in the parameter_list. If a parameter from parameter_list
+    have no default value and is not present in given_parameters, raises an
+    error. If a parameter is present in given_parameters and not in
+    parameter_list, an exception is also raised.
+
+    Parameters
+    ----------
+    given_parameters : dictionary
+        Parameter dictionary used to configure the module.
+    parameter_list : dictionary
+        Parameter list from the module.
+
+    Returns
+    -------
+    parameters : dictionary
+        Dictionary combining the given parameters with the default values for
+        the missing ones.
+
+    Raises
+    ------
+    KeyError when the given parameters are different from the expected ones.
+
+    """
+    # For parameters that are present on the parameter_list with a default
+    # value and that are not in the giver_parameters dictionary, we add them
+    # with their default value.
+    for key in parameter_list:
+        if (not key in given_parameters) and (
+                parameter_list[key][2] is not None):
+            given_parameters[key] = parameter_list[key][2]
+    # If the keys of the parameters dictionary are different from the one
+    # of the parameter_list dictionary, we raises a KeyError. That means
+    # that a parameter is missing (and has no default value) or that an
+    # unexpected one was given.
+    if not set(given_parameters.keys()) == set(parameter_list.keys()):
+        missing_parameters = (set(parameter_list.keys())
+                              - set(given_parameters.keys()))
+        unexpected_parameters = (set(given_parameters.keys())
+                                 - set(parameter_list.keys()))
+        message = ""
+        if missing_parameters:
+            message += ("Missing parameters: " +
+                        ", ".join(missing_parameters) +
+                        ". ")
+        if unexpected_parameters:
+            message += ("Unexpected parameters: " +
+                        ", ".join(unexpected_parameters) +
+                        ".")
+        raise KeyError("The parameters passed are different from the "
+                       "expected one." + message)
+
+    return given_parameters
+
+
 class SEDCreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
@@ -34,20 +92,55 @@ class SEDCreationModule(object):
     # instructions for the configuration.
     comments = ""
 
-    def __init__(self, name=None, **kwargs):
+    def __init__(self, name=None, blank=False, **kwargs):
         """Instantiate a SED creation module
 
         A name can be given to the module. This can be useful when a same
         module is used several times with different parameters in the SED
         creation process.
 
-        The module parameters values can be passed as keyworded paramatres.
+        The module parameters must be passed as keyworded parameters. If a
+        parameter is not given but exists in the parameter_list with a default
+        value, this value is used. If a parameter is missing or if an
+        unexpected parameter is given, an error will be raised.
+
+        Parameters
+        ----------
+        name : string
+            Name of the module.
+        blank : boolean
+            If true, return a non-parameterised module that will be used only
+            to query the module parameter list.
+
+        The module parameters must be given as keyworded parameters.
+
+        Raises
+        ------
+        KeyError : when not all the needed parameters are given or when an
+                   unexpected parameter is given.
+
         """
         self.name = name
 
-        # parameters is a dictionary containing the actual values for each
-        # module parameter.
-        self.parameters = kwargs
+        if not blank:
+            # Parameters given in constructor.
+            parameters = kwargs
+
+            # Complete the parameter dictionary and "export" it to the module
+            self.parameters = complete_parameters(parameters,
+                                                  self.parameter_list)
+
+            # Run the initialisation code specific to the module.
+            self._init_code()
+
+    def _init_code(self):
+        """Initialisation code specific to the module.
+
+        For instance, a module taking data in the database can use this method
+        to do so, only one time when the module instantiates.
+
+        """
+        pass
 
     def _process(self, sed, parameters):
         """Do the actual processing of the module on a SED object
@@ -64,14 +157,8 @@ class SEDCreationModule(object):
         """
         raise NotImplementedError()
 
-    def process(self, sed, parameters=None):
+    def process(self, sed):
         """Process a SED object with the module
-
-        This method is responsible for checking the module parameters (whether
-        they are given in the method call or are taken from parameters class
-        attribute) before doing the actual processing (_process method). If a
-        parameter is not given but exists in the parameter_list with a default
-        value, this value is used.
 
         The SED object is updated during the process, one must take care of
         copying it before, if needed.
@@ -79,57 +166,12 @@ class SEDCreationModule(object):
         Parameters
         ----------
         sed  : pcigale.sed.SED object
-        parameters : dictionary
-            Dictionary containing the module parameter values, if it is not
-            given, the module parameter values are used
-
-        Raises
-        ------
-        KeyError : when not all the needed parameters are given.
 
         """
-
-        # If the parameter dictionary is not passed, use the module one
-        if not parameters:
-            parameters = self.parameters
-
-        # For parameters that are present on the parameter_list with a default
-        # value and that are not in the parameters dictionary, we add them
-        # with their default value.
-        for key in self.parameter_list:
-            if (not key in parameters) and (
-                    self.parameter_list[key][2] is not None):
-                parameters[key] = self.parameter_list[key][2]
-
-        # If the keys of the parameters dictionary are different from the one
-        # of the parameter_list dictionary, we raises a KeyError. That means
-        # that a parameter is missing (and has no default value) or that an
-        # unexpected one was given.
-        if not set(parameters.keys()) == set(self.parameter_list.keys()):
-            missing_parameters = (set(self.parameter_list.keys())
-                                  - set(parameters.keys()))
-            unexpected_parameters = (set(parameters.keys())
-                                     - set(self.parameter_list.keys()))
-            message = ""
-            if missing_parameters:
-                message += ("Missing parameters: " +
-                            ", ".join(missing_parameters) +
-                            ".")
-            if unexpected_parameters:
-                message += ("Unexpected parameters: " +
-                            ", ".join(unexpected_parameters) +
-                            ".")
-            raise KeyError("The parameters passed are different from the "
-                           "expected one." + message)
-
-        # TODO: We should also check that all parameters is from the right
-        # type.
-
-        # We do the actual processing.
-        self._process(sed, parameters)
+        self._process(sed, self.parameters)
 
 
-def get_module(name):
+def get_module(name, **kwargs):
     """Get a SED creation module from its name
 
     Parameters
@@ -144,7 +186,6 @@ def get_module(name):
     -------
     a pcigale.sed.modules.Module instance
     """
-
     # Determine the real module name by removing the dotted prefix.
     module_name = name.split('.')[0]
 
@@ -152,7 +193,7 @@ def get_module(name):
         # TODO Find a better way to do dynamic import
         import_string = 'from . import ' + module_name + ' as module'
         exec import_string
-        return module.Module(name=name)
+        return module.Module(name=name, **kwargs)
     except ImportError:
         print('Module ' + module_name + ' does not exists!')
         raise
