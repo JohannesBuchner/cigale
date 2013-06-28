@@ -9,7 +9,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 
 from . import common
-from pcigale.data import Database
+from ...data import Database
 
 
 class Module(common.SEDCreationModule):

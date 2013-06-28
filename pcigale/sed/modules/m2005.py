@@ -10,7 +10,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 import numpy as np
 from . import common
-from pcigale.data import Database
+from ...data import Database
 
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
