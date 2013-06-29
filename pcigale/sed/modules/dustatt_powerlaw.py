@@ -173,7 +173,7 @@ class Module(common.SEDCreationModule):
             self.filters[filter_name] = base.get_filter(filter_name)
         base.close()
 
-    def _process(self, sed):
+    def process(self, sed):
         """Add the CCM dust attenuation to the SED.
 
         Parameters
@@ -194,7 +194,7 @@ class Module(common.SEDCreationModule):
         uv_bump_width = float(self.parameters["uv_bump_wavelength"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
-        filters = self.parameters["filters"]
+        filters = self.filters
 
         # Fλ fluxes in each filter before attenuation.
         flux_noatt = {}
