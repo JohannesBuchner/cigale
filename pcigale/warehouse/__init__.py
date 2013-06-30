@@ -33,6 +33,37 @@ class SedWarehouse(object):
 
         self.storage = SedStore()
 
+        # Cache for modules
+        self.module_cache = {}
+
+    def get_module_cached(self, name, **kwargs):
+        """Get the SED module using the internal cache.
+
+        Parameters
+        ----------
+        name : string
+            Module name.
+
+        The other keyworded parameters are the module parameters.
+
+        Returns
+        -------
+        a pcigale.sed.modules.Module instance
+
+        """
+        # JSon representation of the tuple (name, parameters) used as a key
+        # for storing the module in the cache.
+        encoder = JSONEncoder()
+        module_key = encoder.encode((name, kwargs))
+
+        if module_key in self.module_cache:
+            module = self.module_cache[module_key]
+        else:
+            module = sed_modules.get_module(name, **kwargs)
+            self.module_cache[module_key] = module
+
+        return module
+
     def get_sed(self, module_list, parameter_list):
         """Get the SED corresponding to the module and parameter lists
 
@@ -66,7 +97,7 @@ class SedWarehouse(object):
         sed = self.storage.get(sed_key)
 
         if not sed:
-            mod = sed_modules.get_module(module_list.pop(),
+            mod = self.get_module_cached(module_list.pop(),
                                          **parameter_list.pop())
 
             if (len(module_list) == 0):
