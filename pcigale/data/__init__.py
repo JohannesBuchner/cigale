@@ -25,6 +25,7 @@ from .filters import Filter
 from .ssp_m2005 import SspM2005
 from .ssp_bc03 import SspBC03
 from .ir_templates_dh2002 import IrTemplatesDH2002
+from .ir_models_dl2007 import DL2007
 from .agn_fritz2006 import AgnFritz2006
 
 
@@ -117,6 +118,25 @@ class _DH2002InfraredTemplates(BASE):
         self.name = name
         self.description = description
         self.data = data
+
+
+class _DL2007(BASE):
+    """Storage for Draine and Li (2007) IR models
+    """
+
+    __tablename__ = 'DL2007_models'
+    qpah = Column(Float, primary_key=True)
+    umin = Column(Float, primary_key=True)
+    umax = Column(Float, primary_key=True)
+    wave = Column(PickleType)
+    lumin = Column(PickleType)
+
+    def __init__(self, model):
+        self.qpah = model.qpah
+        self.umin = model.umin
+        self.umax = model.umax
+        self.wave = model.wave
+        self.lumin = model.lumin
 
 
 class _Fritz2006AGN(BASE):
@@ -270,6 +290,25 @@ class Database(object):
         else:
             raise StandardError('The database is not writable.')
 
+    def add_dl2007(self, model):
+        """
+        Add a Draine and Li (2007) model to the databse.
+
+        Parameters
+        ----------
+        model: pcigale.data.DL2007
+
+        """
+        if self.is_writable:
+            self.session.add(_DL2007(model))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise StandardError('The DL07 model is already in the base.')
+        else:
+            raise StandardError('The database is not writable.')
+
     def add_fritz2006_agn(self, agn):
         """
         Add a Fritz et al. (2006) AGN model to the database.
@@ -416,6 +455,34 @@ class Database(object):
                                 result.r_ratio, result.tau, result.beta,
                                 result.gamma, result.theta, result.psy,
                                 result.wave, result.luminosity)
+        else:
+            return None
+
+    def get_dl2007(self, qpah, umin, umax):
+        """
+        Get the Draine and Li (2007) model corresponding to the given set of
+        paramters.
+
+        Parameters
+        ----------
+        qpah: float
+            Mass fraction of PAH
+        umin: float
+            Minimum radiation field
+        umax: float
+            Maximum radiation field
+        gamma: float
+            Fraction of the dust exposed from Umin to Umax
+
+        """
+        result = (self.session.query(_DL2007).
+                  filter(_DL2007.qpah == qpah).
+                  filter(_DL2007.umin == umin).
+                  filter(_DL2007.umax == umax).
+                  first())
+        if result:
+            return DL2007(result.qpah, result.umin, result.umax, result.wave,
+                          result.lumin)
         else:
             return None
 

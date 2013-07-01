@@ -15,10 +15,13 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 import glob
+import io
 import itertools
 import numpy as np
 from scipy import interpolate
-from pcigale.data import Database, Filter, SspM2005, SspBC03, AgnFritz2006
+import scipy.constants as cst
+from pcigale.data import (Database, Filter, SspM2005, SspBC03, AgnFritz2006,
+                          DL2007)
 
 
 def read_bc03_ssp(filename):
@@ -312,6 +315,78 @@ def build_dh2002(base):
     base.add_dh2002_infrared_templates(data)
 
 
+def build_dl2007(base):
+    dl2007_dir = os.path.join(os.path.dirname(__file__), 'dl2007/')
+
+    qpah = {
+        "00": 0.47,
+        "10": 1.12,
+        "20": 1.77,
+        "30": 2.50,
+        "40": 3.19,
+        "50": 3.90,
+        "60": 4.58
+    }
+
+    umaximum = ["1e3", "1e4", "1e5", "1e6"]
+    uminimum = ["0.10", "0.15", "0.20", "0.30", "0.40", "0.50", "0.70",
+                "0.80", "1.00", "1.20", "1.50", "2.00", "2.50", "3.00",
+                "4.00", "5.00", "7.00", "8.00", "10.0", "12.0", "15.0",
+                "20.0", "25.0"]
+
+    # Here we obtain the wavelength beforehand to avoid reading it each time.
+    datafile = open(dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umaximum[0],
+                                                                  umaximum[0],
+                                                                  umaximum[0],
+                                                                  "00"))
+    data = "".join(datafile.readlines()[-1001:])
+    datafile.close()
+
+    wave = np.genfromtxt(io.BytesIO(data.encode()), usecols=(0))
+    # For some reason wavelengths are decreasing in the model files
+    wave = wave[::-1]
+    # We convert wavelengths from μm to nm
+    wave *= 1000.
+
+    # The models are in Jy cm² sr¯¹ H¯¹. We convert this to W/nm.
+    conv = 4. * np.pi * 1e-30 / cst.m_p * cst.c / (wave * wave) * 1e9
+
+    for model in sorted(qpah.keys()):
+        for umin in uminimum:
+            filename = dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umin,
+                                                                     umin,
+                                                                     umin,
+                                                                     model)
+            print("Importing {}...".format(filename))
+            datafile = open(filename)
+            data = "".join(datafile.readlines()[-1001:])
+            datafile.close()
+            lumin = np.genfromtxt(io.BytesIO(data.encode()), usecols=(2))
+            # For some reason fluxes are decreasing in the model files
+            lumin = lumin[::-1]
+            # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
+            lumin *= conv
+
+            base.add_dl2007(DL2007(qpah[model], umin, umin, wave, lumin))
+            for umax in umaximum:
+                filename = dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umin,
+                                                                         umin,
+                                                                         umax,
+                                                                         model)
+                print("Importing {}...".format(filename))
+                datafile = open(filename)
+                data = "".join(datafile.readlines()[-1001:])
+                datafile.close()
+                lumin = np.genfromtxt(io.BytesIO(data.encode()), usecols=(2))
+                # For some reason fluxes are decreasing in the model files
+                lumin = lumin[::-1]
+
+                # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
+                lumin *= conv
+
+                base.add_dl2007(DL2007(qpah[model], umin, umax, wave, lumin))
+
+
 def build_fritz2006(base):
     fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
@@ -367,7 +442,12 @@ def build_base():
     print("\nDONE\n")
     print('#' * 78)
 
-    print("5- Importing Fritz et al. (2006) models\n")
+    print("5- Importing Draine and Li (2007) templates\n")
+    build_dl2007(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
+    print("6- Importing Fritz et al. (2006) models\n")
     build_fritz2006(base)
     print("\nDONE\n")
     print('#' * 78)
