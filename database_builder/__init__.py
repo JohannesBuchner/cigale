@@ -341,8 +341,6 @@ def build_fritz2006(base):
 
         base.add_fritz2006_agn(agn)
 
-    base.session.close_all()
-
 
 def build_base():
     base = Database(writable=True)
@@ -373,6 +371,8 @@ def build_base():
     build_fritz2006(base)
     print("\nDONE\n")
     print('#' * 78)
+
+    base.session.close_all()
 
 
 if __name__ == '__main__':
