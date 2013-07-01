@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
@@ -148,124 +148,104 @@ def luminosity_to_flux(luminosity, redshift=0):
     return luminosity / (4 * pi * np.square(dist))
 
 
-def redshift_wavelength(wavelength, redshift):
-    """Redshift a wavelength grid
-
-    Parameters
-    ----------
-    wavelength : array of floats
-        Wavelength vector.
-    redshift : float
-        Redshift.
-
-    Returns
-    -------
-    redshifted_wavelength : array of floats
-        Redshifted wavelength grid.
-
-    """
-    if redshift < 0:
-        return wavelength / (1.0 - redshift)
-    else:
-        return wavelength * (1.0 + redshift)
-
-
-def lambda_flambda_to_lambda_fnu(spectrum):
+def lambda_flambda_to_fnu(wavelength, flambda):
     """
     Convert a Fλ vs λ spectrum to Fν vs λ
 
     Parameters
     ----------
-    spectrum : array of floats
-        spectrum[0] must contain the wavelength in nm and spectrum[1] must
-        contain the Fλ flux in erg/cm^2/s/nm.
+    wavelength : list-like of floats
+        The wavelengths in nm.
+    flambda : list-like of floats
+        Fλ flux density in W/m²/nm (or Lλ luminosity density in W/nm).
 
     Returns
     -------
-    lambda_fnu : array of floats
-        lambda_fnu[0] contains the wavelength in nm and lambda_fnu[1] contains
-        the Fν flux in Jansky
+    fnu : array of floats
+        The Fν flux density in mJy (or the Lν luminosity density in
+        1.e-29 W/Hz).
 
     """
-    wavelength, flambda = spectrum
-    # Factor 1e+23 is to switch from erg/s/cm^2/Hz to Jy
+    wavelength = np.array(wavelength, dtype=float)
+    flambda = np.array(flambda, dtype=float)
+
+    # Factor 1e+29 is to switch from W/m²/Hz to mJy
     # Factor 1e-9 is to switch from nm to m (only one because the other nm
-    # wavelength goes with the Fλ in ergs/s/cm^2/nm).
-    fnu = 1e+23 * 1e-9 * flambda * wavelength * wavelength / c
+    # wavelength goes with the Fλ in W/m²/nm).
+    fnu = 1e+29 * 1e-9 * flambda * wavelength * wavelength / c
 
-    return np.vstack((wavelength, fnu))
+    return fnu
 
 
-def lambda_fnu_to_lambda_flambda(spectrum):
+def lambda_fnu_to_flambda(wavelength, fnu):
     """
     Convert a Fν vs λ spectrum to Fλ vs λ
 
     Parameters
     ----------
-    spectrum : array of floats
-        spectrum[0] must contain the wavelength in nm and spectrum[1] must
-        contain the Fν flux in Jansky
+    wavelength : list-like of floats
+        The wavelengths in nm.
+    fnu : list-like of floats
+        The Fν flux density in mJy (of the  Lν luminosity density in
+        1.e-29 W/Hz).
 
     Returns
     -------
-    lambda_flambda : array of floats
-        lambda_flambda[0] contains the wavelength in nm and lambda_flambda[1]
-        contains the Fλ flux in erg/cm^2/s/nm.
+    flambda : array of floats
+        Fλ flux density in W/m²/nm (or Lλ luminosity density in W/nm).
 
     """
-    wavelength, fnu = spectrum
-    # Factor 1e-23 is to switch from Jy to erg/s/cm^2/Hz
+    wavelength = np.array(wavelength, dtype=float)
+    fnu = np.array(fnu, dtype=float)
+
+    # Factor 1e-29 is to switch from Jy to W/m²/Hz
     # Factor 1e+9 is to switch from m to nm
-    flambda = 1e-23 * 1e+9 * fnu / (wavelength * wavelength) * c
+    flambda = 1e-29 * 1e+9 * fnu / (wavelength * wavelength) * c
 
-    return np.vstack((wavelength, flambda))
+    return flambda
 
 
-def redshift_spectrum(spectrum, redshift, dimming=False, is_fnu=False):
-    """
-    Redshit a spectrum, optionally adding cosmological dimming
-
-    FIXME: Is this usefull?
+def redshift_spectrum(wavelength, flux, redshift, is_fnu=False):
+    """Redshit a spectrum
 
     Parameters
     ----------
-    spectrum : array of floats
-        spectrum[0] must contain the wavelength in nm and spectrum[1] must
-        contain the flux. The default is to have Fλ in erg/cm^2/s/nm if is_fnu
-        is set to true, the Fν in Jansky is expected (it's only important when
-        dimming).
-
-    dimming : boolean
-        If set to true, the cosmological dimming is applied to the fluxes.
-
+    wavelength : array like of floats
+        The wavelength in nm.
+    flux : array like of floats
+        The flux or luminosity density.
+    redshift : float
+        The redshift.
     is_fnu : boolean
-        If set to true, the flux are Fν fluxes, else they are assumed to be Fλ.
+        If false (default) the flux is a Fλ density in W/m²/nm (or a Lλ
+        luminosity density in W/nm). If true, the flux is a Fν density in mJy
+        (or a Lν luminosity density in 1.e-29 W/Hz).
 
     Results
     -------
-    spectrum : array of floats
-        The redshifted spectrum with the same kind of fluxes as the input.
+    wavelength, flux : tuple of numpy arrays of floats
+        The redshifted spectrum with the same kind of flux (or luminosity)
+        density as the input.
 
     """
+    wavelength = np.array(wavelength, dtype=float)
+    flux = np.array(flux, dtype=float)
+    redshift = float(redshift)
 
-    wavelength = redshift_wavelength(spectrum[0])
-    flux = np.copy(spectrum[1])
+    if redshift < 0:
+        redshift_factor = 1. / (1. - redshift)
+    else:
+        redshift_factor = 1. + redshift
 
-    if dimming:
-        # If the flux is Fnu, we must switch to Flambda to compute the
-        # dimming.
-        if is_fnu:
-            flux = lambda_fnu_to_lambda_flambda(spectrum)[1]
+    if is_fnu:
+        # Switch to Fλ
+        flux = lambda_fnu_to_flambda(wavelength, flux)
 
-        # Now flux is Flambda, we can apply cosmological dim.
-        if redshift < 0:
-            flux = flux * (1.0 - redshift)
-        else:
-            flux = flux / (1.0 + redshift)
+    wavelength *= redshift_factor
+    flux /= redshift_factor
 
-        # If the initial flux was Fnu, convert it back from Flambda
-        if is_fnu:
-            flux = lambda_flambda_to_lambda_fnu(
-                np.vstack((wavelength, flux)))[:, 1]
+    if is_fnu:
+        # Switch back to Fλ
+        flux = lambda_flambda_to_fnu(wavelength, flux)
 
-    return np.vstack((wavelength, flux))
+    return wavelength, flux

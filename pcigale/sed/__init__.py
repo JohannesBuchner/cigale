@@ -118,7 +118,7 @@ class SED(object):
         else:
             return self._luminosities.sum(0)
 
-    def lambda_fnu(self, redshift=0, redshift_spectrum=False):
+    def lambda_fnu(self, redshift=0, apply_redshift=False):
         """
         Return the (redshifted if asked) total Fν flux density vs wavelength
         spectrum of the SED.
@@ -126,8 +126,8 @@ class SED(object):
         Parameters
         ----------
         redshift : float, default = 0
-            If 0 (the default), the flux at 10 pc is computed.
-        redshift_spectrum : boolean, default = None
+            If 0 (the default), the flux at 10 pc is computed.
+        apply_redshift : boolean, default = None
             If true, the spectrum will be redshifted before computing the
             flux. The default is False because we generally use a specific
             module to apply the redshift.
@@ -138,19 +138,18 @@ class SED(object):
             The wavelength is in nm and the Fν is in mJy.
 
         """
+        wavelength = self.wavelength_grid
+        luminosity = self.luminosity
+
+        if apply_redshift:
+            wavelength, luminosity = utils.redshift_spectrum(
+                wavelength, luminosity, redshift)
+
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(self.luminosity, redshift)
+        f_lambda = utils.luminosity_to_flux(luminosity, redshift)
 
-        # The 1.e29 factor is to convert from W/m²/Hz to mJy
-        f_nu = (f_lambda * self.wavelength_grid
-                * 1.e-9 * self.wavelength_grid / c
-                * 1.e29)
-
-        if redshift_spectrum:
-            wavelength = utils.redshift_wavelength(self.wavelength_grid,
-                                                   redshift)
-        else:
-            wavelength = np.copy(self.wavelength_grid)
+        # Fν flux density in Jy
+        f_nu = utils.lambda_flambda_to_fnu(wavelength, f_lambda)
 
         return wavelength, f_nu
 
@@ -283,7 +282,7 @@ class SED(object):
         return self.luminosities[idx]
 
     def compute_fnu(self, transmission, lambda_eff,
-                    redshift=0, redshift_spectrum=False):
+                    redshift=0, apply_redshift=False):
         """
         Compute the Fν flux density corresponding the filter which
         transmission is given.
@@ -296,7 +295,7 @@ class SED(object):
 
         Fλ = luminosity_to_flux( integ( LλT(λ)dλ ) / integ( T(λ)dλ ) )
 
-        Fλ is in W/m²/nm. At redshift 0, the flux is computed at 10 pc. Then,
+        Fλ is in W/m²/nm. At redshift 0, the flux is computed at 10 pc. Then,
         to compute Fν, we make the approximation:
 
         Fν = λeff / c . λeff . Fλ
@@ -316,9 +315,9 @@ class SED(object):
             Effective wavelength of the filter in nm.
 
         redshift : float
-            The redshift of the galaxy. If 0, the flux is computed at 10 pc.
+            The redshift of the galaxy. If 0, the flux is computed at 10 pc.
 
-        redshift_spectrum : boolean
+        apply_redshift : boolean
             If true, the spectrum will be redshifted before computing the
             flux. The default is False because we generally use a specific
             module to apply the redshift.
@@ -338,13 +337,11 @@ class SED(object):
             f_nu = -99.
 
         else:
-            if redshift_spectrum:
-                wavelength = utils.redshift_wavelength(self.wavelength_grid,
-                                                       redshift)
-            else:
-                wavelength = np.copy(self.wavelength_grid)
-
+            wavelength = self.wavelength_grid
             l_lambda = self.luminosity
+            if apply_redshift:
+                wavelength, l_lambda = utils.redshift_lambda_l_lambda(
+                    (wavelength, l_lambda), redshift)
 
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low

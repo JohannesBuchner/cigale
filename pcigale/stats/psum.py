@@ -305,10 +305,8 @@ class Module(common.AnalysisModule):
                 ax = figure.add_subplot(111)
                 plot_x, plot_y = best_sed_lambda_fnu
                 plot_mask = (
-                    (plot_x >= utils.redshift_wavelength(PLOT_L_MIN,
-                                                         obs_redshift)) &
-                    (plot_x <= utils.redshift_wavelength(PLOT_L_MAX,
-                                                         obs_redshift))
+                    (plot_x >= PLOT_L_MIN * (1 + obs_redshift)) &
+                    (plot_x <= PLOT_L_MAX * (1 + obs_redshift))
                 )
                 ax.loglog(plot_x[plot_mask],
                           best_norm_factor * plot_y[plot_mask],
