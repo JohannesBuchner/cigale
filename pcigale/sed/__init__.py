@@ -359,21 +359,22 @@ class SED(object):
             The integrated Fν density in mJy.
         """
 
+        # Filter limits
         lambda_min = min(transmission[0])
         lambda_max = max(transmission[0])
 
-        # FIXME Shouldn't it be the reverse
+        wavelength = self.wavelength_grid
+        l_lambda = self.luminosity
+        if apply_redshift:
+            wavelength, l_lambda = utils.redshift_lambda_l_lambda(
+                (wavelength, l_lambda), redshift)
+
+        # Test if the spectrum cover all the filter extend
         if ((min(self.wavelength_grid) > lambda_min) or
                 (max(self.wavelength_grid) < lambda_max)):
             f_nu = -99.
 
         else:
-            wavelength = self.wavelength_grid
-            l_lambda = self.luminosity
-            if apply_redshift:
-                wavelength, l_lambda = utils.redshift_lambda_l_lambda(
-                    (wavelength, l_lambda), redshift)
-
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low
             # density one. Also, we limit the work wavelength domain to the
