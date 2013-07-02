@@ -25,8 +25,9 @@ Such SED is characterised by:
 
 - lines: a dictionnary containing the emission lines associated with the SED.
   A dictionnary is used to allow the storage of various sets of lines. The
-  lines are stored in lists of tuples (wavelength [nm], luminosity [W], width
-  [km.s-1]).
+  lines are stored in a three axis numpy array: axis 0 is the central
+  wavelength [nm], axis 1 is the line luminosity [W] and axis 2 is the line
+  width [km.s-1].
 
 - info: a dictionnary containing various information about the SED.
 
@@ -258,6 +259,32 @@ class SED(object):
             self.wavelength_grid = new_wavelength_grid
             self.luminosities = np.vstack((new_luminosities, interp_lumin))
 
+    def add_lines(self, set_name, wavelengths, luminosities, widths):
+        """Add a set of spectral lines to the SED.
+
+        Parameters
+        ----------
+        set_name : string
+            Name of the set of lines.
+        wavelengths : list-like of floats
+            The central wavelengths of the lines in nm.
+        luminosities : list-like of floats
+            The total luminosity in the spectral lines in W.
+        widths : list-like of floats
+            The widths of the lines in km.s-1.
+
+        """
+        wavelengths = np.array(wavelengths, dtype=float)
+        luminosities = np.array(luminosities, dtype=float)
+        widths = np.array(widths, dtype=float)
+
+        if set_name in self.lines:
+            raise KeyError("The line set {} is all ready present in the "
+                           "SED.".format(set_name))
+        else:
+            self.lines[set_name] = np.vstack(
+                (wavelengths, luminosities, widths))
+
     def get_lumin_contribution(self, name):
         """Get the luminosity vector of a given contribution
 
@@ -370,9 +397,7 @@ class SED(object):
             )
 
             # Add the Fλ fluxes from the spectral lines.
-            for line in chain(*self.lines.values()):
-                if (line[0] >= lambda_min) and (line[0] <= lambda_max):
-                    pass  # TODO write the code
+            # TODO write the code
 
             # Fν in W/m²/Hz. The 1.e-9 factor is because λ is in nm.
             f_nu = lambda_eff * f_lambda * lambda_eff * 1.e-9 / c
