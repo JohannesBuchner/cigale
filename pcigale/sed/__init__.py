@@ -39,7 +39,6 @@ Such SED is characterised by:
 
 import numpy as np
 from . import utils
-from itertools import chain
 from scipy.constants import c
 from scipy.interpolate import interp1d
 
@@ -309,7 +308,8 @@ class SED(object):
         return self.luminosities[idx]
 
     def compute_fnu(self, transmission, lambda_eff,
-                    redshift=0, apply_redshift=False):
+                    redshift=0, apply_redshift=False,
+                    add_line_fluxes=True):
         """
         Compute the Fν flux density corresponding the filter which
         transmission is given.
@@ -348,6 +348,10 @@ class SED(object):
             If true, the spectrum will be redshifted before computing the
             flux. The default is False because we generally use a specific
             module to apply the redshift.
+
+        add_line_flux : boolean
+            If true (default), the flux coming from the spectral lines will be
+            taken into account.
 
         Return
         ------

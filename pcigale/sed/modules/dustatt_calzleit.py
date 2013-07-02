@@ -275,12 +275,13 @@ class Module(common.SEDCreationModule):
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
         filters = self.filters
 
-        # Fλ fluxes in each filter before attenuation.
+        # Fλ fluxes (only from continuum) in each filter before attenuation.
         flux_noatt = {}
         for filter_name, filter_ in filters.items():
             flux_noatt[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength)
+                filter_.effective_wavelength,
+                add_line_fluxes=False)
 
         # Compute attenuation curve
         sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
@@ -340,12 +341,13 @@ class Module(common.SEDCreationModule):
         sed.add_info(name + "_attenuation",
                      attenuation_young + attenuation_old)
 
-        # Fλ fluxes in each filter after attenuation.
+        # Fλ fluxes (only from continuum) in each filter after attenuation.
         flux_att = {}
         for filter_name, filter_ in filters.items():
             flux_att[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength)
+                filter_.effective_wavelength,
+                add_line_fluxes=False)
 
         # Attenuation in each filter
         for filter_name in filters:
