@@ -248,12 +248,10 @@ class SED(object):
 
             # Interpolate the added luminosity array to the new wavelength
             # grid
-            interp_lumin = np.interp(
-                new_wavelength_grid,
-                results_wavelengths,
-                results_lumin,
-                right=0,
-                left=0)
+            interp_lumin = interp1d(results_wavelengths,
+                                    results_lumin,
+                                    bounds_error=False,
+                                    fill_value=0)(new_wavelength_grid)
 
             self.wavelength_grid = new_wavelength_grid
             self.luminosities = np.vstack((new_luminosities, interp_lumin))
