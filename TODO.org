@@ -1,0 +1,37 @@
+* Tasks
+** TODO Check the age of the Universe at observation redshift.
+In the psum module, when dealing with an observation, only use the models aged
+less than the age of the Universe at observation redshift.
+** TODO Deal with observation without values in some filters.
+** TODO SED serialisation.
+Code SED serialisation to store them in a database without pickling the whole
+object.
+** TODO Enhance the management of array parameters.
+When a parameter is an array (like the filters for which the attenuation is
+computed in the attenuation modules) the user must use the "eval ..."
+notation. Try to find a better notation. Implement the generation for default
+parameters. Maybe use tuples instead of arrays.
+** TODO Homogenise the metallicity numbering.                    .
+Use the one for which the "solar" metallicity is 0.02.
+** TODO Code the creation of mock catalogues.
+** TODO Create some plot to check the fit quality:
+  - plot giving for each band the ratio between the observed flux and the best
+    sed flux.
+  - colour plots (colours chosen by the user) comparing the colour ranges
+    covered by the simulation and the colours of the observed galaxies.)
+** TODO Write documentation.
+** TODO Code IGM effect module.
+Make the IGM module only add the IGM effect and use the SED redshifting
+method.
+** TODO Make the IGM module work with a list (or range) of redshift.
+This will allow the use of pcigale to compute photometric redshifts.
+** TODO Enhance the interpolation method.
+Work on interpolation method to try to avoir the "wave effect" when plotting
+in logarithmic scale.
+** TODO Change attenuations computed by attenuation modules.
+Compute both continuum and total attenuation in the filters in the attenuation
+modules.
+** TODO Deal with lines in the same way as continuum contributions.
+Transform the way lines are stored to be more coherent with the way the
+continuum is dealt with. Maybe something like line_wavelength (1D array),
+line_width (nD array) and line_fluxes (nD array).
