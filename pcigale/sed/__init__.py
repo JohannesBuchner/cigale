@@ -159,7 +159,7 @@ class SED(object):
 
         If the key is present in the dictionary, it will raise an exception.
         Use this method (instead of direct value assignment ) to avoid
-        overriding a yet present information.
+        overriding an already present information.
 
         Parameters
         ----------
@@ -171,7 +171,7 @@ class SED(object):
            If True, the added variable is set as proportional to the
            mass.
         force : boolean
-           If false (default), adding a key that yet exists in the info
+           If false (default), adding a key that already exists in the info
            dictionary will raise an error. If true, doing this will update
            the associated value.
 
@@ -181,7 +181,7 @@ class SED(object):
             if mass_proportional:
                 self.mass_proportional_info.append(key)
         else:
-            raise KeyError("The information %s is yet present "
+            raise KeyError("The information %s is already present "
                            "in the SED. " % key)
 
     def add_module(self, module_name, module_conf):
@@ -392,7 +392,7 @@ class SED(object):
                                        transmission[1])
 
             # TODO: Can we avoid to normalise as the filter transmission is
-            # yet normalised?
+            # already normalised?
             f_lambda = utils.luminosity_to_flux(
                 (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
                  np.trapz(transmission_r, wavelength_r)),

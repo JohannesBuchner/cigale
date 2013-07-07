@@ -56,13 +56,10 @@ class Module(common.SEDCreationModule):
         )
     }
 
-    out_parameter_list = {
-                         'qpah': 'Mass fraction of PAH',
-                         'umin': 'Minimum radiation field',
-                         'umax': 'Maximum radiation field',
-                         'gamma': 'Fraction illuminated from Umin to Umax'
-                         }
-
+    out_parameter_list = {'qpah': 'Mass fraction of PAH',
+                          'umin': 'Minimum radiation field',
+                          'umax': 'Maximum radiation field',
+                          'gamma': 'Fraction illuminated from Umin to Umax'}
 
     def _init_code(self):
         """Get the model out of the database"""
@@ -84,14 +81,13 @@ class Module(common.SEDCreationModule):
         # mass in W kg¯¹, The gamma parameter does not affect the fact that it
         # is for 1 kg because it represents a mass fraction of each component.
         self.emissivity = np.trapz((1. - gamma) * self.model_minmin.lumin +
-                          gamma * self.model_minmax.lumin,
-                          x=self.model_minmin.wave)
+                                   gamma * self.model_minmax.lumin,
+                                   x=self.model_minmin.wave)
 
         # We want to be able to display the respective constributions of both
         # components, therefore we keep they separately.
         self.model_minmin.lumin *= (1. - gamma) / self.emissivity
         self.model_minmax.lumin *= gamma / self.emissivity
-
 
     def process(self, sed):
         """Add the IR re-emission contributions

@@ -135,7 +135,7 @@ class Module(common.AnalysisModule):
             os.mkdir(OUT_DIR)
         except OSError:
             print("pcigale can't create the {} directory, maybe "
-                  "it yet exists.".format(OUT_DIR))
+                  "it already exists.".format(OUT_DIR))
             sys.exit()
 
         # Open the warehouse

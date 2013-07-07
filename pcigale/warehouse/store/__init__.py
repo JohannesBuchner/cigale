@@ -6,4 +6,3 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
-

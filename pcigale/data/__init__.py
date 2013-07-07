@@ -215,7 +215,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The filter is yet in the base.')
+                raise StandardError('The filter is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 

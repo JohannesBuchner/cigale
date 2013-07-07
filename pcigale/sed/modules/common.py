@@ -59,9 +59,9 @@ def complete_parameters(given_parameters, parameter_list):
         if unexpected_parameters:
             message += ("Unexpected parameters: " +
                         ", ".join(unexpected_parameters) +
-                        ".")
+                        ". ")
         raise KeyError("The parameters passed are different from the "
-                       "expected one." + message)
+                       "expected one. " + message)
 
     return given_parameters
 
