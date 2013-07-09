@@ -47,13 +47,12 @@ class Module(common.SEDCreationModule):
     parameter_list = {
         'imf': (
             'string',
-            "Initial mass function: ss (Salpeter) or kr (Krupa)",
+            "Initial mass function: salp (Salpeter) or krou (Krupa)",
             None
         ),
         'metallicity': (
             'float',
-            "Z/H abundance of heavy elements with respect to hydrogen, "
-            "normalised to solar values.",
+            "Metallicity Z.",
             None
         ),
         'separation_age': (
