@@ -28,7 +28,6 @@ from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
 from ..warehouse import SedWarehouse
-from ..sed import utils
 from ..sed.modules.common import get_module
 from ..data import Database
 
