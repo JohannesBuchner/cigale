@@ -249,6 +249,9 @@ class Module(common.AnalysisModule):
         # Loop over the observations to find the best fitting model and
         # compute the parametre statistics.
         for obs_index, obs_name in enumerate(obs_table['id']):
+            # Convert the observation name to string, in case it is a number.
+            obs_name = str(obs_name)
+
             # We will save the part of the computation table corresponding to
             # the model as a FITS file.
             fits_table = atpy.Table()
