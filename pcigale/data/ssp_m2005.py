@@ -37,16 +37,11 @@ class SspM2005(object):
         Parameters
         ----------
         imf : string
-            Initial mass function (IMF): either 'ss' for single Salpeter
-            (1955) or 'kr' for Kroupa (2001).
+            Initial mass function (IMF): either 'salp' for single Salpeter
+            (1955) or 'krou' for Kroupa (2001).
         metallicity : float
-            The metallicity [Z/H] defined as the abundance of heavy elements
-            with respect to hydrogen, normalised to the solar values:
-            [Z/H] = Log10(Z/Zsun) - Log10(H/Hsun). The possible values are:
-                * +0.35 (corresponding to 2.0 Zsun)
-                * +0.00 (corresponding to 1.0 Zsun)
-                * -0.33 (corresponding to 0.5 Zsun)
-                * -1.35 (corresponding to 1/50 Zsun)
+            The metallicity. Possible values are 0.001, 0.01, 0.02 (solar
+            metallicity) and 0.04.
         time_grid : array of floats
             The time [Myr] grid used in the mass_table and the spec_table.
         wavelength_grid : array of floats
@@ -68,11 +63,11 @@ class SspM2005(object):
 
         """
 
-        if imf in ['ss', 'kr']:
+        if imf in ['salp', 'krou']:
             self.imf = imf
         else:
-            raise ValueError('IMF must be either ss for Salpeter or '
-                             'kr for Krupa.')
+            raise ValueError('IMF must be either salp for Salpeter or '
+                             'krou for Krupa.')
         self.metallicity = metallicity
         self.time_grid = time_grid
         self.wavelength_grid = wavelength_grid

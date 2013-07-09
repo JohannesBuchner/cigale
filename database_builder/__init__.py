@@ -182,10 +182,10 @@ def build_m2005(base):
         metallicity = spec_table[1, 0]
 
         if 'krz' in spec_file:
-            imf = 'kr'
+            imf = 'krou'
             mass_table = np.copy(kroupa_mass)
         elif 'ssz' in spec_file:
-            imf = 'ss'
+            imf = 'salp'
             mass_table = np.copy(salpeter_mass)
         else:
             raise ValueError('Unknown IMF!!!')
@@ -212,7 +212,7 @@ def build_m2005(base):
         lambda_grid = np.unique(spec_table[1])
 
         # Creation of the age vs lambda flux table
-        tmpList = []
+        tmp_list = []
         for wavelength in lambda_grid:
             [age_grid_orig, lambda_grid_orig, flux_orig] = \
                 spec_table[:, spec_table[1, :] == wavelength]
@@ -221,8 +221,14 @@ def build_m2005(base):
             flux_regrid = interpolate.interp1d(age_grid_orig,
                                                flux_orig)(age_grid)
 
-            tmpList.append(flux_regrid)
-        flux_age = np.array(tmpList)
+            tmp_list.append(flux_regrid)
+        flux_age = np.array(tmp_list)
+
+        # Use Z value for metallicity, not log([Z/H])
+        metallicity = {-1.35: 0.001,
+                       -0.33: 0.01,
+                       0.0: 0.02,
+                       0.35: 0.04}[metallicity]
 
         base.add_ssp_m2005(SspM2005(imf, metallicity, age_grid,
                                     lambda_grid, mass_table, flux_age))

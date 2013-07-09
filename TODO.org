@@ -11,7 +11,8 @@ When a parameter is an array (like the filters for which the attenuation is
 computed in the attenuation modules) the user must use the "eval ..."
 notation. Try to find a better notation. Implement the generation for default
 parameters. Maybe use tuples instead of arrays.
-** TODO Homogenise the metallicity numbering.                    .
+** DONE Homogenise the metallicity numbering.                    .
+CLOSED: [2013-07-09 mar. 11:25]
 Use the one for which the "solar" metallicity is 0.02.
 ** TODO Code the creation of mock catalogues.
 ** TODO Create some plot to check the fit quality:
