@@ -219,8 +219,7 @@ class Configuration(object):
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
         for name, (typ, desc, default) in \
-                analysis.get_module(module_name,
-                                    blank=True).parameter_list.items():
+                analysis.get_module(module_name).parameter_list.items():
             if default is None:
                 default = ''
             self.config['analysis_configuration'][name] = default
