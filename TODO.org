@@ -36,3 +36,7 @@ modules.
 Transform the way lines are stored to be more coherent with the way the
 continuum is dealt with. Maybe something like line_wavelength (1D array),
 line_width (nD array) and line_fluxes (nD array).
+** TODO Best SED table output for psum module
+The psum module should also produce a table containing, for analysed source,
+the flux, parameters and χ² of the best fitting SED.
+** TODO In the filter integration swith to flux before integration.
