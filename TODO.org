@@ -40,3 +40,4 @@ line_width (nD array) and line_fluxes (nD array).
 The psum module should also produce a table containing, for analysed source,
 the flux, parameters and χ² of the best fitting SED.
 ** TODO In the filter integration swith to flux before integration.
+** TODO Bundle the application with py2app for OS X users
