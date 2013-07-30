@@ -1,4 +1,6 @@
 * Tasks
+** TODO Correctly evaluate True and False in configuration file
+** TODO Close matplotlib figures in psum.py
 ** TODO Check the age of the Universe at observation redshift.
 In the psum module, when dealing with an observation, only use the models aged
 less than the age of the Universe at observation redshift.
