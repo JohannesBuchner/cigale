@@ -6,6 +6,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
+from importlib import import_module
 
 
 def complete_parameters(given_parameters, parameter_list):
@@ -175,9 +176,7 @@ def get_module(name, **kwargs):
     module_name = name.split('.')[0]
 
     try:
-        # TODO Find a better way to do dynamic import
-        import_string = 'from . import ' + module_name + ' as module'
-        exec import_string
+        module = import_module("." + module_name, 'pcigale.sed.modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
         print('Module ' + module_name + ' does not exists!')

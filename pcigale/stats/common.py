@@ -6,6 +6,7 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
+from importlib import import_module
 
 
 class AnalysisModule(object):
@@ -152,9 +153,7 @@ def get_module(module_name):
     """
 
     try:
-        # TODO Find a better way to do dynamic import
-        import_string = 'from . import ' + module_name + ' as module'
-        exec import_string
+        module = import_module('.' + module_name, 'pcigale.stats')
         return module.Module()
     except ImportError:
         print('Module ' + module_name + ' does not exists!')
