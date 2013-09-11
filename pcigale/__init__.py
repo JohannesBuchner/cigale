@@ -6,6 +6,8 @@ Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 @author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
+__version__ = "0.1-alpha"
+
 
 import argparse
 from .session.configuration import Configuration
