@@ -26,7 +26,7 @@ setup(
     packages=find_packages(exclude=["database_builder"]),
 
     install_requires=['numpy', 'scipy', 'sqlalchemy', 'atpy', 'matplotlib',
-                      'configobj', 'progressbar', 'pyfits'],
+                      'configobj', 'progressbar', 'pyfits', 'astropy'],
 
     entry_points=entry_points,
 
