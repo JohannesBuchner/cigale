@@ -14,7 +14,7 @@ from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
 from ..sed.modules import common as modules
-from ..stats import common as analysis
+from ..analysis_modules import common as analysis
 
 
 def list_modules(package_name):
@@ -134,7 +134,7 @@ class Configuration(object):
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
             "Method used for statistical analysis. Available methods: "
-            + ', '.join(list_modules('pcigale.stats')) + ".")
+            + ', '.join(list_modules('pcigale.analysis_modules')) + ".")
 
         self.config.write()
 

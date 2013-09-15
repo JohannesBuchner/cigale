@@ -150,7 +150,7 @@ def get_module(module_name):
     """
 
     try:
-        module = import_module('.' + module_name, 'pcigale.stats')
+        module = import_module('.' + module_name, 'pcigale.analysis_modules')
         return module.Module()
     except ImportError:
         print('Module ' + module_name + ' does not exists!')

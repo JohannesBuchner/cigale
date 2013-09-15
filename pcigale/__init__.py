@@ -7,7 +7,7 @@ __version__ = "0.1-alpha"
 
 import argparse
 from .session.configuration import Configuration
-from .stats.common import get_module as get_stats_module
+from .analysis_modules.common import get_module as get_analysis_module
 
 
 def init(config):
@@ -41,12 +41,13 @@ def run(config):
     sed_modules_params = config.sed_modules_conf_array
     redshift_module = config.configuration['redshift_module']
     redshift_configuration = config.configuration['redshift_configuration']
-    stat_module = get_stats_module(config.configuration['analysis_method'])
-    stat_module_params = config.configuration['analysis_method_params']
+    analysis_module = get_analysis_module(config.configuration[
+        'analysis_method'])
+    analysis_module_params = config.configuration['analysis_method_params']
 
-    stat_module.process(data_file, column_list, sed_modules,
-                        sed_modules_params, redshift_module,
-                        redshift_configuration, stat_module_params)
+    analysis_module.process(data_file, column_list, sed_modules,
+                            sed_modules_params, redshift_module,
+                            redshift_configuration, analysis_module_params)
 
 
 def main():
