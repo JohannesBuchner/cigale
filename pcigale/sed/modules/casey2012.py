@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-
-@author: Médéric Boquien <mederic.boquien@oamp.fr>
-
-"""
+# Copyright (C) 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
 import numpy as np
 import scipy.constants as cst
@@ -56,7 +52,7 @@ class Module(common.SEDCreationModule):
 
     def _init_code(self):
         """Build the model for a given set of parameters."""
-        
+
         T = float(self.parameters["temperature"])
         beta = float(self.parameters["beta"])
         alpha = float(self.parameters["alpha"])

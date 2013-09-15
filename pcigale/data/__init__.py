@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
+
 """
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
 This is the database where we store some data used by pcigale:
  - the information relative to the filters
  - the single stellar populations as defined in Marason (2005)

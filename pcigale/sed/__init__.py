@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
+"""
 This class represents a Spectral Energy Distribution (SED) as used by pcigale.
 Such SED is characterised by:
 
@@ -35,7 +35,6 @@ Such SED is characterised by:
   is proportional to the galaxy mass.
 
 """
-
 
 import numpy as np
 from . import utils

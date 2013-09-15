@@ -1,11 +1,8 @@
-#-*- coding: utf-8 -*-
-"""
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# -*- coding: utf-8 -*-
+# Copyright (C) 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Manuela Raimbault
 
-@author: Manuela Raimbault
-
-"""
 import numpy as np
 from scipy.constants import c
 from . import common

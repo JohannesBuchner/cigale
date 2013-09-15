@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Copyright (C) 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Copyright (C) 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
+"""
 This module implements the attenuation base on a power law as defined
 in Charlot and Fall (2000) with a UV bump added.
 
 """
-
 
 import numpy as np
 from . import common
