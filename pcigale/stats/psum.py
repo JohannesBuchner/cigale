@@ -10,7 +10,7 @@ programme of the Fortran Cigale code.
 
 The models corresponding to all possible combinations of parameters are
 computed are the integrated flux in the same filters as the observations are
-used to compute the χ² of the fitting. This χ² give a propability that is
+used to compute the χ² of the fitting. This χ² give a probability that is
 associated with the model values for the parameters. At the end, for each
 parameter, the (probability) weighted mean and standard deviation are computed
 and the best fitting model (the one with the least reduced χ²) is given.
@@ -36,7 +36,7 @@ from ..data import Database
 TOLERANCE = 1.e-12
 # Name of the fits file containing the results
 RESULT_FILE = 'psum_results.fits'
-# Directory where the output files are storeds
+# Directory where the output files are stored
 OUT_DIR = 'out/'
 # Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 91
@@ -125,7 +125,7 @@ class Module(common.AnalysisModule):
         redshift_configuration : dictionary
             Configuration dictionary for the module used to redshift the SED.
         parameters: dictionary
-            Dictionnary containing the parameters.
+            Dictionary containing the parameters.
 
         """
 
@@ -247,7 +247,7 @@ class Module(common.AnalysisModule):
         progress_bar.finish()
 
         # Loop over the observations to find the best fitting model and
-        # compute the parametre statistics.
+        # compute the parameter statistics.
         for obs_index, obs_name in enumerate(obs_table['id']):
             # Convert the observation name to string, in case it is a number.
             obs_name = str(obs_name)

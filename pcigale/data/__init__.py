@@ -292,7 +292,7 @@ class Database(object):
 
     def add_dl2007(self, model):
         """
-        Add a Draine and Li (2007) model to the databse.
+        Add a Draine and Li (2007) model to the database.
 
         Parameters
         ----------
@@ -461,7 +461,7 @@ class Database(object):
     def get_dl2007(self, qpah, umin, umax):
         """
         Get the Draine and Li (2007) model corresponding to the given set of
-        paramters.
+        parameters.
 
         Parameters
         ----------
@@ -491,7 +491,7 @@ class Database(object):
 
         Returns
         -------
-        names, lamdba_eff : array, dictionary
+        names, lambda_eff : array, dictionary
             names is the list of the filter names and lambda_eff is a
             dictionary associating the effective wavelength (in nm) to the
             filter name

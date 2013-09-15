@@ -44,7 +44,7 @@ class SedWarehouse(object):
         name : string
             Module name.
 
-        The other keyworded parameters are the module parameters.
+        The other keyword parameters are the module parameters.
 
         Returns
         -------

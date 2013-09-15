@@ -74,7 +74,7 @@ class Module(common.SEDCreationModule):
             # We only want to add the redshift + IGM 'effect' to the SED
             # object (even if this has no physical meaning). As the
             # redshifting change the wavelength grid, we must regrid both
-            # before substracting.
+            # before subtracting.
             new_wavelen = utils.best_grid(sed.wavelength_grid, wavelen)
 
             init_l_lambda = np.interp(new_wavelen, sed.wavelength_grid,

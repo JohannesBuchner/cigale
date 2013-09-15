@@ -22,7 +22,7 @@ class Module(common.SEDCreationModule):
     """Module computing the Star Formation History contribution based on the
     Maraston (2005) models.
 
-    Implements the population syntesis based on the SSP described in Maraston,
+    Implements the population synthesis based on the SSP described in Maraston,
     2005, MNRAS, 362, 799.
 
     Information added to the SED:

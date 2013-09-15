@@ -29,7 +29,7 @@ def read_bc03_ssp(filename):
 
     The ASCII SSP files of Bruzual and Charlot 2003 have se special structure.
     A vector is stored with the number of values followed by the values
-    sepateded by a space (or a carriage return). There are the time vector, 5
+    separated by a space (or a carriage return). There are the time vector, 5
     (for Chabrier IMF) or 6 lines (for Salpeter IMF) that we don't care of,
     then the wavelength vector, then the luminosity vectors, each followed by
     a 52 value table, then a bunch of other table of information that are also

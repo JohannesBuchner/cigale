@@ -100,7 +100,7 @@ class SEDCreationModule(object):
         module is used several times with different parameters in the SED
         creation process.
 
-        The module parameters must be passed as keyworded parameters. If a
+        The module parameters must be passed as keyword parameters. If a
         parameter is not given but exists in the parameter_list with a default
         value, this value is used. If a parameter is missing or if an
         unexpected parameter is given, an error will be raised.
@@ -110,10 +110,10 @@ class SEDCreationModule(object):
         name : string
             Name of the module.
         blank : boolean
-            If true, return a non-parameterised module that will be used only
+            If true, return a non-parametrised module that will be used only
             to query the module parameter list.
 
-        The module parameters must be given as keyworded parameters.
+        The module parameters must be given as keyword parameters.
 
         Raises
         ------

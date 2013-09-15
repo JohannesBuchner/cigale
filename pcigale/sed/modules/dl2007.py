@@ -84,7 +84,7 @@ class Module(common.SEDCreationModule):
                                    gamma * self.model_minmax.lumin,
                                    x=self.model_minmin.wave)
 
-        # We want to be able to display the respective constributions of both
+        # We want to be able to display the respective contributions of both
         # components, therefore we keep they separately.
         self.model_minmin.lumin *= (1. - gamma) / self.emissivity
         self.model_minmax.lumin *= gamma / self.emissivity

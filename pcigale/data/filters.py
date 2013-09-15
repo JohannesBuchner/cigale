@@ -20,8 +20,8 @@ class Filter(object):
         the transmission table or the effective wavelength are not specified,
         their value is set to None.
 
-        Paramtres
-        ---------
+        Parameters
+        ----------
         name : string
             Name of the filter
         description : string
@@ -51,7 +51,7 @@ class Filter(object):
         if value in ['energy', 'photon']:
             self._trans_type = value
         else:
-            raise ValueError("Filter transmision type can only be "
+            raise ValueError("Filter transmission type can only be "
                              "'energy' or 'photon'.")
 
     def __str__(self):

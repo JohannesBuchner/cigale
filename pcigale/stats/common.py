@@ -24,7 +24,7 @@ class AnalysisModule(object):
     def __init__(self, **kwargs):
         """Instantiate a analysis module
 
-        The module parameters values can be passed as keyworded paramatres.
+        The module parameters values can be passed as keyword parameters.
         """
         # parameters is a dictionary containing the actual values for each
         # module parameter.
@@ -75,7 +75,7 @@ class AnalysisModule(object):
         given but exists in the parameter_list with a default value, this
         value is used.
 
-        Parametres
+        Parameters
         ----------
         data_file : string
             Name of the file containing the observations to be fitted.

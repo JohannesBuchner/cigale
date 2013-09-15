@@ -23,15 +23,15 @@ Such SED is characterised by:
   the contribution (in the contribution_names list) and the index of the
   second axis corresponds to the wavelength in the wavelength grid.
 
-- lines: a dictionnary containing the emission lines associated with the SED.
-  A dictionnary is used to allow the storage of various sets of lines. The
+- lines: a dictionary containing the emission lines associated with the SED.
+  A dictionary is used to allow the storage of various sets of lines. The
   lines are stored in a three axis numpy array: axis 0 is the central
   wavelength [nm], axis 1 is the line luminosity [W] and axis 2 is the line
   width [km.s-1].
 
-- info: a dictionnary containing various information about the SED.
+- info: a dictionary containing various information about the SED.
 
-- mass_proportional_info: the list of keys in the info dictionnary whose value
+- mass_proportional_info: the list of keys in the info dictionary whose value
   is proportional to the galaxy mass.
 
 """

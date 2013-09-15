@@ -82,7 +82,7 @@ class SspM2005(object):
         along the whole SFR.
 
         The time grid of the SFH is expected to be ordered and must not run
-        beyong 13.7 Gyr (the maximum time for Maraston 2005 SSP).
+        beyond 13.7 Gyr (the maximum time for Maraston 2005 SSP).
 
         Parameters
         ----------

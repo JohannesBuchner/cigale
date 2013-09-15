@@ -11,7 +11,7 @@ import numpy as np
 
 
 class AgnFritz2006(object):
-    """Fritz et al. (2006) AGN dust torus emision model.
+    """Fritz et al. (2006) AGN dust torus emission model.
 
     This class holds the UV-optical data associated with a Fritz et al. (2006)
     AGN model.
