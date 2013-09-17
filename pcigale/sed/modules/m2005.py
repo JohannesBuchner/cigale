@@ -8,11 +8,6 @@ from collections import OrderedDict
 from . import common
 from ...data import Database
 
-# Time lapse used to compute the average star formation rate. We use a
-# constant to keep it easily changeable for advanced user while limiting the
-# number of parameters. The value is in Myr.
-AV_LAPSE = 100
-
 
 class Module(common.SEDCreationModule):
     """Module computing the Star Formation History contribution based on the
@@ -23,9 +18,6 @@ class Module(common.SEDCreationModule):
 
     Information added to the SED:
         - imf, metallicity, galaxy_age
-        - sfr: star formation rate normalised to 1 solar mass formed at the
-              age of the galaxy.
-        - average_sfr: SFR averaged on the last 100 Myr of the galaxy history
         - mass_total, mass_alive, mass_white_dwarf,mass_neutrino,
           mass_black_hole, mass_turn_off : stellar masses in solar mass.
         - age: age of the oldest stars in the galaxy.
@@ -139,21 +131,12 @@ class Module(common.SEDCreationModule):
         old_sfh[sfh_age <= separation_age] = 0
         old_masses, old_spectrum = ssp.convolve(sfh_time, old_sfh)
 
-        # SFR of the galaxy
-        sfr = sfh_sfr[len(sfh_sfr) - 1]
-
-        # Average SFR on the last AV_LAPSE Myr of its history
-        average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
-
         sed.add_module(self.name, self.parameters)
 
         sed.add_info('ssp_imf' + self.postfix, imf)
         sed.add_info('ssp_metallicity' + self.postfix, metallicity)
         sed.add_info('ssp_old_young_separation_age' + self.postfix,
                      separation_age)
-
-        sed.add_info('sfr' + self.postfix, sfr, True)
-        sed.add_info('average_sfr' + self.postfix, average_sfr, True)
 
         sed.add_info('ssp_mass_total_old' + self.postfix, old_masses[0], True)
         sed.add_info('ssp_mass_alive_old' + self.postfix, old_masses[1], True)

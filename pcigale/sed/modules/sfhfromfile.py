@@ -72,5 +72,4 @@ class Module(common.SEDCreationModule):
 
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
-        sed.add_info("age", age)
         sed.add_info("sfh_id" + self.postfix, sfr_column_name)

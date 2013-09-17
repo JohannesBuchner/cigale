@@ -41,6 +41,11 @@ from . import utils
 from scipy.constants import c
 from scipy.interpolate import interp1d
 
+# Time lapse used to compute the average star formation rate. We use a
+# constant to keep it easily changeable for advanced user while limiting the
+# number of parameters. The value is in Myr.
+AV_LAPSE = 100
+
 
 class SED(object):
     """Spectral Energy Distribution with associated information
@@ -78,6 +83,15 @@ class SED(object):
     @sfh.setter
     def sfh(self, value):
         self._sfh = value
+
+        if value:
+            sfh_time, sfh_sfr = value
+            sfh_age = np.max(sfh_time) - sfh_time
+            self._sfh = value
+            self.add_info("sfr", sfh_sfr[-1], True, True)
+            self.add_info("average_sfr", np.mean(sfh_sfr[sfh_age <= AV_LAPSE]),
+                          True, True)
+            self.add_info("age", np.max(sfh_time), True, True)
 
     @property
     def wavelength_grid(self):

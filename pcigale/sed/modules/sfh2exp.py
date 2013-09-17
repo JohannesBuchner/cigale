@@ -106,5 +106,4 @@ class Module(common.SEDCreationModule):
         sed.add_info("sfh_tau_main" + self.postfix, tau_main)
         sed.add_info("sfh_tau_burst" + self.postfix, tau_burst)
         sed.add_info("sfh_f_burst" + self.postfix, f_burst)
-        sed.add_info("sfh_age" + self.postfix, age)
         sed.add_info("sfh_burst_age" + self.postfix, burst_age)
