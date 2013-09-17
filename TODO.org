@@ -1,5 +1,6 @@
 * Tasks
-** TODO Correctly evaluate True and False in configuration file
+** DONE Correctly evaluate True and False in configuration file
+CLOSED: [2013-09-17 mar. 22:14]
 ** TODO Close matplotlib figures in psum.py
 ** TODO Check the age of the Universe at observation redshift.
 In the psum module, when dealing with an observation, only use the models aged
@@ -8,7 +9,8 @@ less than the age of the Universe at observation redshift.
 ** TODO SED serialisation.
 Code SED serialisation to store them in a database without pickling the whole
 object.
-** TODO Enhance the management of array parameters.
+** DONE Enhance the management of array parameters.
+CLOSED: [2013-09-17 mar. 22:14]
 When a parameter is an array (like the filters for which the attenuation is
 computed in the attenuation modules) the user must use the "eval ..."
 notation. Try to find a better notation. Implement the generation for default
