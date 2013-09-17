@@ -28,10 +28,12 @@ class Module(common.SEDCreationModule):
             "Alpha slope.",
             None
         )),
-        ('attenuation_value_names', (
-            'array of strings',
-            "List of attenuation value names (in the SED's info dictionary). "
-            "A new re-emission contribution will be added for each one.",
+        ('attenuation_value_keys', (
+            'string',
+            "Keys of the SED information dictionary where the module will "
+            "look for the attenuation (in W) to re-emit. You can give several "
+            "keys separated with a & (don't use commas), a re-emission "
+            "contribution will be added for each key.",
             None
         ))
     ])
@@ -53,7 +55,9 @@ class Module(common.SEDCreationModule):
 
         """
         alpha = float(self.parameters["alpha"])
-        attenuation_value_names = self.parameters["attenuation_value_names"]
+        attenuation_value_keys = [
+            item.strip() for item in
+            self.parameters["attenuation_value_keys"].split("&")]
 
         ir_template = self.dh2002.get_template(alpha)
 
@@ -63,7 +67,7 @@ class Module(common.SEDCreationModule):
         sed.add_module(name, self.parameters)
         sed.add_info(name + '_alpha', alpha)
 
-        for attenuation in attenuation_value_names:
+        for attenuation in attenuation_value_keys:
             sed.add_contribution(
                 name + '_' + attenuation,
                 self.dh2002.wavelength_grid,

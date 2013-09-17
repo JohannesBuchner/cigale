@@ -44,10 +44,12 @@ class Module(common.SEDCreationModule):
             "Fraction illuminated from Umin to Umax",
             None
         )),
-        ('attenuation_value_names', (
-            'list of strings',
-            "List of attenuation value names (in the SED's info dictionary). "
-            "A new re-emission contribution will be added for each one.",
+        ('attenuation_value_keys', (
+            'string',
+            "Keys of the SED information dictionary where the module will "
+            "look for the attenuation (in W) to re-emit. You can give several "
+            "keys separated with a & (don't use commas), a re-emission "
+            "contribution will be added for each key.",
             None
         ))
     ])
@@ -96,6 +98,9 @@ class Module(common.SEDCreationModule):
         parameters : dictionary containing the parameters
 
         """
+        attenuation_value_keys = [
+            item.strip() for item in
+            self.parameters["attenuation_value_keys"].split("&")]
 
         # Base name for adding information to the SED.
         name = self.name or 'dl2007'
@@ -106,7 +111,7 @@ class Module(common.SEDCreationModule):
         sed.add_info(name + '_umax', self.parameters["umax"])
         sed.add_info(name + '_gamma', self.parameters["gamma"])
 
-        for attenuation in self.parameters['attenuation_value_names']:
+        for attenuation in attenuation_value_keys:
             sed.add_contribution(
                 name + '_Umin_Umin_' + attenuation,
                 self.model_minmin.wave,

@@ -215,9 +215,11 @@ class Module(common.SEDCreationModule):
             None
         )),
         ("filters", (
-            "list of strings",
-            "List of the filters for which the attenuation will be computed.",
-            ['V_B90', 'FUV']
+            "string",
+            "Filters for which the attenuation will be computed and added to "
+            "the SED information dictionary. You can give several filter "
+            "names separated by a & (don't use commas).",
+            "V_B90 & FUV"
         ))
     ])
 
@@ -242,9 +244,11 @@ class Module(common.SEDCreationModule):
 
     def _init_code(self):
         """Get the filters from the database"""
+        filter_list = [item.strip() for item in
+                       self.parameters["filters"].split("&")]
         self.filters = {}
         base = Database()
-        for filter_name in self.parameters["filters"]:
+        for filter_name in filter_list:
             self.filters[filter_name] = base.get_filter(filter_name)
         base.close()
 
