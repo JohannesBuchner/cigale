@@ -74,6 +74,6 @@ class Module(common.SEDCreationModule):
         name = self.name or 'loadfile'
 
         sed.add_module(name, self.parameters)
-        sed.add_info(name + "_sfh", (time_grid, sfr))
+        sed.sfh = (time_grid, sfr)
         sed.add_info(name + "_age", age)
         sed.add_info(name + "_sfh_id", sfr_column_name)
