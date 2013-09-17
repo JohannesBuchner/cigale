@@ -99,15 +99,12 @@ class Module(common.SEDCreationModule):
         # We normalise the SFH to have one solar mass produced.
         sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
-        # Base name for adding information to the SED.
-        name = self.name or "sfh2exp"
-
         sed.add_module(name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
-        sed.add_info(name + "_tau_main", tau_main)
-        sed.add_info(name + "_tau_burst", tau_burst)
-        sed.add_info(name + "_f_burst", f_burst)
-        sed.add_info(name + "_age", age)
-        sed.add_info(name + "_burst_age", burst_age)
+        sed.add_info("sfh_tau_main" + self.postfix, tau_main)
+        sed.add_info("sfh_tau_burst" + self.postfix, tau_burst)
+        sed.add_info("sfh_f_burst" + self.postfix, f_burst)
+        sed.add_info("sfh_age" + self.postfix, age)
+        sed.add_info("sfh_burst_age" + self.postfix, burst_age)

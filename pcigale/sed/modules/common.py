@@ -3,6 +3,8 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+import os
+import inspect
 from importlib import import_module
 from collections import OrderedDict
 
@@ -84,9 +86,8 @@ class SEDCreationModule(object):
     # parameters that are added to the SED info dictionary and for which a
     # statistical analysis may be done. Each parameter name is associated with
     # its description. In the SED info dictionary, the parameter name in
-    # prefixed with the name of the module plus an underscore (to allow
-    # several modules to add a parameter with the same name, for instance a
-    # repeated module.)
+    # is postfixed with a same postfix used in the module name, to allow
+    # the use of repeated modules.
     out_parameter_list = OrderedDict()
 
     # comments is the text that is used to comment the module section in
@@ -122,7 +123,16 @@ class SEDCreationModule(object):
                    unexpected parameter is given.
 
         """
-        self.name = name
+        # If a name is not given, we take if from the file in which the
+        # module class is coded.
+        self.name = name or os.path.basename(inspect.getfile(self))[:4]
+
+        # We want to postfix the various keys of the SED with the same
+        # postfix as the module name, if any.
+        if '.' in name:
+            self.postfix = "." + name.split(".", 1)
+        else:
+            self.postfix = ""
 
         if not blank:
             # Parameters given in constructor.

@@ -61,15 +61,12 @@ class Module(common.SEDCreationModule):
 
         ir_template = self.dh2002.get_template(alpha)
 
-        # Base name for adding information to the SED.
-        name = self.name or 'dh2002'
-
-        sed.add_module(name, self.parameters)
-        sed.add_info(name + '_alpha', alpha)
+        sed.add_module(self.name, self.parameters)
+        sed.add_info("alpha" + self.postfix, alpha)
 
         for attenuation in attenuation_value_keys:
             sed.add_contribution(
-                name + '_' + attenuation,
+                self.name + "_" + attenuation,
                 self.dh2002.wavelength_grid,
                 sed.info[attenuation] * ir_template
             )

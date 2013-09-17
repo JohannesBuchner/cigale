@@ -70,10 +70,7 @@ class Module(common.SEDCreationModule):
         # The we normalise it to 1 solar mass produced.
         sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
-        # Base name for adding information to the SED.
-        name = self.name or 'loadfile'
-
-        sed.add_module(name, self.parameters)
+        sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
-        sed.add_info(name + "_age", age)
-        sed.add_info(name + "_sfh_id", sfr_column_name)
+        sed.add_info("age", age)
+        sed.add_info("sfh_id" + self.postfix, sfr_column_name)

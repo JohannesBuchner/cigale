@@ -8,6 +8,7 @@ from collections import OrderedDict
 from . import common
 from ...data import Database
 
+
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
 # number of parameters. The value is in Myr.
@@ -44,14 +45,15 @@ class Module(common.SEDCreationModule):
                 "at the age of the galaxy."),
         ("average_sfr", "Average SFR in the last 100 Myr (default) of the "
                         "galaxy history."),
-        ("m_star", "Total mass in stars in Solar mass."),
-        ("m_gas", "Mass returned to the ISM by evolved stars in Solar mass."),
-        ("n_ly", "rate of H-ionizing photons in s^-1, per Solar mass "
-                 "of galaxy."),
-        ("b_4000", "Amplitude of 4000 Å break (Bruzual 2003)"),
-        ("b4_vn", "Amplitude of 4000 Å narrow break (Balogh et al. 1999)"),
-        ("b4_sdss", "Amplitude of 4000 Å break (Stoughton et al. 2002)"),
-        ("b_912", "Amplitude of Lyman discontinuity")
+        ("ssp_m_star", "Total mass in stars in Solar mass."),
+        ("ssp_m_gas", "Mass returned to the ISM by evolved stars in Solar "
+                      "mass."),
+        ("ssp_n_ly", "rate of H-ionizing photons in s^-1, per Solar mass "
+                     "of galaxy."),
+        ("ssp_b_4000", "Amplitude of 4000 Å break (Bruzual 2003)"),
+        ("ssp_b4_vn", "Amplitude of 4000 Å narrow break (Balogh et al. 1999)"),
+        ("ssp_b4_sdss", "Amplitude of 4000 Å break (Stoughton et al. 2002)"),
+        ("ssp_b_912", "Amplitude of Lyman discontinuity")
     ])
 
     def _init_code(self):
@@ -99,37 +101,37 @@ class Module(common.SEDCreationModule):
         # Average SFR on the last AV_LAPSE Myr of its history
         average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
 
-        # Base name for adding information to the SED.
-        name = self.name or "bc03"
+        sed.add_module(self.name, self.parameters)
 
-        sed.add_module(name, self.parameters)
+        sed.add_info("ssp_imf" + self.postfix, imf)
+        sed.add_info("ssp_metallicity" + self.postfix, metallicity)
+        sed.add_info("ssp_old_young_separation_age" + self.postfix,
+                     separation_age)
 
-        sed.add_info(name + "_imf", imf)
-        sed.add_info(name + "_metallicity", metallicity)
-        sed.add_info(name + '_old_young_separation_age', separation_age)
+        sed.add_info("sfr" + self.postfix, sfr, True)
+        sed.add_info("average_sfr" + self.postfix, average_sfr, True)
 
-        sed.add_info(name + '_sfr', sfr, True)
-        sed.add_info(name + '_average_sfr', average_sfr, True)
+        sed.add_info("ssp_m_star_young" + self.postfix,
+                     young_info["m_star"], True)
+        sed.add_info("ssp_m_gas_young" + self.postfix,
+                     young_info["m_gas"], True)
+        sed.add_info("ssp_n_ly_young" + self.postfix, young_info["n_ly"])
+        sed.add_info("ssp_b_400_young" + self.postfix, young_info["b_4000"])
+        sed.add_info("ssp_b4_vn_young" + self.postfix, young_info["b4_vn"])
+        sed.add_info("ssp_b4_sdss_young" + self.postfix, young_info["b4_sdss"])
+        sed.add_info("ssp_b_912_young" + self.postfix, young_info["b_912"])
 
-        sed.add_info(name + "_m_star_young", young_info["m_star"], True)
-        sed.add_info(name + "_m_gas_young", young_info["m_gas"], True)
-        sed.add_info(name + "_n_ly_young", young_info["n_ly"])
-        sed.add_info(name + "_b_400_young", young_info["b_4000"])
-        sed.add_info(name + "_b4_vn_young", young_info["b4_vn"])
-        sed.add_info(name + "_b4_sdss_young", young_info["b4_sdss"])
-        sed.add_info(name + "_b_912_young", young_info["b_912"])
+        sed.add_info("ssp_m_star_old" + self.postfix, old_info["m_star"], True)
+        sed.add_info("ssp_m_gas_old" + self.postfix, old_info["m_gas"], True)
+        sed.add_info("ssp_n_ly_old" + self.postfix, old_info["n_ly"])
+        sed.add_info("ssp_b_400_old" + self.postfix, old_info["b_4000"])
+        sed.add_info("ssp_b4_vn_old" + self.postfix, old_info["b4_vn"])
+        sed.add_info("ssp_b4_sdss_old" + self.postfix, old_info["b4_sdss"])
+        sed.add_info("ssp_b_912_old" + self.postfix, old_info["b_912"])
 
-        sed.add_info(name + "_m_star_old", old_info["m_star"], True)
-        sed.add_info(name + "_m_gas_old", old_info["m_gas"], True)
-        sed.add_info(name + "_n_ly_old", old_info["n_ly"])
-        sed.add_info(name + "_b_400_old", old_info["b_4000"])
-        sed.add_info(name + "_b4_vn_old", old_info["b4_vn"])
-        sed.add_info(name + "_b4_sdss_old", old_info["b4_sdss"])
-        sed.add_info(name + "_b_912_old", old_info["b_912"])
-
-        sed.add_contribution(name + '_old',
+        sed.add_contribution("ssp_old" + self.postfix,
                              old_wave,
                              old_lumin)
-        sed.add_contribution(name + '_young',
+        sed.add_contribution("ssp_young" + self.postfix,
                              young_wave,
                              young_lumin)

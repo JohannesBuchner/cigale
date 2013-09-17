@@ -150,21 +150,21 @@ class Module(common.SEDCreationModule):
     ])
 
     out_parameter_list = OrderedDict([
-        ("NAME_Av_young", "V-band attenuation of the young population."),
-        ("NAME_Av_old", "V-band attenuation of the old population."),
-        ("NAME_attenuation_young", "Amount of luminosity attenuated from the "
-                                   "young population in W."),
-        ("NAME_Av_old_factor", "Reduction factor for the V-band attenuation "
-                               "of  the old population compared to the young "
-                               "one (<1)."),
-        ("NAME_attenuation_old", "Amount of luminosity attenuated from the "
-                                 "old population in W."),
-        ("NAME_attenuation", "Total amount of luminosity attenuated in W."),
-        ("NAME_uv_bump_wavelength", "Central wavelength of UV bump in nm."),
-        ("NAME_uv_bump_width", "Width of the UV bump in nm."),
-        ("NAME_uv_bump_amplitude", "Amplitude of the UV bump in nm."),
-        ("NAME_powerlaw_slope", "Slope of the power law."),
-        ("NAME_FILTER", "Attenuation in the FILTER filter.")
+        ("Av_young", "V-band attenuation of the young population."),
+        ("Av_old", "V-band attenuation of the old population."),
+        ("attenuation_young", "Amount of luminosity attenuated from the "
+                              "young population in W."),
+        ("Av_old_factor", "Reduction factor for the V-band attenuation "
+                          "of  the old population compared to the young "
+                          "one (<1)."),
+        ("attenuation_old", "Amount of luminosity attenuated from the "
+                            "old population in W."),
+        ("attenuation", "Total amount of luminosity attenuated in W."),
+        ("uv_bump_wavelength", "Central wavelength of UV bump in nm."),
+        ("uv_bump_width", "Width of the UV bump in nm."),
+        ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
+        ("powerlaw_slope", "Slope of the power law."),
+        ("FILTER", "Attenuation in the FILTER filter.")
     ])
 
     def _init_code(self):
@@ -185,9 +185,6 @@ class Module(common.SEDCreationModule):
         sed : pcigale.sed.SED object
 
         """
-
-        # Base name for adding information to the SED.
-        name = self.name or 'dustatt_powerlaw_'
 
         wavelength = sed.wavelength_grid
         av_young = float(self.parameters["Av_young"])
@@ -222,10 +219,11 @@ class Module(common.SEDCreationModule):
         # spectrum is negative).
         attenuation_young = -1 * np.trapz(attenuation_spectrum, wavelength)
 
-        sed.add_module(name, self.parameters)
-        sed.add_info(name + "_Av_young", av_young)
-        sed.add_info(name + "_attenuation_young", attenuation_young)
-        sed.add_contribution(name + "_young", wavelength, attenuation_spectrum)
+        sed.add_module(self.name, self.parameters)
+        sed.add_info("Av_young" + self.postfix, av_young)
+        sed.add_info("attenuation_young" + self.postfix, attenuation_young)
+        sed.add_contribution("attenuation_young" + self.postfix, wavelength,
+                             attenuation_spectrum)
 
         # Old population (if any) attenuation
         if old_contrib:
@@ -236,11 +234,11 @@ class Module(common.SEDCreationModule):
             attenuation_spectrum = attenuated_luminosity - luminosity
             attenuation_old = -1 * np.trapz(attenuation_spectrum, wavelength)
 
-            sed.add_info(name + "_Av_old", av_old)
-            sed.add_info(name + "_Av_old_factor",
+            sed.add_info("Av_old" + self.postfix, av_old)
+            sed.add_info("Av_old_factor" + self.postfix,
                          self.parameters["Av_old_factor"])
-            sed.add_info(name + "_attenuation_old", attenuation_old)
-            sed.add_contribution(name + "_old",
+            sed.add_info("attenuation_old" + self.postfix, attenuation_old)
+            sed.add_contribution("attnuation_old" + self.postfix,
                                  wavelength, attenuation_spectrum)
         else:
             attenuation_old = 0
@@ -261,7 +259,7 @@ class Module(common.SEDCreationModule):
 
         # Total attenuation (we don't take into account the energy attenuated
         # in the spectral lines)
-        sed.add_info(name + "_attenuation",
+        sed.add_info("attenuation" + self.postfix,
                      attenuation_young + attenuation_old)
 
         # Fλ fluxes (only in continuum) in each filter after attenuation.
@@ -274,6 +272,6 @@ class Module(common.SEDCreationModule):
 
         # Attenuation in each filter
         for filter_name in filters:
-            sed.add_info(name + "_" + filter_name,
+            sed.add_info(filter_name + "_attenuation" + self.postfix,
                          -2.5 * np.log(flux_att[filter_name] /
                                        flux_noatt[filter_name]))

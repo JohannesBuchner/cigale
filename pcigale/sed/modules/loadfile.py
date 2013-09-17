@@ -47,13 +47,10 @@ class Module(common.SEDCreationModule):
         filename = self.parameters['filename']
         table = atpy.Table(filename, verbose=False)
 
-        # Base name for adding information to the SED.
-        name = self.name or 'loadfile'
-
-        sed.add_module(name, self.parameters)
+        sed.add_module(self.name, self.parameters)
 
         sed.add_contribution(
-            name + '_' + filename,
+            filename,
             table[self.parameters['lambda_column']],
             table[self.parameters['l_lambda_column']]
         )

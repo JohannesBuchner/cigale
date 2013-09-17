@@ -145,42 +145,56 @@ class Module(common.SEDCreationModule):
         # Average SFR on the last AV_LAPSE Myr of its history
         average_sfr = np.mean(sfh_sfr[sfh_age <= AV_LAPSE])
 
-        # Base name for adding information to the SED.
-        name = self.name or 'm2005_sfh'
+        sed.add_module(self.name, self.parameters)
 
-        sed.add_module(name, self.parameters)
+        sed.add_info('ssp_imf' + self.postfix, imf)
+        sed.add_info('ssp_metallicity' + self.postfix, metallicity)
+        sed.add_info('ssp_old_young_separation_age' + self.postfix,
+                     separation_age)
 
-        sed.add_info('imf', imf)
-        sed.add_info('metallicity', metallicity)
-        sed.add_info('old_young_separation_age', separation_age)
+        sed.add_info('sfr' + self.postfix, sfr, True)
+        sed.add_info('average_sfr' + self.postfix, average_sfr, True)
 
-        sed.add_info('sfr', sfr, True)
-        sed.add_info('average_sfr', average_sfr, True)
+        sed.add_info('ssp_mass_total_old' + self.postfix, old_masses[0], True)
+        sed.add_info('ssp_mass_alive_old' + self.postfix, old_masses[1], True)
+        sed.add_info('ssp_mass_white_dwarf_old' + self.postfix, old_masses[2],
+                     True)
+        sed.add_info('ssp_mass_neutrino_old' + self.postfix, old_masses[3],
+                     True)
+        sed.add_info('ssp_mass_black_hole_old' + self.postfix, old_masses[4],
+                     True)
+        sed.add_info('ssp_mass_turn_off_old' + self.postfix, old_masses[5],
+                     True)
 
-        sed.add_info('mass_total_old', old_masses[0], True)
-        sed.add_info('mass_alive_old', old_masses[1], True)
-        sed.add_info('mass_white_dwarf_old', old_masses[2], True)
-        sed.add_info('mass_neutrino_old', old_masses[3], True)
-        sed.add_info('mass_black_hole_old', old_masses[4], True)
-        sed.add_info('mass_turn_off_old', old_masses[5], True)
+        sed.add_info('ssp_mass_total_young' + self.postfix, young_masses[0],
+                     True)
+        sed.add_info('ssp_mass_alive_young' + self.postfix, young_masses[1],
+                     True)
+        sed.add_info('ssp_mass_white_dwarf_young' + self.postfix,
+                     young_masses[2], True)
+        sed.add_info('ssp_mass_neutrino_young' + self.postfix, young_masses[3],
+                     True)
+        sed.add_info('ssp_mass_black_hole_young' + self.postfix,
+                     young_masses[4], True)
+        sed.add_info('ssp_mass_turn_off_young' + self.postfix, young_masses[5],
+                     True)
 
-        sed.add_info('mass_total_young', young_masses[0], True)
-        sed.add_info('mass_alive_young', young_masses[1], True)
-        sed.add_info('mass_white_dwarf_young', young_masses[2], True)
-        sed.add_info('mass_neutrino_young', young_masses[3], True)
-        sed.add_info('mass_black_hole_young', young_masses[4], True)
-        sed.add_info('mass_turn_off_young', young_masses[5], True)
+        sed.add_info('ssp_mass_total' + self.postfix,
+                     old_masses[0] + young_masses[0], True)
+        sed.add_info('ssp_mass_alive' + self.postfix,
+                     old_masses[1] + young_masses[1], True)
+        sed.add_info('ssp_mass_white_dwarf' + self.postfix,
+                     old_masses[2] + young_masses[2], True)
+        sed.add_info('ssp_mass_neutrino' + self.postfix,
+                     old_masses[3] + young_masses[3], True)
+        sed.add_info('ssp_mass_black_hole' + self.postfix,
+                     old_masses[4] + young_masses[4], True)
+        sed.add_info('ssp_mass_turn_off' + self.postfix,
+                     old_masses[5] + young_masses[5], True)
 
-        sed.add_info('mass_total', old_masses[0] + young_masses[0], True)
-        sed.add_info('mass_alive', old_masses[1] + young_masses[1], True)
-        sed.add_info('mass_white_dwarf', old_masses[2] + young_masses[2], True)
-        sed.add_info('mass_neutrino', old_masses[3] + young_masses[3], True)
-        sed.add_info('mass_black_hole', old_masses[4] + young_masses[4], True)
-        sed.add_info('mass_turn_off', old_masses[5] + young_masses[5], True)
-
-        sed.add_contribution(name + '_old',
+        sed.add_contribution("ssp_old" + self.postfix,
                              ssp.wavelength_grid,
                              old_spectrum)
-        sed.add_contribution(name + '_young',
+        sed.add_contribution("ssp_young" + self.postfix,
                              ssp.wavelength_grid,
                              young_spectrum)
