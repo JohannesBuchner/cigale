@@ -322,6 +322,7 @@ class Module(common.AnalysisModule):
                              ' best fitting SED - reduced chi2:' +
                              str(best_chi2))
                 figure.savefig(OUT_DIR + obs_name + '_bestSED.pdf')
+                plt.close(figure)
 
             # Compute the statistics for the desired variables. First, we
             # build the probability distribution function (PDF) for the
@@ -409,6 +410,7 @@ class Module(common.AnalysisModule):
                     ax.set_title(variable)
                     figure.savefig(OUT_DIR +
                                    obs_name + '_' + variable + '_chi2plot.pdf')
+                    plt.close(figure)
 
                 if save_pdf:
                     pdf_table = atpy.Table()
@@ -444,6 +446,7 @@ class Module(common.AnalysisModule):
                     ax.set_ylabel('Probability')
                     figure.savefig(OUT_DIR + obs_name + "_" + variable +
                                    "_pdf.pdf")
+                    plt.close(figure)
 
         # Write the computation table FITS
         fits_table.write(OUT_DIR + obs_name + '_comptable.fits', verbose=False)
