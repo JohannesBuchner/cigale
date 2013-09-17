@@ -138,17 +138,17 @@ class Module(common.AnalysisModule):
             sys.exit()
 
         # Open the warehouse
-        # TODO Why is parameters["storage_type"] an array?
         sed_warehouse = SedWarehouse(
-            cache_type=parameters["storage_type"][0])
+            cache_type=parameters["storage_type"])
 
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
-        save_best_sed = parameters["save_best_sed"]
-        plot_best_sed = parameters["plot_best_sed"]
-        plot_chi2_distribution = parameters["plot_chi2_distribution"]
-        save_pdf = parameters["save_pdf"]
-        plot_pdf = parameters["plot_pdf"]
+        save_best_sed = (parameters["save_best_sed"].lower() == "true")
+        plot_best_sed = (parameters["plot_best_sed"].lower() == "true")
+        plot_chi2_distribution = (
+            parameters["plot_chi2_distribution"].lower() == "true")
+        save_pdf = (parameters["save_pdf"].lower() == "true")
+        plot_pdf = (parameters["plot_pdf"].lower() == "true")
         pdf_max_bin_number = int(parameters["pdf_max_bin_number"])
 
         results = {'galaxy_mass': [], 'galaxy_mass_err': []}

@@ -48,8 +48,11 @@ class Module(common.SEDCreationModule):
            Dictionary with the module parameters (redshift and rtau)
 
         """
+        redshift = float(self.parameters["redshift"])
+        dimming = (self.parameters['dimming'].lower() == "true")
+        rtau = float(self.parameters["rtau"])
 
-        if self.parameters['redshift'] == 0:
+        if redshift == 0:
             # If redshift is 0, we do nothing
             pass
         else:
@@ -57,14 +60,14 @@ class Module(common.SEDCreationModule):
             lsstSed = lsst.Sed()
 
             # First, we get the redshifted spectrum of the galaxy
-            wavelen, flambda = lsstSed.redshiftSED(self.parameters['redshift'],
-                                                   self.parameters['dimming'],
+            wavelen, flambda = lsstSed.redshiftSED(redshift,
+                                                   dimming,
                                                    sed.wavelength_grid,
                                                    sed.luminosity)
 
             wavelen, red_l_lambda = lsstSed.addIGMattenuation(
-                self.parameters['redshift'],
-                self.parameters['rtau'],
+                redshift,
+                rtau,
                 wavelen=wavelen,
                 flambda=flambda
             )
@@ -82,9 +85,8 @@ class Module(common.SEDCreationModule):
 
             sed.add_module(self.name, self.parameters)
 
-            sed.add_info("redshift" + self.postfix,
-                         self.parameters['redshift'])
-            sed.add_info('rtau' + self.postfix, self.parameters['rtau'])
+            sed.add_info("redshift" + self.postfix, redshift)
+            sed.add_info('rtau' + self.postfix, rtau)
 
             sed.add_contribution(
                 self.name,

@@ -78,8 +78,8 @@ class Module(common.AnalysisModule):
 
         """
 
-        out_file = parameters["output_file"][0]
-        out_format = parameters["output_format"][0]
+        out_file = parameters["output_file"]
+        out_format = parameters["output_format"]
 
         # If the output file already exists make a copy.
         if os.path.isfile(out_file):

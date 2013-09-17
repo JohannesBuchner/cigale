@@ -265,16 +265,12 @@ class Configuration(object):
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
             configuration['sed_modules_params'].append(module_params)
-        # Parsing the redshift module parameters
-        configuration['redshift_configuration'] = {}
-        for key, value in self.config['redshift_configuration'].items():
-            configuration['redshift_configuration'][key] = \
-                evaluate_description(value)
-        # Parsing the statistical analysis parameters
-        configuration['analysis_method_params'] = {}
-        for key, value in self.config['analysis_configuration'].items():
-            configuration['analysis_method_params'][key] = \
-                evaluate_description(value)
+        # We don't need to "evaluate" the configuration values for the
+        # redshit and analysis modules as we don't expect multiple values here.
+        configuration['redshift_configuration'] = \
+            self.config['redshift_configuration']
+        configuration['analysis_method_params'] = \
+            self.config['analysis_configuration']
 
         return configuration
 
