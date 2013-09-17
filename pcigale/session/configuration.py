@@ -48,8 +48,9 @@ def evaluate_description(description):
     - If the description is a string beginning with 'eval ', then its content
       (without 'eval ') is evaluated as Python code and its result returned.
       An array is expected.
-    - If the description is a list beginning by 'range', the start, step and
-      stop values are then expected and the range is evaluated.
+    - If the description is a string beginning by 'range', the start, step and
+      stop values are then expected and the range is evaluated (stop included
+      if reached.
     - Then the function tries to evaluate the description as a Numpy array of
       float and returns the mere list if this fails.
 
@@ -64,25 +65,28 @@ def evaluate_description(description):
         The evaluated list of values.
 
     """
-
-    if not type(description) == list:
-        description = [description]
-
-    if description[0].startswith('eval '):
-        results = eval(description[0][4:])
-        # If the evaluation lead to a single value, we put it in a list.
-        if not isinstance(results, collections.Iterable):
+    results = description
+    if type(description) == str:
+        if description.startswith('eval '):
+            results = eval(description[4:])
+            # If the evaluation lead to a single value, we put it in a list.
+            if not isinstance(results, collections.Iterable):
+                results = [results]
+        elif description.startswith('range '):
+            start, stop, step = [float(item) for item
+                                 in description[5:].split()]
+            results = np.arange(start, stop+step, step)
+        else:
+            # We need to return a list to combine the list of possible values
+            # for each parameter.
             results = [results]
-    elif description[0] == 'range':
-        start = float(description[1])
-        step = float(description[2])
-        stop = float(description[3])
-        results = np.arange(start, stop, step, float)
-    else:
-        try:
-            results = np.array(description, float)
-        except ValueError:
-            results = description
+
+    # We prefer to evaluate the parameter as a numpy array of floats if
+    # possible.
+    try:
+        results = np.array(results, float)
+    except ValueError:
+        pass
 
     return results
 
