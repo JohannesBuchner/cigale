@@ -106,7 +106,7 @@ class Module(common.AnalysisModule):
 
         # Open the warehouse
         sed_warehouse = SedWarehouse(
-            cache_type=parameters["storage_type"][0])
+            cache_type=parameters["storage_type"])
 
         # We loop over all the possible theoretical SEDs
         progress_bar = ProgressBar(maxval=len(sed_modules_params)).start()
