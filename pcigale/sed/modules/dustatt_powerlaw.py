@@ -111,14 +111,14 @@ class Module(common.SEDCreationModule):
             "string",
             "Name of the contribution containing the spectrum of the "
             "young population.",
-            "m2005_young"
+            "ssp_young"
         )),
         ("old_contribution_name", (
             "string",
             "Name of the contribution containing the spectrum of the "
             "old population. If it is set to 'None', only one population "
             "is considered.",
-            "m2005_old"
+            "ssp_old"
         )),
         ("uv_bump_wavelength", (
             "float",

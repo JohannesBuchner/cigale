@@ -99,7 +99,7 @@ class Module(common.SEDCreationModule):
         # We normalise the SFH to have one solar mass produced.
         sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
-        sed.add_module(name, self.parameters)
+        sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)

@@ -82,7 +82,8 @@ class Module(common.SEDCreationModule):
 
             sed.add_module(self.name, self.parameters)
 
-            sed.add_info("redshift" + self.postfix, self.parameters['redshift'])
+            sed.add_info("redshift" + self.postfix,
+                         self.parameters['redshift'])
             sed.add_info('rtau' + self.postfix, self.parameters['rtau'])
 
             sed.add_contribution(
