@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 import numpy as np
+from collections import OrderedDict
 from . import common
 from .. import utils
 from ...extern.lsst import Sed as lsst
@@ -18,24 +19,24 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        "redshift": (
+    parameter_list = OrderedDict([
+        ("redshift", (
             'float',
             "Redshift to apply to the galaxy.",
             0.
-        ),
-        "dimming": (
+        )),
+        ("dimming", (
             'boolean',
             "If set to true, the cosmological dimming is applied "
             "to the fluxes.",
             True
-        ),
-        "rtau": (
+        )),
+        ("rtau", (
             'float',
             "Parameter which scales the tau value at each wavelength.",
             1.
-        )
-    }
+        ))
+    ])
 
     def process(self, sed):
         """Add the redshift + IGM attenuation effect to the SED

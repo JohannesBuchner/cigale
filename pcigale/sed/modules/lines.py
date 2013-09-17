@@ -4,32 +4,33 @@
 # Author: Manuela Raimbault
 
 import numpy as np
+from collections import OrderedDict
 from scipy.constants import c
 from . import common
 
 
 class Module(common.SEDCreationModule):
 
-    parameter_list = {
-        "Nly_key": (
+    parameter_list = OrderedDict([
+        ("Nly_key", (
             "string",
             "Key in the SED info dictionary where the number of ionising "
             "photons is found.",
             "bc03_n_ly_young"
-        ),
-        "metallicity_key": (
+        )),
+        ("metallicity_key", (
             "string",
             "Key in the SED info dictionary where the metallicity is found.",
             "bc03_metallicity"
-        ),
-        "set_name": (
+        )),
+        ("set_name", (
             "string",
             "Name of the lines component.",
             None
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {}
+    out_parameter_list = OrderedDict()
 
     def process(self, sed):
 

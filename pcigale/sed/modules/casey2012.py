@@ -5,6 +5,7 @@
 
 import numpy as np
 import scipy.constants as cst
+from collections import OrderedDict
 from . import common
 
 
@@ -19,35 +20,35 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        "temperature": (
+    parameter_list = OrderedDict([
+        ("temperature", (
             "float",
             "Temperature of the dust in K.",
             None
-        ),
-        "beta": (
+        )),
+        ("beta", (
             "float",
             "Emissivity index of the dust.",
             None
-        ),
-        "alpha": (
+        )),
+        ("alpha", (
             "float",
             "Mid-infrared powerlaw slope.",
             None
-        ),
-        "attenuation_value_names": (
+        )),
+        ("attenuation_value_names", (
             "list of strings",
             "List of attenuation value names (in the SED's info dictionary)."
             "A new re-emission contribution will be added for each one.",
             None
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {
-        "temperature": "Temperature of the dust in K.",
-        "beta": "Emissivity index of the dust.",
-        "alpha": "Mid-infrared powerlaw slope."
-    }
+    out_parameter_list = OrderedDict([
+        ("temperature", "Temperature of the dust in K."),
+        ("beta", "Emissivity index of the dust."),
+        ("alpha", "Mid-infrared powerlaw slope.")
+    ])
 
 
     def _init_code(self):

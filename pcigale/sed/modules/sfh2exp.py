@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 import numpy as np
+from collections import OrderedDict
 from . import common
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -20,44 +21,44 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        "tau_main": (
+    parameter_list = OrderedDict([
+        ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
             None
-        ),
-        "tau_burst": (
+        )),
+        ("tau_burst", (
             "float",
             "e-folding time of the late starburst population model in Myr.",
             None
-        ),
-        "f_burst": (
+        )),
+        ("f_burst", (
             "float",
             "Mass fraction of the late burst population.",
             None
-        ),
-        "age": (
+        )),
+        ("age", (
             "integer",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
             None
-        ),
-        "burst_age": (
+        )),
+        ("burst_age", (
             "integer",
             "Age of the late burst in Myr. Precision is 1 Myr.",
             None
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {
-        "tau_main": "e-folding time of the main stellar population model "
-                    "in Myr.",
-        "tau_burst": "e-folding time of the late starburst population model "
-                     "in Myr.",
-        "f_burst": "Produced mass fraction of the late burst population.",
-        "age": "Age of the oldest stars in the galaxy in Myr.",
-        "burst_age": "Age of the late burst in Myr."
-    }
+    out_parameter_list = OrderedDict([
+        ("tau_main", "e-folding time of the main stellar population model "
+                     "in Myr."),
+        ("tau_burst", "e-folding time of the late starburst population model "
+                      "in Myr."),
+        ("f_burst", "Produced mass fraction of the late burst population."),
+        ("age", "Age of the oldest stars in the galaxy in Myr."),
+        ("burst_age", "Age of the late burst in Myr.")
+    ])
 
     def process(self, sed):
         """Add a double decreasing exponential Star Formation History.

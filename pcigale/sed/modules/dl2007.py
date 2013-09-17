@@ -4,6 +4,7 @@
 # Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
 from . import common
+from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 
@@ -22,39 +23,41 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        'qpah': (
+    parameter_list = OrderedDict([
+        ('qpah', (
             'float',
             "Mass fraction of PAH",
             None
-        ),
-        'umin': (
+        )),
+        ('umin', (
             'float',
             "Minimum radiation field",
             None
-        ),
-        'umax': (
+        )),
+        ('umax', (
             'float',
             "Maximum radiation field",
             None
-        ),
-        'gamma': (
+        )),
+        ('gamma', (
             'float',
             "Fraction illuminated from Umin to Umax",
             None
-        ),
-        'attenuation_value_names': (
+        )),
+        ('attenuation_value_names', (
             'list of strings',
             "List of attenuation value names (in the SED's info dictionary). "
             "A new re-emission contribution will be added for each one.",
             None
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {'qpah': 'Mass fraction of PAH',
-                          'umin': 'Minimum radiation field',
-                          'umax': 'Maximum radiation field',
-                          'gamma': 'Fraction illuminated from Umin to Umax'}
+    out_parameter_list = OrderedDict([
+        ('qpah', 'Mass fraction of PAH'),
+        ('umin', 'Minimum radiation field'),
+        ('umax', 'Maximum radiation field'),
+        ('gamma', 'Fraction illuminated from Umin to Umax')
+    ])
 
     def _init_code(self):
         """Get the model out of the database"""

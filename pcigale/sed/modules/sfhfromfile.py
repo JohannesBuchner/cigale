@@ -5,6 +5,7 @@
 
 import atpy
 import numpy as np
+from collections import OrderedDict
 from . import common
 
 
@@ -19,26 +20,26 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        "filename": (
+    parameter_list = OrderedDict([
+        ("filename", (
             "str",
             "Name of the file containing the SFH. The first column must be "
             "the time [Myr] and the other column must contain the SFR "
             "[Msun/yr].",
             None
-        ),
-        "sfr_column": (
+        )),
+        ("sfr_column", (
             "integer",
             "List of column numbers where the star formation rates will "
             "be read..",
             None
-        ),
-        "age": (
+        )),
+        ("age", (
             "integer",
             "Age [Myr] where each SFH will be looked at.",
             None
-        )
-    }
+        ))
+    ])
 
     def process(self, sed):
         """Add the SFH read from the file.

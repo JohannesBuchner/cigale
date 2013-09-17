@@ -21,6 +21,7 @@ import sys
 import atpy
 import json
 import numpy as np
+from collections import OrderedDict
 from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
@@ -48,56 +49,56 @@ class Module(common.AnalysisModule):
     TODO: Description of the PSUM method.
     """
 
-    parameter_list = {
-        "analysed_variables": (
+    parameter_list = OrderedDict([
+        ("analysed_variables", (
             "array of strings",
             "List of the variables (in the SEDs info dictionaries) for which "
             "the statistical analysis will be done.",
             ["sfr", "average_sfr"]
-        ),
-        "save_best_sed": (
+        )),
+        ("save_best_sed", (
             "boolean",
             "If true, save the best SED for each observation to a file.",
             False
-        ),
-        "plot_best_sed": (
+        )),
+        ("plot_best_sed", (
             "boolean",
             "If true, for each observation save a plot of the best SED "
             "and the observed fluxes.",
             False
-        ),
-        "plot_chi2_distribution": (
+        )),
+        ("plot_chi2_distribution", (
             "boolean",
             "If true, for each observation and each analysed variable "
             "plot the value vs reduced chi-square distribution.",
             False
-        ),
-        "save_pdf": (
+        )),
+        ("save_pdf", (
             "boolean",
             "If true, for each observation and each analysed variable "
             "save the probability density function.",
             False
-        ),
-        "plot_pdf": (
+        )),
+        ("plot_pdf", (
             "boolean",
             "If true, for each observation and each analysed variable "
             "plot the probability density function.",
             False
-        ),
-        "pdf_max_bin_number": (
+        )),
+        ("pdf_max_bin_number", (
             "integer",
             "Maximum number of bins used to compute the probability density "
             "function. This is only used when saving or printing the PDF. "
             "If there are less values, the probability is given for each "
             "one.",
             50
-        ),
-        "storage_type": (
+        )),
+        ("storage_type", (
             "string",
             "Type of storage used to cache the generate SED.",
             "memory"
-        )
-    }
+        ))
+    ])
 
     def process(self, data_file, column_list, sed_modules,
                 sed_modules_params, redshift_module_name,

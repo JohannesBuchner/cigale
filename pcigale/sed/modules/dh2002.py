@@ -3,6 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+from collections import OrderedDict
 from . import common
 from ...data import Database
 
@@ -21,21 +22,21 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        'alpha': (
+    parameter_list = OrderedDict([
+        ('alpha', (
             'float',
             "Alpha slope.",
             None
-        ),
-        'attenuation_value_names': (
+        )),
+        ('attenuation_value_names', (
             'array of strings',
             "List of attenuation value names (in the SED's info dictionary). "
             "A new re-emission contribution will be added for each one.",
             None
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {'alpha': 'Alpha slope.'}
+    out_parameter_list = OrderedDict([('alpha', 'Alpha slope.')])
 
     def _init_code(self):
         """Get the template set out of the database"""

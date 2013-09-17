@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 import numpy as np
+from collections import OrderedDict
 from . import common
 from ...data import Database
 
@@ -18,40 +19,40 @@ class Module(common.SEDCreationModule):
     Bruzual and Charlot (2003) models.
     """
 
-    parameter_list = {
-        "imf": (
+    parameter_list = OrderedDict([
+        ("imf", (
             "string",
             "Initial mass function: salp (Salpeter) or chab (Chabrier)",
             None
-        ),
-        "metallicity": (
+        )),
+        ("metallicity", (
             "float",
             "Mettalicity, 0.02 for Solar metallicity.",
             None
-        ),
-        "separation_age": (
-            "integer",
+        )),
+        ("separation_age", (
+            "int",
             "Age [Myr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (10 Myr). Set "
             "to 0 not to differentiate ages (only an old population).",
             10
-        )
-    }
+        ))
+    ])
 
-    out_parameter_list = {
-        "sfr": "Instantaneous Star Formation Rate in solar mass per year, "
-               "at the age of the galaxy.",
-        "average_sfr": "Average SFR in the last 100 Myr (default) of the "
-                       "galaxy history.",
-        "m_star": "Total mass in stars in Solar mass.",
-        "m_gas": "Mass returned to the ISM by evolved stars in Solar mass.",
-        "n_ly": "rate of H-ionizing photons in s^-1, per Solar mass "
-                "of galaxy.",
-        "b_4000": "Amplitude of 4000 Å break (Bruzual 2003)",
-        "b4_vn": "Amplitude of 4000 Å narrow break (Balogh et al. 1999)",
-        "b4_sdss": "Amplitude of 4000 Å break (Stoughton et al. 2002)",
-        "b_912": "Amplitude of Lyman discontinuity"
-    }
+    out_parameter_list = OrderedDict([
+        ("sfr", "Instantaneous Star Formation Rate in solar mass per year, "
+                "at the age of the galaxy."),
+        ("average_sfr", "Average SFR in the last 100 Myr (default) of the "
+                        "galaxy history."),
+        ("m_star", "Total mass in stars in Solar mass."),
+        ("m_gas", "Mass returned to the ISM by evolved stars in Solar mass."),
+        ("n_ly", "rate of H-ionizing photons in s^-1, per Solar mass "
+                 "of galaxy."),
+        ("b_4000", "Amplitude of 4000 Å break (Bruzual 2003)"),
+        ("b4_vn", "Amplitude of 4000 Å narrow break (Balogh et al. 1999)"),
+        ("b4_sdss", "Amplitude of 4000 Å break (Stoughton et al. 2002)"),
+        ("b_912", "Amplitude of Lyman discontinuity")
+    ])
 
     def _init_code(self):
         """Read the SSP from the database."""

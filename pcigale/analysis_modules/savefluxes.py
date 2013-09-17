@@ -14,6 +14,7 @@ The data file is used only to get the list of fluxes to be computed.
 
 import os
 from itertools import product
+from collections import OrderedDict
 from datetime import datetime
 from astropy.table import Table
 from progressbar import ProgressBar
@@ -29,24 +30,24 @@ class Module(common.AnalysisModule):
 
     """
 
-    parameter_list = {
-        "output_file": (
+    parameter_list = OrderedDict([
+        ("output_file", (
             "string",
             "Name of the output file.",
             "computed_fluxes.xml"
-        ),
-        "output_format": (
+        )),
+        ("output_format", (
             "string",
             "Format of the output file. Any format supported by astropy.table "
             "e.g. votable or ascii.",
             "votable"
-        ),
-        "storage_type": (
+        )),
+        ("storage_type", (
             "string",
             "Type of storage used to cache the generate SED.",
             "memory"
-        )
-    }
+        ))
+    ])
 
     def process(self, data_file, column_list, sed_modules,
                 sed_modules_params, redshift_module,

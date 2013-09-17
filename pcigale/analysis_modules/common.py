@@ -4,19 +4,20 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 from importlib import import_module
+from collections import OrderedDict
 
 
 class AnalysisModule(object):
     """Abstract class, the pCigale analysis modules are based on.
     """
 
-    # parameter_list is a dictionary containing all the parameters used by the
-    # module. Each parameter name is associate to a tuple (variable type,
-    # description [string], default value). Each module must define its
-    # parameter list, unless it does not use any parameter. Using None means
-    # that there is no description, unit or default value. If None should be
-    # the default value, use the 'None' string instead.
-    parameter_list = {}
+    # parameter_list is a ordered dictionary containing all the parameters
+    # used by the module. Each parameter name is associate to a tuple
+    # (variable type, description [string], default value). Each module must
+    # define its parameter list, unless it does not use any parameter. Using
+    # None means that there is no description, unit or default value. If None
+    # should be the default value, use the 'None' string instead.
+    parameter_list = OrderedDict()
 
     def __init__(self, **kwargs):
         """Instantiate a analysis module

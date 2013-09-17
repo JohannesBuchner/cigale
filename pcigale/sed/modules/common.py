@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 from importlib import import_module
+from collections import OrderedDict
 
 
 def complete_parameters(given_parameters, parameter_list):
@@ -14,36 +15,34 @@ def complete_parameters(given_parameters, parameter_list):
     have no default value and is not present in given_parameters, raises an
     error. If a parameter is present in given_parameters and not in
     parameter_list, an exception is also raised.
+    Returns an ordered dictionary with the same key order as the parameter
+    list.
 
     Parameters
     ----------
     given_parameters : dictionary
         Parameter dictionary used to configure the module.
-    parameter_list : dictionary
+    parameter_list : OrderedDict
         Parameter list from the module.
 
     Returns
     -------
-    parameters : dictionary
-        Dictionary combining the given parameters with the default values for
-        the missing ones.
+    parameters : OrderedDict
+        Ordered dictionary combining the given parameters with the default
+        values for the missing ones.
 
     Raises
     ------
     KeyError when the given parameters are different from the expected ones.
 
     """
-    # For parameters that are present on the parameter_list with a default
-    # value and that are not in the giver_parameters dictionary, we add them
-    # with their default value.
+    # Complete the given parameters with default values when needed.
     for key in parameter_list:
         if (not key in given_parameters) and (
                 parameter_list[key][2] is not None):
             given_parameters[key] = parameter_list[key][2]
-    # If the keys of the parameters dictionary are different from the one
-    # of the parameter_list dictionary, we raises a KeyError. That means
-    # that a parameter is missing (and has no default value) or that an
-    # unexpected one was given.
+    # Check parameter consistency between the parameter list and the given
+    # parameters.
     if not set(given_parameters.keys()) == set(parameter_list.keys()):
         missing_parameters = (set(parameter_list.keys())
                               - set(given_parameters.keys()))
@@ -61,29 +60,34 @@ def complete_parameters(given_parameters, parameter_list):
         raise KeyError("The parameters passed are different from the "
                        "expected one. " + message)
 
-    return given_parameters
+    # We want the result to be ordered as the parameter_list of the module is.
+    result = OrderedDict()
+    for key in parameter_list.keys():
+        result[key] = given_parameters[key]
+
+    return result
 
 
 class SEDCreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 
-    # parameter_list is a dictionary containing all the parameters used by
-    # the module. Each parameter name is associate to a tuple (variable type,
-    # description [string], default value). Each module must define its
-    # parameter list, unless it does not use any parameter. Using None means
-    # that there is no description or default value. If None should be the
-    # default value, use the 'None' string instead.
-    parameter_list = {}
+    # parameter_list is an ordered dictionary containing all the parameters
+    # used by the module. Each parameter name is associate to a tuple
+    # (variable type, description [string], default value). Each module must
+    # define its parameter list, unless it does not use any parameter. Using
+    # None means that there is no description or default value. If None should
+    # be the default value, use the 'None' string instead.
+    parameter_list = OrderedDict()
 
-    # out_parameter_list is a dictionary containing all the SED parameters
-    # that are added to the SED info dictionary and for which a statistical
-    # analysis may be done. Each parameter name is associated with its
-    # description. In the SED info dictionary, the parameter name in prefixed
-    # with the name of the module plus an underscore (to allow several
-    # modules to add a parameter with the same name, for instance a repeated
-    # module.)
-    out_parameter_list = {}
+    # out_parameter_list is an ordered dictionary containing all the SED
+    # parameters that are added to the SED info dictionary and for which a
+    # statistical analysis may be done. Each parameter name is associated with
+    # its description. In the SED info dictionary, the parameter name in
+    # prefixed with the name of the module plus an underscore (to allow
+    # several modules to add a parameter with the same name, for instance a
+    # repeated module.)
+    out_parameter_list = OrderedDict()
 
     # comments is the text that is used to comment the module section in
     # the configuration file. For instance, it can be used to give special

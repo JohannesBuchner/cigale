@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 import atpy
+from collections import OrderedDict
 from . import common
 
 
@@ -15,25 +16,25 @@ class Module(common.SEDCreationModule):
 
     """
 
-    parameter_list = {
-        "filename": (
+    parameter_list = OrderedDict([
+        ("filename", (
             'str',
             "Name of the file to load and to add to the SED table. This "
             "file must be loadable with atpy (that depends on other modules "
             "being installed).",
             None
-        ),
-        "lambda_column": (
+        )),
+        ("lambda_column", (
             'str',
             "Name of the column containing the wavelength in nm.",
             None
-        ),
-        "l_lambda_column": (
+        )),
+        ("l_lambda_column", (
             'str',
             "Name of the column containing the Lλ luminosity in W/nm.",
             None
-        )
-    }
+        ))
+    ])
 
     def process(self, sed):
         """Add the spectrum from the file to the SED object
