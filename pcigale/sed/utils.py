@@ -5,8 +5,8 @@
 # Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
 import numpy as np
-from scipy import integrate
 from scipy.constants import c, pi, parsec
+from .cosmology import cosmology
 
 
 def lambda_to_nu(wavelength):
@@ -69,52 +69,6 @@ def best_grid(wavelengths1, wavelengths2):
     return new_grid
 
 
-def luminosity_distance(z, h0=71., omega_m=0.27, omega_l=0.73):
-    """
-    Computes luminosity distance at redshift z in Mpc for given Λ cosmology
-    (H_0 in (km/s)/Mpc, Ω_M, and Ω_Λ) Ref.: Hogg (1999) astro-ph/9905116
-
-    Parameters
-    ----------
-    z : float
-        Redshift
-    h0 : float
-        Hubble's constant
-    omega_m : float
-        Omega matter.
-    omega_l : float
-        Omega vacuum
-
-    Returns
-    -------
-    luminosity_distance : float
-        The luminosity distance in Mpc.
-
-    """
-
-    omega_k = 1. - omega_m - omega_l
-
-    if z > 0.:
-        dist, edist = integrate.quad(
-            lambda x: (omega_m * (1. + x) ** 3
-                       + omega_k * (1 + x) ** 2 + omega_l) ** (-.5),
-            0.,
-            z,
-            epsrel=1e-3)
-    else:
-        # Bad idea as there is something *wrong* going on
-        print('LumDist: z <= 0 -> Assume z = 0!')
-        z = 0.
-        dist = 0.
-
-    if omega_k > 0.:
-        dist = np.sinh(dist * np.sqrt(omega_k)) / np.sqrt(omega_k)
-    elif omega_k < 0.:
-        dist = np.sin(dist * np.sqrt(-omega_k)) / np.sqrt(-omega_k)
-
-    return c / (h0 * 1.e3) * (1. + z) * dist
-
-
 def luminosity_to_flux(luminosity, redshift=0):
     """
     Convert a luminosity (or luminosity density) to a flux (or flux density).
@@ -138,7 +92,7 @@ def luminosity_to_flux(luminosity, redshift=0):
     if redshift == 0:
         dist = 10 * parsec
     else:
-        dist = luminosity_distance(redshift) * 1.e6 * parsec
+        dist = cosmology.luminosity_distance(redshift) * 1.e6 * parsec
 
     return luminosity / (4 * pi * np.square(dist))
 
