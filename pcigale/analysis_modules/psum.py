@@ -17,11 +17,11 @@ and the best fitting model (the one with the least reduced χ²) is given.
 """
 
 import os
-import sys
 import atpy
 import json
 import numpy as np
 from collections import OrderedDict
+from datetime import datetime
 from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
@@ -129,13 +129,14 @@ class Module(common.AnalysisModule):
 
         """
 
-        # Create the output directory and stop it exists.
-        try:
-            os.mkdir(OUT_DIR)
-        except OSError:
-            print("pcigale can't create the {} directory, maybe "
-                  "it already exists.".format(OUT_DIR))
-            sys.exit()
+        if os.path.exists(OUT_DIR):
+            new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + OUT_DIR
+            os.rename(OUT_DIR, new_name)
+            print("The existing {} directory was renamed to {}".format(
+                OUT_DIR,
+                new_name
+            ))
+        os.mkdir(OUT_DIR)
 
         # Open the warehouse
         sed_warehouse = SedWarehouse(

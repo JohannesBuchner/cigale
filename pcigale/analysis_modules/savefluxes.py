@@ -85,6 +85,10 @@ class Module(common.AnalysisModule):
         if os.path.isfile(out_file):
             new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + out_file
             os.rename(out_file, new_name)
+            print("The existing {} file was renamed to {}".format(
+                out_file,
+                new_name
+            ))
 
         # Get the filters in the database
         filter_names = [name for name in column_list
