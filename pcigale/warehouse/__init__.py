@@ -107,6 +107,14 @@ class SedWarehouse(object):
 
         return sed
 
+    def sed_generator(self, module_list, list_of_parameter_list):
+        """Generator to yield SED corresponding to a module list and a list
+        of parameter lists, one at a time.
+
+        """
+        for parameter_list in list_of_parameter_list:
+            yield self.get_sed(module_list, parameter_list)
+
     def close(self):
         """ Close the underlying storage if needed """
         self.storage.close()
