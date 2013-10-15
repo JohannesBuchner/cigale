@@ -29,7 +29,7 @@ class Module(common.SEDCreationModule):
             'boolean',
             "If set to true, the cosmological dimming is applied "
             "to the fluxes.",
-            True
+            'True'
         )),
         ("rtau", (
             'float',
