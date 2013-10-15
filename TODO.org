@@ -10,6 +10,10 @@ less than the age of the Universe at observation redshift.
 ** TODO SED serialisation.
 Code SED serialisation to store them in a database without pickling the whole
 object.
+** TODO Make the saving of SED to database optional
+When using the sfhfromfile module, we don't want to save the SED to the
+database (maybe unless we save to memory), especially when the SFH is not
+normalised. Make this saving optional in the warehouse.
 ** DONE Enhance the management of array parameters.
 CLOSED: [2013-09-17 mar. 22:14]
 When a parameter is an array (like the filters for which the attenuation is

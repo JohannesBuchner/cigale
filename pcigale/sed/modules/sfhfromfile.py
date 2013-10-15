@@ -38,6 +38,11 @@ class Module(common.SEDCreationModule):
             "integer",
             "Age [Myr] where each SFH will be looked at.",
             None
+        )),
+        ("normalise", (
+            "boolean",
+            "Normalise the SFH to one solar mass produced at the given age.",
+            "True"
         ))
     ])
 
@@ -62,13 +67,15 @@ class Module(common.SEDCreationModule):
         sfr = table[sfr_column_name]
 
         age = int(self.parameters['age'])
+        normalise = (self.parameters["normalise"].lower() == "true")
 
         # We cut the SFH to the desired age.
         sfr = sfr[time_grid <= age]
         time_grid = time_grid[time_grid <= age]
 
-        # The we normalise it to 1 solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
+        # Normalise the SFH to 1 solar mass produced if asked to.
+        if normalise:
+            sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
 
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
