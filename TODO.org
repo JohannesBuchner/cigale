@@ -14,6 +14,9 @@ object.
 When using the sfhfromfile module, we don't want to save the SED to the
 database (maybe unless we save to memory), especially when the SFH is not
 normalised. Make this saving optional in the warehouse.
+** TODO Add all the module output parameters in the savefluxes module
+Add all the outputs of the modules to the table saved in the savefluxes
+modules, alongside the various module parameters.
 ** DONE Enhance the management of array parameters.
 CLOSED: [2013-09-17 mar. 22:14]
 When a parameter is an array (like the filters for which the attenuation is
