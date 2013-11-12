@@ -238,7 +238,7 @@ class Module(common.SEDCreationModule):
             sed.add_info("Av_old_factor" + self.postfix,
                          self.parameters["Av_old_factor"])
             sed.add_info("attenuation_old" + self.postfix, attenuation_old)
-            sed.add_contribution("attnuation_old" + self.postfix,
+            sed.add_contribution("attenuation_old" + self.postfix,
                                  wavelength, attenuation_spectrum)
         else:
             attenuation_old = 0
