@@ -20,6 +20,8 @@ import os
 import atpy
 import json
 import numpy as np
+from itertools import product
+from astropy.table import Table
 from collections import OrderedDict
 from datetime import datetime
 from copy import deepcopy
@@ -157,6 +159,17 @@ class Module(common.AnalysisModule):
             results[variable] = []
             results[variable + '_err'] = []
 
+        # We will save a table containing the best SED corresponding to each
+        # observation. This table contains the parameters of the SED as well as
+        # the value for the analysed variables.
+        out_bestsed_columns = ["id"]
+        for module_param_list in zip(sed_modules, sed_modules_params[0]):
+            for module_param in product([module_param_list[0]],
+                                        module_param_list[1].keys()):
+                out_bestsed_columns.append(".".join(module_param))
+        out_bestsed_columns += analysed_variables
+        out_bestsed_rows = []
+
         # We get the transmission table and effective wavelength for each
         # used filter.
         filter_list = [name for name in column_list
@@ -275,6 +288,16 @@ class Module(common.AnalysisModule):
             obs_redshift = obs_table['redshift'][obs_index]
             redshift_module.parameters["redshift"] = obs_redshift
             redshift_module.process(best_sed)
+
+            # Add the best SED to the best SED output table
+            bestsed_line = [obs_name]
+            for module_param in parameters:
+                for value in module_param.values():
+                    if type(value) == list:
+                        value = ".".join(value)
+                    bestsed_line.append(value)
+            bestsed_line += [best_sed.info[item] for item in analysed_variables]
+            out_bestsed_rows.append(bestsed_line)
 
             # Save best SED
             # TODO: For now, we only save the lambda vs fnu table. Once
@@ -461,6 +484,11 @@ class Module(common.AnalysisModule):
             result_table.add_column(variable + '_err',
                                     results[variable + '_err'])
         result_table.write(OUT_DIR + RESULT_FILE, verbose=False)
+
+        # Write the best SED table
+        out_bestsed_table = Table(zip(*out_bestsed_rows),
+                                  names=out_bestsed_columns)
+        out_bestsed_table.write(OUT_DIR + "bestSeds.xml", format="votable")
 
         sed_warehouse.close()
 
