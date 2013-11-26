@@ -36,11 +36,13 @@ class Module(common.SEDCreationModule):
             "Mid-infrared powerlaw slope.",
             None
         )),
-        ("attenuation_value_names", (
-            "list of strings",
-            "List of attenuation value names (in the SED's info dictionary)."
-            "A new re-emission contribution will be added for each one.",
-            None
+        ('attenuation_value_keys', (
+            'string',
+            "Keys of the SED information dictionary where the module will "
+            "look for the attenuation (in W) to re-emit. You can give several "
+            "keys separated with a & (don't use commas), a re-emission "
+            "contribution will be added for each key.",
+            "attenuation"
         ))
     ])
 
@@ -100,11 +102,16 @@ class Module(common.SEDCreationModule):
         # Base name for adding information to the SED.
         name = self.name or 'casey2012'
 
-        sed.add_module(name, self.parameters)
-        for key in self.parameters.keys():
-            sed.add_info(name + '_' + key, self.parameters[key])
+        attenuation_value_keys = [
+            item.strip() for item in
+            self.parameters["attenuation_value_keys"].split("&")]
 
-        for attenuation in self.parameters["attenuation_value_names"]:
+        sed.add_module(name, self.parameters)
+        sed.add_info("temperature" + self.postfix, self.parameters["temperature"])
+        sed.add_info("alpha" + self.postfix, self.parameters["alpha"])
+        sed.add_info("beta" + self.postfix, self.parameters["beta"])
+
+        for attenuation in attenuation_value_keys:
             sed.add_contribution(
                 name + '_powerlaw_' + attenuation,
                 self.wave,

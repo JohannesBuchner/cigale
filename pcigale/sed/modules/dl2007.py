@@ -50,7 +50,7 @@ class Module(common.SEDCreationModule):
             "look for the attenuation (in W) to re-emit. You can give several "
             "keys separated with a & (don't use commas), a re-emission "
             "contribution will be added for each key.",
-            None
+            "attenuation"
         ))
     ])
 
@@ -106,10 +106,10 @@ class Module(common.SEDCreationModule):
         name = self.name or 'dl2007'
 
         sed.add_module(name, self.parameters)
-        sed.add_info(name + '_qpah', self.parameters["qpah"])
-        sed.add_info(name + '_umin', self.parameters["umin"])
-        sed.add_info(name + '_umax', self.parameters["umax"])
-        sed.add_info(name + '_gamma', self.parameters["gamma"])
+        sed.add_info('qpah' + self.postfix, self.parameters["qpah"])
+        sed.add_info('umin' + self.postfix, self.parameters["umin"])
+        sed.add_info('umax' + self.postfix, self.parameters["umax"])
+        sed.add_info('gamma' + self.postfix, self.parameters["gamma"])
 
         for attenuation in attenuation_value_keys:
             sed.add_contribution(
