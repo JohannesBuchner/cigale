@@ -94,7 +94,15 @@ def luminosity_to_flux(luminosity, redshift=0):
     else:
         dist = cosmology.luminosity_distance(redshift) * 1.e6 * parsec
 
-    return luminosity / (4 * pi * np.square(dist))
+    flux = luminosity / (4 * pi * np.square(dist))
+
+    # astropy 0.3 cosmology functions return quantities
+    try:
+        result = flux.value
+    except AttributeError:
+        result = flux
+
+    return result
 
 
 def lambda_flambda_to_fnu(wavelength, flambda):
