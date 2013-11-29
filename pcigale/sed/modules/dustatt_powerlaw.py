@@ -164,7 +164,7 @@ class Module(common.SEDCreationModule):
         ("uv_bump_width", "Width of the UV bump in nm."),
         ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
         ("powerlaw_slope", "Slope of the power law."),
-        ("FILTER", "Attenuation in the FILTER filter.")
+        ("FILTER_attenuation", "Attenuation in the FILTER filter.")
     ])
 
     def _init_code(self):
