@@ -91,7 +91,7 @@ class SED(object):
             self.add_info("sfr", sfh_sfr[-1], True, True)
             self.add_info("average_sfr", np.mean(sfh_sfr[sfh_age <= AV_LAPSE]),
                           True, True)
-            self.add_info("age", np.max(sfh_time), True, True)
+            self.add_info("age", np.max(sfh_time), False, True)
 
     @property
     def wavelength_grid(self):
