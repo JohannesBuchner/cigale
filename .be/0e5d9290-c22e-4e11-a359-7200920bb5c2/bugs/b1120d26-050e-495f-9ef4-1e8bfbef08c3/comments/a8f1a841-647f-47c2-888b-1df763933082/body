@@ -1,0 +1,2 @@
+The psum module should also produce a table containing, for analysed source,
+the flux, parameters and χ² of the best fitting SED.

@@ -1,0 +1,57 @@
+{
+
+
+
+
+
+
+    "assigned": "Yannick Roehlly <yannick.roehlly@oamp.fr>", 
+
+
+
+
+
+
+    "creator": "Yannick Roehlly <yannick.roehlly@oamp.fr>", 
+
+
+
+
+
+
+    "reporter": "Yannick Roehlly <yannick.roehlly@oamp.fr>", 
+
+
+
+
+
+
+    "severity": "minor", 
+
+
+
+
+
+
+    "status": "open", 
+
+
+
+
+
+
+    "summary": "Add all the module output parameters in the savefluxes module.", 
+
+
+
+
+
+
+    "time": "Tue, 03 Dec 2013 16:42:49 +0000"
+
+
+
+
+
+
+}

@@ -1,0 +1,50 @@
+{
+
+
+
+
+
+
+    "creator": "Yannick Roehlly <yannick.roehlly@oamp.fr>", 
+
+
+
+
+
+
+    "reporter": "Yannick Roehlly <yannick.roehlly@oamp.fr>", 
+
+
+
+
+
+
+    "severity": "minor", 
+
+
+
+
+
+
+    "status": "open", 
+
+
+
+
+
+
+    "summary": "Make the IGM module work with a list (or range) of redshift.", 
+
+
+
+
+
+
+    "time": "Tue, 03 Dec 2013 16:45:48 +0000"
+
+
+
+
+
+
+}
