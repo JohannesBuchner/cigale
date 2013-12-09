@@ -92,7 +92,7 @@ class Module(common.SEDCreationModule):
             )
 
             sed.add_contribution(
-                'dale2014_quasar' + self.postfix,
+                'dale2014_quasar_' + attenuation + self.postfix,
                 self.model_quasar.wave,
                 frac_agn * sed.info[attenuation] * self.model_quasar.lumin
             )
