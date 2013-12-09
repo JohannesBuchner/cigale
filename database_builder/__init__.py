@@ -2,6 +2,8 @@
 # Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
+# Author: Médéric Boquien <mederic.boquien@oamp.fr>
+# Author: Laure Ciesla <ciesla@physics.uoc.gr>
 
 """
 This script is used the build pcigale internal database containing:
@@ -20,7 +22,7 @@ import numpy as np
 from scipy import interpolate
 import scipy.constants as cst
 from pcigale.data import (Database, Filter, SspM2005, SspBC03, AgnFritz2006,
-                          DALE2014, DL2007)
+                          Dale2014, DL2007)
 
 
 def read_bc03_ssp(filename):
@@ -361,7 +363,7 @@ def build_dale2014(base):
         norm = np.trapz(lumin, x = wave)
         lumin = lumin/norm
 
-        base.add_dale2014(DALE2014(fraction, alpha_grid[al-1], wave, lumin))
+        base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave, lumin))
 
     # Emission from dust heated by AGN - Quasar template
     fraction = 1.0
@@ -378,7 +380,7 @@ def build_dale2014(base):
         norm = np.trapz(lumin_quasar, x = wave)
         lumin_quasar = lumin_quasar/norm
 
-        base.add_dale2014(DALE2014(fraction, alpha_grid[al-1], wave, lumin_quasar))
+        base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave, lumin_quasar))
 
 
 def build_dl2007(base):

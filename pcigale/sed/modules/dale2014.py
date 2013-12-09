@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly <yannick.roehlly@oamp.fr>, Laure Ciesla <ciesla@physics.uoc.gr>
+# Author: Laure Ciesla <ciesla@physics.uoc.gr>
 
 from . import common
 from collections import OrderedDict
-import numpy as np
 from pcigale.data import Database
 
 
@@ -53,8 +52,10 @@ class Module(common.SEDCreationModule):
     def _init_code(self):
         """
         Get the models out of the database
-        model_sb corresponds to an AGN fraction of 0%: only the dust heated by star formation
-        model_quasar corresponds to an AGN fraction of 100%: only the SED of the quasar
+        model_sb corresponds to an AGN fraction of 0%: only the dust heated by
+        star formation
+        model_quasar corresponds to an AGN fraction of 100%: only the SED of
+        the quasar
         The energy attenuated is re-injected in model_sb only.
         """
         alpha = self.parameters["alpha"]
@@ -77,24 +78,21 @@ class Module(common.SEDCreationModule):
             item.strip() for item in
             self.parameters["attenuation_value_keys"].split("&")]
 
-        fracAGN = self.parameters["fracAGN"]
+        frac_agn = self.parameters["fracAGN"]
 
-        # Base name for adding information to the SED.
-        name = self.name or 'dale2014'
-
-        sed.add_module(name, self.parameters)
+        sed.add_module(self.name, self.parameters)
         sed.add_info("fracAGN" + self.postfix, self.parameters["fracAGN"])
         sed.add_info("alpha" + self.postfix, self.parameters["alpha"])
 
         for attenuation in attenuation_value_keys:
             sed.add_contribution(
-                name + '_sb_' + attenuation,
+                'dale2014_sb_' + attenuation + self.postfix,
                 self.model_sb.wave,
                 sed.info[attenuation] * self.model_sb.lumin
             )
 
             sed.add_contribution(
-                name + '_quasar',
+                'dale2014_quasar' + self.postfix,
                 self.model_quasar.wave,
-                fracAGN * sed.info[attenuation] * self.model_quasar.lumin
+                frac_agn * sed.info[attenuation] * self.model_quasar.lumin
             )

@@ -24,7 +24,7 @@ from .filters import Filter
 from .ssp_m2005 import SspM2005
 from .ssp_bc03 import SspBC03
 from .ir_templates_dh2002 import IrTemplatesDH2002
-from .ir_agn_templates_dale2014 import DALE2014
+from .ir_agn_templates_dale2014 import Dale2014
 from .ir_models_dl2007 import DL2007
 from .agn_fritz2006 import AgnFritz2006
 
@@ -119,7 +119,8 @@ class _DH2002InfraredTemplates(BASE):
         self.description = description
         self.data = data
 
-class _DALE2014(BASE):
+
+class _Dale2014(BASE):
     """Storage for Dale et al (2014) infra-red templates
     """
 
@@ -134,6 +135,7 @@ class _DALE2014(BASE):
         self.alpha = iragn.alpha
         self.wave = iragn.wave
         self.lumin = iragn.lumin
+
 
 class _DL2007(BASE):
     """Storage for Draine and Li (2007) IR models
@@ -304,26 +306,26 @@ class Database(object):
                 raise StandardError('The template is already in the base.')
         else:
             raise StandardError('The database is not writable.')
-            
-        
+
     def add_dale2014(self, iragn):
         """
         Add Dale et al (2014) templates the collection.
 
         Parameters
         ----------
-        iragn : pcigale.data.DALE2014
+        iragn : pcigale.data.Dale2014
 
         """
 
         if self.is_writable:
-            template = _DALE2014(iragn)
+            template = _Dale2014(iragn)
             self.session.add(template)
             try:
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The DALE2014 template is already in the base.')
+                raise StandardError(
+                    'The Dale2014 template is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -469,26 +471,27 @@ class Database(object):
         else:
             return None
 
-    def get_dale2014(self, fracAGN, alpha):
+    def get_dale2014(self, frac_agn, alpha):
         """
         Get the Dale et al (2014) template corresponding to the given set of
         parameters.
 
         Parameters
         ----------
-        fracAGN: float
+        frac_agn: float
             contribution of the AGN to the IR luminosity
         alpha: float
-            alpha corresponding to the updated Dale & Helou (2002) star forming template.
+            alpha corresponding to the updated Dale & Helou (2002) star
+            forming template.
 
         """
-        result = (self.session.query(_DALE2014).
-                  filter(_DALE2014.fracAGN == fracAGN).
-                  filter(_DALE2014.alpha == alpha).
+        result = (self.session.query(_Dale2014).
+                  filter(_Dale2014.fracAGN == frac_agn).
+                  filter(_Dale2014.alpha == alpha).
                   first())
         if result:
-            return DALE2014(result.fracAGN, result.alpha, result.wave,
-                          result.lumin)
+            return Dale2014(result.fracAGN, result.alpha, result.wave,
+                            result.lumin)
         else:
             return None
 
