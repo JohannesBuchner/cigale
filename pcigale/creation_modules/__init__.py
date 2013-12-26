@@ -70,7 +70,7 @@ def complete_parameters(given_parameters, parameter_list):
     return result
 
 
-class SEDCreationModule(object):
+class CreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 

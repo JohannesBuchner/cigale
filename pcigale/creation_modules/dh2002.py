@@ -4,11 +4,11 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 from collections import OrderedDict
-from . import SEDCreationModule
+from . import CreationModule
 from ..data import Database
 
 
-class Module(SEDCreationModule):
+class Module(CreationModule):
     """
     Module computing the infra-red re-emission corresponding to an amount of
     attenuation using the Dale and Helou (2002) templates.

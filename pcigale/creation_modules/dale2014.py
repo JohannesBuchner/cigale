@@ -5,10 +5,10 @@
 
 from collections import OrderedDict
 from pcigale.data import Database
-from . import SEDCreationModule
+from . import CreationModule
 
 
-class Module(SEDCreationModule):
+class Module(CreationModule):
     """
     Module computing the infra-red re-emission corresponding to an amount of
     attenuation using the Dale et al (2014) models.

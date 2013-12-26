@@ -5,12 +5,12 @@
 
 import numpy as np
 from collections import OrderedDict
-from . import SEDCreationModule
+from . import CreationModule
 from ..sed import utils
 from ..extern.lsst import Sed as lsst
 
 
-class Module(SEDCreationModule):
+class Module(CreationModule):
     """Redshift a SED and add IGM attenuation
 
     This module adds both the effect of redshift and inter-galactic medium
