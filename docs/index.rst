@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    usage/index
-   sed_modules/index
+   creation_modules/index
    stat_modules/index
    database/index
    programmer/index

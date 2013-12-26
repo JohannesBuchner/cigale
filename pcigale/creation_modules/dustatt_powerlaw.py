@@ -12,7 +12,7 @@ in Charlot and Fall (2000) with a UV bump added.
 import numpy as np
 from collections import OrderedDict
 from . import common
-from ...data import Database
+from ..data import Database
 
 
 def power_law(wavelength, delta):

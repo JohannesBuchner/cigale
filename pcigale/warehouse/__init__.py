@@ -5,7 +5,7 @@
 
 from json import JSONEncoder
 from ..sed import SED
-from ..sed.modules import common as sed_modules
+from ..creation_modules import common as creation_modules
 
 
 class SedWarehouse(object):
@@ -45,7 +45,7 @@ class SedWarehouse(object):
 
         Returns
         -------
-        a pcigale.sed.modules.Module instance
+        a pcigale.creation_modules.Module instance
 
         """
         # JSon representation of the tuple (name, parameters) used as a key
@@ -56,7 +56,7 @@ class SedWarehouse(object):
         if module_key in self.module_cache:
             module = self.module_cache[module_key]
         else:
-            module = sed_modules.get_module(name, **kwargs)
+            module = creation_modules.get_module(name, **kwargs)
             self.module_cache[module_key] = module
 
         return module

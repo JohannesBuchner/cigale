@@ -181,13 +181,13 @@ def get_module(name, **kwargs):
 
     Returns
     -------
-    a pcigale.sed.modules.Module instance
+    a pcigale.creation_modules.Module instance
     """
     # Determine the real module name by removing the dotted prefix.
     module_name = name.split('.')[0]
 
     try:
-        module = import_module("." + module_name, 'pcigale.sed.modules')
+        module = import_module("." + module_name, 'pcigale.creation_modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
         print('Module ' + module_name + ' does not exists!')

@@ -6,8 +6,8 @@
 import numpy as np
 from collections import OrderedDict
 from . import common
-from .. import utils
-from ...extern.lsst import Sed as lsst
+from ..sed import utils
+from ..extern.lsst import Sed as lsst
 
 
 class Module(common.SEDCreationModule):

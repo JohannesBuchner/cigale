@@ -49,8 +49,8 @@ class Module(common.AnalysisModule):
         ))
     ])
 
-    def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, redshift_module,
+    def process(self, data_file, column_list, creation_modules,
+                creation_modules_params, redshift_module,
                 redshift_configuration, parameters):
         """Process with the savedfluxes analysis.
 
@@ -64,10 +64,10 @@ class Module(common.AnalysisModule):
             Name of the file containing the observations to fit.
         column_list: list of strings
             Name of the columns from the data file to use for the analysis.
-        sed_modules: list of strings
+        creation_modules: list of strings
             List of the module names (in the right order) to use for creating
             the SEDs.
-        sed_modules_params: list of dictionaries
+        creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
         redshift_module_name : string
             Name of the module used to redshift the SED.
@@ -99,7 +99,8 @@ class Module(common.AnalysisModule):
 
         # Columns of the output table
         out_columns = []
-        for module_param_list in zip(sed_modules, sed_modules_params[0]):
+        for module_param_list in zip(creation_modules,
+                                     creation_modules_params[0]):
             for module_param in product([module_param_list[0]],
                                         module_param_list[1].keys()):
                 out_columns.append(".".join(module_param))
@@ -113,9 +114,9 @@ class Module(common.AnalysisModule):
             cache_type=parameters["storage_type"])
 
         # We loop over all the possible theoretical SEDs
-        progress_bar = ProgressBar(maxval=len(sed_modules_params)).start()
-        for model_index, parameters in enumerate(sed_modules_params):
-            sed = sed_warehouse.get_sed(sed_modules, parameters)
+        progress_bar = ProgressBar(maxval=len(creation_modules_params)).start()
+        for model_index, parameters in enumerate(creation_modules_params):
+            sed = sed_warehouse.get_sed(creation_modules, parameters)
 
             row = []
 

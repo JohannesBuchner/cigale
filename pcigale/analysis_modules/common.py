@@ -28,8 +28,8 @@ class AnalysisModule(object):
         # module parameter.
         self.parameters = kwargs
 
-    def _process(self, data_file, column_list, sed_modules,
-                 sed_modules_params, redshift_module,
+    def _process(self, data_file, column_list, creation_modules,
+                 creation_modules_params, redshift_module,
                  redshift_configuration, parameters):
         """Do the actual analysis
 
@@ -42,13 +42,13 @@ class AnalysisModule(object):
             Name of the file containing the observations to be fitted.
         column_list : array of strings
             Names of the columns from the data file to use in the analysis.
-        sed_modules : array of strings
+        creation_modules : array of strings
             Names (in the right order) of the modules to use to build the SED.
-        sed_modules_params : array of array of dictionaries
+        creation_modules_params : array of array of dictionaries
             Array containing all the possible combinations of configurations
-            for the sed_modules. Each 'inner' array has the same length as the
-            sed_modules array and contains the configuration dictionary for
-            the corresponding module.
+            for the creation_modules. Each 'inner' array has the same length as
+            the creation_modules array and contains the configuration dictionary
+            for the corresponding module.
         redshift_module : string
             Name of the module used to redshift the SED.
         redshift_configuration : dictionary
@@ -63,8 +63,8 @@ class AnalysisModule(object):
         """
         raise NotImplementedError()
 
-    def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, redshift_module,
+    def process(self, data_file, column_list, creation_modules,
+                creation_modules_params, redshift_module,
                 redshift_configuration, parameters):
         """Process with the analysis
 
@@ -79,13 +79,13 @@ class AnalysisModule(object):
             Name of the file containing the observations to be fitted.
         column_list : array of strings
             Names of the columns from the data file to use in the analysis.
-        sed_modules : array of strings
+        creation_modules : array of strings
             Names (in the right order) of the modules to use to build the SED.
-        sed_modules_params : array of array of dictionaries
+        creation_modules_params : array of array of dictionaries
             Array containing all the possible combinations of configurations
-            for the sed_modules. Each 'inner' array has the same length as the
-            sed_modules array and contains the configuration dictionary for
-            the corresponding module.
+            for the creation_modules. Each 'inner' array has the same length as
+            the creation_modules array and contains the configuration
+            dictionary for the corresponding module.
         redshift_module : string
             Name of the module used to redshift the SED.
         redshift_configuration : dictionary
@@ -132,8 +132,8 @@ class AnalysisModule(object):
                            "expected one." + message)
 
         #We do the actual processing
-        self._process(data_file, column_list, sed_modules,
-                      sed_modules_params, redshift_module,
+        self._process(data_file, column_list, creation_modules,
+                      creation_modules_params, redshift_module,
                       redshift_configuration, parameters)
 
 

@@ -6,7 +6,7 @@
 import numpy as np
 from collections import OrderedDict
 from . import common
-from ...data import Database
+from ..data import Database
 
 
 class Module(common.SEDCreationModule):

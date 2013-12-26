@@ -30,7 +30,7 @@ from progressbar import ProgressBar
 from matplotlib import pyplot as plt
 from . import common
 from ..warehouse import SedWarehouse
-from ..sed.modules.common import get_module
+from ..creation_modules.common import get_module
 from ..data import Database
 
 
@@ -102,8 +102,8 @@ class Module(common.AnalysisModule):
         ))
     ])
 
-    def process(self, data_file, column_list, sed_modules,
-                sed_modules_params, redshift_module_name,
+    def process(self, data_file, column_list, creation_modules,
+                creation_modules_params, redshift_module_name,
                 redshift_configuration, parameters):
         """Process with the psum analysis.
 
@@ -117,10 +117,10 @@ class Module(common.AnalysisModule):
             Name of the file containing the observations to fit.
         column_list: list of strings
             Name of the columns from the data file to use for the analysis.
-        sed_modules: list of strings
+        creation_modules: list of strings
             List of the module names (in the right order) to use for creating
             the SEDs.
-        sed_modules_params: list of dictionaries
+        creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
         redshift_module_name : string
             Name of the module used to redshift the SED.
@@ -163,7 +163,8 @@ class Module(common.AnalysisModule):
         # observation. This table contains the parameters of the SED as well as
         # the value for the analysed variables.
         out_bestsed_columns = ["id"]
-        for module_param_list in zip(sed_modules, sed_modules_params[0]):
+        for module_param_list in zip(creation_modules,
+                                     creation_modules_params[0]):
             for module_param in product([module_param_list[0]],
                                         module_param_list[1].keys()):
                 out_bestsed_columns.append(".".join(module_param))
@@ -211,15 +212,15 @@ class Module(common.AnalysisModule):
         # data table row index) and axis 3 is the considered variable (based
         # on the analysed variables list + reduced_chi2, probability and
         # galaxy_mass at the beginning).
-        comp_table = np.zeros((len(sed_modules_params),
+        comp_table = np.zeros((len(creation_modules_params),
                                obs_table.data.shape[0],
                                len(analysed_variables) + 3), dtype=float)
         comp_table[:, :, :] = np.nan
 
         # We loop over all the possible theoretical SEDs
-        progress_bar = ProgressBar(maxval=len(sed_modules_params)).start()
-        for model_index, parameters in enumerate(sed_modules_params):
-            sed = sed_warehouse.get_sed(sed_modules, parameters)
+        progress_bar = ProgressBar(maxval=len(creation_modules_params)).start()
+        for model_index, parameters in enumerate(creation_modules_params):
+            sed = sed_warehouse.get_sed(creation_modules, parameters)
 
             # Compute the reduced Chi-square, the galaxy mass (normalisation
             # factor) and probability for each observed SEDs. Add these and
@@ -281,8 +282,8 @@ class Module(common.AnalysisModule):
             best_index = comp_table[:, obs_index, 0].argmin()
             best_chi2 = comp_table[best_index, obs_index, 0]
             best_norm_factor = comp_table[best_index, obs_index, 2]
-            best_params = sed_modules_params[best_index]
-            best_sed = sed_warehouse.get_sed(sed_modules, best_params)
+            best_params = creation_modules_params[best_index]
+            best_sed = sed_warehouse.get_sed(creation_modules, best_params)
             # We need to pass the SED through the redshit/IGM module before
             # plotting it.
             obs_redshift = obs_table['redshift'][obs_index]
@@ -319,7 +320,7 @@ class Module(common.AnalysisModule):
                                      verbose=False)
                 # Write the SED modules parameters to a file
                 with open(OUT_DIR + obs_name + "bestSED.params", "w") as f:
-                    f.write(json.dumps(zip(sed_modules, best_params),
+                    f.write(json.dumps(zip(creation_modules, best_params),
                                        indent=2,
                                        separators=(',', ': ')))
 

@@ -30,23 +30,23 @@ def check(config):
     # TODO : Check if all the parameters that don't have default values are
     # given for each module.
     print ("With this configuration, pcigale must compute {} "
-           "SEDs.".format(len(config.sed_modules_conf_array)))
+           "SEDs.".format(len(config.creation_modules_conf_array)))
 
 
 def run(config):
     "Run the analysis."
     data_file = config.configuration['data_file']
     column_list = config.configuration['column_list']
-    sed_modules = config.configuration['sed_modules']
-    sed_modules_params = config.sed_modules_conf_array
+    creation_modules = config.configuration['creation_modules']
+    creation_modules_params = config.creation_modules_conf_array
     redshift_module = config.configuration['redshift_module']
     redshift_configuration = config.configuration['redshift_configuration']
     analysis_module = get_analysis_module(config.configuration[
         'analysis_method'])
     analysis_module_params = config.configuration['analysis_method_params']
 
-    analysis_module.process(data_file, column_list, sed_modules,
-                            sed_modules_params, redshift_module,
+    analysis_module.process(data_file, column_list, creation_modules,
+                            creation_modules_params, redshift_module,
                             redshift_configuration, analysis_module_params)
 
 

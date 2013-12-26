@@ -13,7 +13,7 @@ import numpy as np
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
-from ..sed.modules import common as modules
+from ..creation_modules import common as modules
 from ..analysis_modules import common as analysis
 
 
@@ -23,7 +23,7 @@ def list_modules(package_name):
     Parameters
     ----------
     package_name : string
-        Name of the package (e.g. pcigale.sed.modules).
+        Name of the package (e.g. pcigale.creation_modules).
 
     Returns
     -------
@@ -124,10 +124,10 @@ class Configuration(object):
             "error columns are suffixed with '_err'. The values must be "
             "in mJy.")
 
-        self.config['sed_modules'] = []
-        self.config.comments['sed_modules'] = [""] + wrap(
+        self.config['creation_modules'] = []
+        self.config.comments['creation_modules'] = [""] + wrap(
             "Order of the modules use for SED creation. Available modules : "
-            + ', '.join(list_modules('pcigale.sed.modules')) + ".")
+            + ', '.join(list_modules('pcigale.creation_modules')) + ".")
 
         self.config['redshift_module'] = ""
         self.config.comments['redshift_module'] = [""] + wrap(
@@ -182,7 +182,7 @@ class Configuration(object):
         self.config.comments['sed_creation_modules'] = ["", ""] + wrap(
             "Configuration of the SED creation modules.")
 
-        for module_name in self.config['sed_modules']:
+        for module_name in self.config['creation_modules']:
             self.config["sed_creation_modules"][module_name] = {}
             sub_config = self.config["sed_creation_modules"][module_name]
 
@@ -236,9 +236,9 @@ class Configuration(object):
             File containing the observations to fit.
         configuration['column_list'] : list of strings
             List of the columns of data_file to use in the fitting.
-        configuration['sed_modules'] : list of strings
+        configuration['creation_modules'] : list of strings
             List of the modules (in the right order) used to create the SEDs.
-        configuration['sed_modules_params'] : list of dictionaries
+        configuration['creation_modules_params'] : list of dictionaries
             Configuration parameters for each module. To each parameter, the
             dictionary associates a list of possible values (possibly only
             one).
@@ -253,18 +253,18 @@ class Configuration(object):
         """
         configuration = {}
 
-        for section in ['data_file', 'column_list', 'sed_modules',
+        for section in ['data_file', 'column_list', 'creation_modules',
                         'redshift_module', 'analysis_method']:
             configuration[section] = self.config[section]
 
         # Parsing the SED modules parameters
-        configuration['sed_modules_params'] = []
-        for module in self.config['sed_modules']:
+        configuration['creation_modules_params'] = []
+        for module in self.config['creation_modules']:
             module_params = {}
             for key, value in \
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
-            configuration['sed_modules_params'].append(module_params)
+            configuration['creation_modules_params'].append(module_params)
         # We don't need to "evaluate" the configuration values for the
         # redshit and analysis modules as we don't expect multiple values here.
         configuration['redshift_configuration'] = \
@@ -275,7 +275,7 @@ class Configuration(object):
         return configuration
 
     @property
-    def sed_modules_conf_array(self):
+    def creation_modules_conf_array(self):
         """Return the array of all the possible parameter sets from the
         SED creation modules.
 
@@ -287,7 +287,7 @@ class Configuration(object):
         -------
         result : array of arrays of dictionaries
             The inner arrays contains the various parameter dictionaries
-            for the modules listed in configuration['sed_modules'].
+            for the modules listed in configuration['creation_modules'].
 
         """
 
@@ -296,7 +296,7 @@ class Configuration(object):
         # containing one value for each parameter. We put this list in a list
         # corresponding to the SED modules one.
         tmp_list = [param_dict_combine(dictionary) for dictionary in
-                    self.configuration['sed_modules_params']]
+                    self.configuration['creation_modules_params']]
 
         # The we use itertools to create an array of all possible
         # combinations.

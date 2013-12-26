@@ -25,7 +25,7 @@ directory with that content:
   # Order of the modules use for SED creation. Available modules : bc03,
   # dh2002, dl2007, dustatt_calzleit, dustatt_powerlaw, igmattenuation,
   # lines, loadfile, m2005, sfh2exp, sfhfromfile.
-  sed_modules = ,
+  creation_modules = ,
 
   # Module used to redshift the SED before the integration in the filters.
   # This is a SED creation module that accepts a 'redshift' parameter (see
@@ -45,7 +45,7 @@ You need to edit this file to complete:
   in the pcigale database. When a column is the error associated with a
   filter, its name must prefix the filter name with *_err*.
 
-* *sed_modules* is the list of pcigale SED creation modules, **in the right
+* *creation_modules* is the list of pcigale SED creation modules, **in the right
   order**, that will be used to create the theoretical SED (see the various
   module documentations). The comments above the entry list the available
   modules.
@@ -69,7 +69,7 @@ Here is a sample completed minimal configuration file:
   # Order of the modules use for SED creation. Available modules : bc03,
   # dh2002, dl2007, dustatt_calzleit, dustatt_powerlaw, igmattenuation,
   # lines, loadfile, m2005, sfh2exp, sfhfromfile.
-  sed_modules = sfh2exp, m2005, dustatt_calzleit, dh2002
+  creation_modules = sfh2exp, m2005, dustatt_calzleit, dh2002
 
   # Module used to redshift the SED before the integration in the filters.
   # This is a SED creation module that accepts a 'redshift' parameter (see
@@ -97,7 +97,7 @@ will become something like this:
    # Order of the modules use for SED creation. Available modules : bc03,
    # dh2002, dl2007, dustatt_calzleit, dustatt_powerlaw, igmattenuation,
    # lines, loadfile, m2005, sfh2exp, sfhfromfile.
-   sed_modules = sfh2exp, m2005, dustatt_calzleit, dh2002
+   creation_modules = sfh2exp, m2005, dustatt_calzleit, dh2002
 
    # Module used to redshift the SED before the integration in the filters.
    # This is a SED creation module that accepts a 'redshift' parameter (see
@@ -216,7 +216,7 @@ if you want to use some filters but not the error, delete the error column
 names.
 
 To each module is associated a set of parameters (see
-:doc:`/sed_modules/index`). You may give a list of possible values for each
+:doc:`/creation_modules/index`). You may give a list of possible values for each
 one, separated by commas. pcigale will compute all the possible combination of
 parameter values and create the corresponding SED that will be compared to
 your observations.
