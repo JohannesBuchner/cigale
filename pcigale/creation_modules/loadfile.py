@@ -5,10 +5,10 @@
 
 import atpy
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Module reading a spectrum from a file and adding it to the SED.
 
     Note that this module uses the atpy module, which is not automatically

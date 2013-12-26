@@ -3,12 +3,12 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Laure Ciesla <ciesla@physics.uoc.gr>
 
-from . import common
 from collections import OrderedDict
 from pcigale.data import Database
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """
     Module computing the infra-red re-emission corresponding to an amount of
     attenuation using the Dale et al (2014) models.

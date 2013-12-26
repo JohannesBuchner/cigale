@@ -13,8 +13,8 @@ import numpy as np
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
-from ..creation_modules import common as modules
-from ..analysis_modules import common as analysis
+from .. import creation_modules
+from .. import analysis_modules
 
 
 def list_modules(package_name):
@@ -33,8 +33,6 @@ def list_modules(package_name):
     """
     directory = pkg_resources.resource_filename(package_name, '')
     module_names = [name for _, name, _ in pkgutil.iter_modules([directory])]
-    if 'common' in module_names:
-        module_names.remove('common')
 
     return module_names
 
@@ -187,15 +185,16 @@ class Configuration(object):
             sub_config = self.config["sed_creation_modules"][module_name]
 
             for name, (typ, description, default) in \
-                    modules.get_module(module_name,
-                                       blank=True).parameter_list.items():
+                    creation_modules.get_module(
+                        module_name,
+                        blank=True).parameter_list.items():
                 if default is None:
                     default = ''
                 sub_config[name] = default
                 sub_config.comments[name] = wrap(description)
 
             self.config['sed_creation_modules'].comments[module_name] = [
-                modules.get_module(module_name, blank=True).comments]
+                creation_modules.get_module(module_name, blank=True).comments]
 
         # Configuration for the redshift module
         self.config['redshift_configuration'] = {}
@@ -205,8 +204,9 @@ class Configuration(object):
             "each.")
         module_name = self.config['redshift_module']
         for name, (typ, desc, default) in \
-                modules.get_module(module_name,
-                                   blank=True).parameter_list.items():
+                creation_modules.get_module(
+                    module_name,
+                    blank=True).parameter_list.items():
             if default is None:
                 default = ''
             self.config['redshift_configuration'][name] = default
@@ -218,7 +218,7 @@ class Configuration(object):
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
         for name, (typ, desc, default) in \
-                analysis.get_module(module_name).parameter_list.items():
+                analysis_modules.get_module(module_name).parameter_list.items():
             if default is None:
                 default = ''
             self.config['analysis_configuration'][name] = default

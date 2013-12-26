@@ -3,13 +3,13 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
-from . import common
 from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """
     Module computing the infra-red re-emission corresponding to an amount of
     attenuation using the Draine and Li (2007) models.

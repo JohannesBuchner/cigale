@@ -5,11 +5,11 @@
 
 import numpy as np
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 from ..data import Database
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Module computing the Star Formation History contribution based on the
     Maraston (2005) models.
 

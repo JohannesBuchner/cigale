@@ -6,10 +6,10 @@
 import numpy as np
 from collections import OrderedDict
 from scipy.constants import c
-from . import common
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
 
     parameter_list = OrderedDict([
         ("Nly_key", (

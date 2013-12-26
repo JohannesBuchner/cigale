@@ -5,14 +5,14 @@
 
 import numpy as np
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
 # time lapse in the SSP modules.
 AGE_LAPSE = 1
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Create a double decreasing exponential Star Formation History
 
     This module create a star formation history (star formation rate vs galaxy

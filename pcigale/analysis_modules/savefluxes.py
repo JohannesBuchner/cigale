@@ -18,12 +18,12 @@ from collections import OrderedDict
 from datetime import datetime
 from astropy.table import Table
 from progressbar import ProgressBar
-from . import common
+from . import AnalysisModule
 from ..warehouse import SedWarehouse
 from ..data import Database
 
 
-class Module(common.AnalysisModule):
+class Module(AnalysisModule):
     """
     This module saves a table containing all the parameters and desired fluxes
     for all the computed models.

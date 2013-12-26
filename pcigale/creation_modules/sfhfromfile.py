@@ -6,10 +6,10 @@
 import atpy
 import numpy as np
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Module reading the SFH from a file
 
     This module is used to read the Star Formation Histories from a FITS or

@@ -5,7 +5,7 @@
 
 from json import JSONEncoder
 from ..sed import SED
-from ..creation_modules import common as creation_modules
+from .. import creation_modules
 
 
 class SedWarehouse(object):

@@ -6,10 +6,10 @@
 import numpy as np
 import scipy.constants as cst
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """
     Module computing the infra-red re-emission corresponding to an amount of
     attenuation using the Casey (2012) model.

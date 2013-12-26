@@ -5,7 +5,7 @@
 
 import numpy as np
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 from ..data import Database
 
 
@@ -159,7 +159,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     return attenuation
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Add CCM dust attenuation based on the Calzetti formula
 
     If a contribution name is given in the parameter list, the attenuation

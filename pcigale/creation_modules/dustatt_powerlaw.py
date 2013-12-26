@@ -11,7 +11,7 @@ in Charlot and Fall (2000) with a UV bump added.
 
 import numpy as np
 from collections import OrderedDict
-from . import common
+from . import SEDCreationModule
 from ..data import Database
 
 
@@ -91,7 +91,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     return attenuation
 
 
-class Module(common.SEDCreationModule):
+class Module(SEDCreationModule):
     """Add CCM dust attenuation based on Charlot and Fall (2000) power law.
     """
 

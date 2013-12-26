@@ -28,9 +28,9 @@ from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
-from . import common
+from . import AnalysisModule
 from ..warehouse import SedWarehouse
-from ..creation_modules.common import get_module
+from ..creation_modules import get_module
 from ..data import Database
 
 
@@ -45,7 +45,7 @@ PLOT_L_MIN = 91
 PLOT_L_MAX = 1e6
 
 
-class Module(common.AnalysisModule):
+class Module(AnalysisModule):
     """psum analysis
 
     TODO: Description of the PSUM method.

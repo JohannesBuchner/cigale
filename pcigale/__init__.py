@@ -7,7 +7,7 @@ __version__ = "0.1-alpha"
 
 import argparse
 from .session.configuration import Configuration
-from .analysis_modules.common import get_module as get_analysis_module
+from .analysis_modules import get_module as get_analysis_module
 
 
 def init(config):
