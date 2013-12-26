@@ -3,6 +3,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Read spectrum from file module
+==============================
+
+This module reads a SED spectrum from a file.
+
+"""
+
 import atpy
 from collections import OrderedDict
 from . import CreationModule

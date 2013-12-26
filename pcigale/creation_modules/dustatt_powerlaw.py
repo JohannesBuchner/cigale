@@ -4,7 +4,10 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
-This module implements the attenuation base on a power law as defined
+Charlot and Fall (2000) power law attenuation module
+====================================================
+
+This module implements the attenuation based on a power law as defined
 in Charlot and Fall (2000) with a UV bump added.
 
 """
@@ -92,7 +95,14 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
 
 
 class Module(CreationModule):
-    """Add CCM dust attenuation based on Charlot and Fall (2000) power law.
+    """Power law attenuation module
+
+    This module computes the Cardelli, Clayton and Mathis attenuation using
+    a power law as defined in Charlot and Fall (2000).
+
+    The attenuation can be computed on the whole spectrum or on a specific
+    contribution and is added to the SED as a negative contribution.
+
     """
 
     parameter_list = OrderedDict([

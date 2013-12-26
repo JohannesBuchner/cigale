@@ -3,6 +3,16 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Redshift and IGM attenuation module
+===================================
+
+This module implements the effect of redshift and the attenuation caused by the
+inter-galactic medium. It uses code developed for the Large Synoptic Survey
+Telescope. http://dev.lsstcorp.org/trac/
+
+"""
+
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -14,8 +24,7 @@ class Module(CreationModule):
     """Redshift a SED and add IGM attenuation
 
     This module adds both the effect of redshift and inter-galactic medium
-    (IGM) attenuation to a SED object. It is based on the code from the Large
-    Synoptic Survey Telescope. http://dev.lsstcorp.org/trac/
+    (IGM) attenuation to a SED object.
 
     """
 

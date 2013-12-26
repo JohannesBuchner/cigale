@@ -3,6 +3,15 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Bruzual and Charlot (2003) stellar emission module
+==================================================
+
+This module implements the Bruzual and Charlot (2003) Single Stellar
+Populations.
+
+"""
+
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -10,8 +19,11 @@ from ..data import Database
 
 
 class Module(CreationModule):
-    """Module computing the Star Formation History contribution bases on the
-    Bruzual and Charlot (2003) models.
+    """Bruzual and Charlot (2003) stellar emission module
+
+    This SED creation module convolves the SED star formation history with a
+    Bruzual and Charlot (2003) single stellar population to add a stellar
+    component to the SED.
     """
 
     parameter_list = OrderedDict([

@@ -3,6 +3,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Maraston (2005) stellar emission module
+=======================================
+
+This module implements the Maraston (2005) Single Stellar Populations.
+
+"""
+
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -10,11 +18,11 @@ from ..data import Database
 
 
 class Module(CreationModule):
-    """Module computing the Star Formation History contribution based on the
-    Maraston (2005) models.
+    """Maraston (2005) stellar emission module
 
-    Implements the population synthesis based on the SSP described in Maraston,
-    2005, MNRAS, 362, 799.
+    This SED creation module convolves the SED star formation history with
+    a Maraston (2005) single stellar population to add a stellar component to
+    the SED.
 
     Information added to the SED:
         - imf, metallicity, galaxy_age

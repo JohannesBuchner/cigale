@@ -4,6 +4,9 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
+CIGALE psum analysis module
+===========================
+
 This file implements the statistical analysis as performed by the calcX2_psum
 programme of the Fortran Cigale code.
 
@@ -46,10 +49,7 @@ PLOT_L_MAX = 1e6
 
 
 class Module(AnalysisModule):
-    """psum analysis
-
-    TODO: Description of the PSUM method.
-    """
+    """psum analysis"""
 
     parameter_list = OrderedDict([
         ("analysed_variables", (

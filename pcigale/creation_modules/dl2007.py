@@ -3,6 +3,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
+"""
+Draine and Li (2007) IR models module
+=====================================
+
+This module implements the Draine and Li (2007) infra-red models.
+
+"""
+
 from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
@@ -10,9 +18,7 @@ from . import CreationModule
 
 
 class Module(CreationModule):
-    """
-    Module computing the infra-red re-emission corresponding to an amount of
-    attenuation using the Draine and Li (2007) models.
+    """Draine and Li (2007) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
     attenuation module) this module normalises the Draine and Li (2007)

@@ -3,6 +3,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Médéric Boquien <mederic.boquien@oamp.fr>
 
+"""
+Casey (2012) IR models module
+=============================
+
+This module implements the Casey (2012) infra-red models.
+
+"""
+
 import numpy as np
 import scipy.constants as cst
 from collections import OrderedDict
@@ -10,9 +18,7 @@ from . import CreationModule
 
 
 class Module(CreationModule):
-    """
-    Module computing the infra-red re-emission corresponding to an amount of
-    attenuation using the Casey (2012) model.
+    """Casey (2012) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
     attenuation module) this module normalises the Casey (2012) template

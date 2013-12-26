@@ -3,6 +3,15 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Calzetti et al. (2000) and Leitherer et al. (2002) attenuation module
+=====================================================================
+
+This module implements the Calzetti et al. (2000) and  Leitherer et al. (2002)
+attenuation formulae, adding an UV-bump and a power law.
+
+"""
+
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -160,11 +169,13 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
 
 
 class Module(CreationModule):
-    """Add CCM dust attenuation based on the Calzetti formula
+    """Calzetti + Leitherer attenuation module
 
-    If a contribution name is given in the parameter list, the attenuation
-    will be applied only to the flux of this contribution; else, it will be
-    applied to the whole spectrum.
+    This module computes the Cardelli, Clayton and Mathis attenuation using the
+    formulae from Calzetti et al. (2000) and Leitherer et al. (2002).
+
+    The attenuation can be computed on the whole spectrum or on a specific
+    contribution and is added to the SED as a negative contribution.
 
     """
 

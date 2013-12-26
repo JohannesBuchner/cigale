@@ -3,15 +3,21 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Dale and Helou (2002) IR models module
+======================================
+
+This module implements the Dale and Helou (2002) infra-red models.
+
+"""
+
 from collections import OrderedDict
 from . import CreationModule
 from ..data import Database
 
 
 class Module(CreationModule):
-    """
-    Module computing the infra-red re-emission corresponding to an amount of
-    attenuation using the Dale and Helou (2002) templates.
+    """Dale and Helou (2002) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
     attenuation module) this module normalises the Dale and Helou (2002)

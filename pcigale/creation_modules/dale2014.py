@@ -3,15 +3,21 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Laure Ciesla <ciesla@physics.uoc.gr>
 
+"""
+Dale et al. (2014) IR models module
+===================================
+
+This module implements the Dale (2014) infra-red models.
+
+"""
+
 from collections import OrderedDict
 from pcigale.data import Database
 from . import CreationModule
 
 
 class Module(CreationModule):
-    """
-    Module computing the infra-red re-emission corresponding to an amount of
-    attenuation using the Dale et al (2014) models.
+    """Dale et al. (2014) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
     attenuation module) this module normalises the Dale et al (2014)

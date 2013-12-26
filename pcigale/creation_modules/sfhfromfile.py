@@ -3,6 +3,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Read star formation history from file module
+============================================
+
+This module reads the star formation history in a file.
+
+"""
+
 import atpy
 import numpy as np
 from collections import OrderedDict

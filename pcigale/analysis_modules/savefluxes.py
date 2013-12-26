@@ -4,9 +4,12 @@
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
 """
-This module was developed to use pcigale (in fact the *pcigale* script) to
-generate a table with the fluxes of all the generated SED in a given set of
-filters, without doing any statistical analysis.
+Save fluxes analysis module
+===========================
+
+This module does not perform a statistical analysis. It computes and save the
+fluxes in a set of filters for all the possible combinations of input SED
+parameters.
 
 The data file is used only to get the list of fluxes to be computed.
 
@@ -24,7 +27,8 @@ from ..data import Database
 
 
 class Module(AnalysisModule):
-    """
+    """Save fluxes analysis module
+
     This module saves a table containing all the parameters and desired fluxes
     for all the computed models.
 

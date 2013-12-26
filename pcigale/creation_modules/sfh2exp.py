@@ -3,6 +3,15 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly <yannick.roehlly@oamp.fr>
 
+"""
+Double decreasing exponential star formation history module
+===========================================================
+
+This module implements a star formation history (SFH) composed of two
+decreasing exponentials.
+
+"""
+
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -13,11 +22,10 @@ AGE_LAPSE = 1
 
 
 class Module(CreationModule):
-    """Create a double decreasing exponential Star Formation History
+    """Double decreasing exponential Star Formation History
 
-    This module create a star formation history (star formation rate vs galaxy
-    age) composed of two exp(-t/τ). The SFH is added to the info dictionary of
-    the SED as a tuple (age, SFR).
+    This module sets the SED star formation history (SFH) as a combination of
+    two exp(-t/τ) exponentials.
 
     """
 
