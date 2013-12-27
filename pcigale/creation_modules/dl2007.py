@@ -17,7 +17,7 @@ from pcigale.data import Database
 from . import CreationModule
 
 
-class Module(CreationModule):
+class DL2007(CreationModule):
     """Draine and Li (2007) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -128,3 +128,6 @@ class Module(CreationModule):
                 self.model_minmax.wave,
                 sed.info[attenuation] * self.model_minmax.lumin
             )
+
+# CreationModule to be returned by get_module
+Module = DL2007

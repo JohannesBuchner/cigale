@@ -26,7 +26,7 @@ from ..warehouse import SedWarehouse
 from ..data import Database
 
 
-class Module(AnalysisModule):
+class SaveFluxes(AnalysisModule):
     """Save fluxes analysis module
 
     This module saves a table containing all the parameters and desired fluxes
@@ -147,3 +147,6 @@ class Module(AnalysisModule):
         # The zip call is to convert the list of rows to a list of columns.
         out_table = Table(zip(*out_rows), names=out_columns)
         out_table.write(out_file, format=out_format)
+
+# AnalysisModule to be returned by get_module
+Module = SaveFluxes

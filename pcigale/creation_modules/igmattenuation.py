@@ -20,7 +20,7 @@ from ..sed import utils
 from ..extern.lsst import Sed as lsst
 
 
-class Module(CreationModule):
+class IGMAtt(CreationModule):
     """Redshift a SED and add IGM attenuation
 
     This module adds both the effect of redshift and inter-galactic medium
@@ -102,3 +102,6 @@ class Module(CreationModule):
                 new_wavelen,
                 igm_effect
             )
+
+# CreationModule to be returned by get_module
+Module = IGMAtt

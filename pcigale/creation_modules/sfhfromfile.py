@@ -17,7 +17,7 @@ from collections import OrderedDict
 from . import CreationModule
 
 
-class Module(CreationModule):
+class SfhFromFile(CreationModule):
     """Module reading the SFH from a file
 
     This module is used to read the Star Formation Histories from a FITS or
@@ -88,3 +88,6 @@ class Module(CreationModule):
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
         sed.add_info("sfh_id" + self.postfix, sfr_column_name)
+
+# CreationModule to be returned by get_module
+Module = SfhFromFile

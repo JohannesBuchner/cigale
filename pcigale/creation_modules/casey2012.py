@@ -17,7 +17,7 @@ from collections import OrderedDict
 from . import CreationModule
 
 
-class Module(CreationModule):
+class Casey2012(CreationModule):
     """Casey (2012) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -128,3 +128,6 @@ class Module(CreationModule):
                 self.wave,
                 sed.info[attenuation] * self.lumin_blackbody
             )
+
+# CreationModule to be returned by get_module
+Module = Casey2012

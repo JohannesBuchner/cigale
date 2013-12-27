@@ -16,7 +16,7 @@ from . import CreationModule
 from ..data import Database
 
 
-class Module(CreationModule):
+class DH2002(CreationModule):
     """Dale and Helou (2002) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -76,3 +76,6 @@ class Module(CreationModule):
                 self.dh2002.wavelength_grid,
                 sed.info[attenuation] * ir_template
             )
+
+# CreationModule to be returned by get_module
+Module = DH2002

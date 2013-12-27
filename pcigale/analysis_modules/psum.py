@@ -48,7 +48,7 @@ PLOT_L_MIN = 91
 PLOT_L_MAX = 1e6
 
 
-class Module(AnalysisModule):
+class Psum(AnalysisModule):
     """psum analysis"""
 
     parameter_list = OrderedDict([
@@ -661,3 +661,6 @@ def bin_evenly(values, max_bins):
     bin_digits = np.digitize(values, digitize_boundaries)
 
     return (boundaries, bin_digits)
+
+# AnalysisModule to be returned by get_module
+Module = Psum

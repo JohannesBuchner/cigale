@@ -16,7 +16,7 @@ from collections import OrderedDict
 from . import CreationModule
 
 
-class Module(CreationModule):
+class LoadSpecFile(CreationModule):
     """Module reading a spectrum from a file and adding it to the SED.
 
     Note that this module uses the atpy module, which is not automatically
@@ -62,3 +62,6 @@ class Module(CreationModule):
             table[self.parameters['lambda_column']],
             table[self.parameters['l_lambda_column']]
         )
+
+# CreationModule to be returned by get_module
+Module = LoadSpecFile

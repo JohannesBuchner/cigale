@@ -16,7 +16,7 @@ from pcigale.data import Database
 from . import CreationModule
 
 
-class Module(CreationModule):
+class Dale2014(CreationModule):
     """Dale et al. (2014) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -102,3 +102,6 @@ class Module(CreationModule):
                 self.model_quasar.wave,
                 frac_agn * sed.info[attenuation] * self.model_quasar.lumin
             )
+
+# CreationModule to be returned by get_module
+Module = Dale2014

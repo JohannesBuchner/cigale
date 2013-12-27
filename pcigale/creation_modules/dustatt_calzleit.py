@@ -168,7 +168,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     return attenuation
 
 
-class Module(CreationModule):
+class CalzLeit(CreationModule):
     """Calzetti + Leitherer attenuation module
 
     This module computes the Cardelli, Clayton and Mathis attenuation using the
@@ -363,3 +363,6 @@ class Module(CreationModule):
             sed.add_info(filter_name + "_attenuation" + self.postfix,
                          -2.5 * np.log(flux_att[filter_name] /
                                        flux_noatt[filter_name]))
+
+# CreationModule to be returned by get_module
+Module = CalzLeit

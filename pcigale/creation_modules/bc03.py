@@ -18,7 +18,7 @@ from . import CreationModule
 from ..data import Database
 
 
-class Module(CreationModule):
+class BC03(CreationModule):
     """Bruzual and Charlot (2003) stellar emission module
 
     This SED creation module convolves the SED star formation history with a
@@ -132,3 +132,6 @@ class Module(CreationModule):
         sed.add_contribution("ssp_young" + self.postfix,
                              young_wave,
                              young_lumin)
+
+# CreationModule to be returned by get_module
+Module = BC03

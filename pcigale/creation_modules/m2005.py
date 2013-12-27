@@ -17,7 +17,7 @@ from . import CreationModule
 from ..data import Database
 
 
-class Module(CreationModule):
+class M2005(CreationModule):
     """Maraston (2005) stellar emission module
 
     This SED creation module convolves the SED star formation history with
@@ -189,3 +189,6 @@ class Module(CreationModule):
         sed.add_contribution("ssp_young" + self.postfix,
                              ssp.wavelength_grid,
                              young_spectrum)
+
+# CreationModule to be returned by get_module
+Module = M2005

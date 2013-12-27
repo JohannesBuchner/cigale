@@ -9,7 +9,7 @@ from scipy.constants import c
 from . import CreationModule
 
 
-class Module(CreationModule):
+class Lines(CreationModule):
 
     parameter_list = OrderedDict([
         ("Nly_key", (
@@ -92,3 +92,6 @@ class Module(CreationModule):
             intensity = ratio*flow_H
 
             sed.add_lines(self.parameters["set_name"], wav, intensity, sigma)
+
+# CreationModule to be returned by get_module
+Module = Lines

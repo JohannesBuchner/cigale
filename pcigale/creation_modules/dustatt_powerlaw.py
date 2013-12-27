@@ -94,7 +94,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     return attenuation
 
 
-class Module(CreationModule):
+class PowerLawAtt(CreationModule):
     """Power law attenuation module
 
     This module computes the Cardelli, Clayton and Mathis attenuation using
@@ -285,3 +285,6 @@ class Module(CreationModule):
             sed.add_info(filter_name + "_attenuation" + self.postfix,
                          -2.5 * np.log(flux_att[filter_name] /
                                        flux_noatt[filter_name]))
+
+# CreationModule to be returned by get_module
+Module = PowerLawAtt

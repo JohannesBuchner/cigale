@@ -21,7 +21,7 @@ from . import CreationModule
 AGE_LAPSE = 1
 
 
-class Module(CreationModule):
+class Sfh2Exp(CreationModule):
     """Double decreasing exponential Star Formation History
 
     This module sets the SED star formation history (SFH) as a combination of
@@ -115,3 +115,6 @@ class Module(CreationModule):
         sed.add_info("sfh_tau_burst" + self.postfix, tau_burst)
         sed.add_info("sfh_f_burst" + self.postfix, f_burst)
         sed.add_info("sfh_burst_age" + self.postfix, burst_age)
+
+# CreationModule to be returned by get_module
+Module = Sfh2Exp
