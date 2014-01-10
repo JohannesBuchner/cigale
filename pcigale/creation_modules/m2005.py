@@ -183,6 +183,10 @@ class M2005(CreationModule):
         sed.add_info('ssp_mass_turn_off' + self.postfix,
                      old_masses[5] + young_masses[5], True)
 
+        # We take off anything below the Lyman break in the spectra
+        old_spectrum[ssp.wavelength_grid < 91.2] = 0.
+        young_spectrum[ssp.wavelength_grid < 91.2] = 0.
+
         sed.add_contribution("ssp_old" + self.postfix,
                              ssp.wavelength_grid,
                              old_spectrum)
