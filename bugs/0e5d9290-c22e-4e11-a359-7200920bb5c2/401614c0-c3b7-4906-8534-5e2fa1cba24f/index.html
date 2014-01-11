@@ -12,36 +12,74 @@
       
 <p class="backlink"><a href="../../index.html">Back to Active Index</a></p>
 <p class="backlink"><a href="../../index_by_target.html">Back to Target Index</a></p>
-<h1>Bug: 0e5/589</h1>
+<h1>Bug: 0e5/401</h1>
 
 <table>
   <tbody>
     <tr><td class="bug_detail_label">ID :</td>
-        <td class="bug_detail">589289eb-d9b9-4251-915b-7518b4a55340</td></tr>
+        <td class="bug_detail">401614c0-c3b7-4906-8534-5e2fa1cba24f</td></tr>
     <tr><td class="bug_detail_label">Short name :</td>
-        <td class="bug_detail">0e5/589</td></tr>
+        <td class="bug_detail">0e5/401</td></tr>
     <tr><td class="bug_detail_label">Status :</td>
         <td class="bug_detail">open</td></tr>
     <tr><td class="bug_detail_label">Severity :</td>
         <td class="bug_detail">minor</td></tr>
     <tr><td class="bug_detail_label">Assigned :</td>
-        <td class="bug_detail">Yannick Roehlly &lt;yannick.roehlly@oamp.fr&gt;</td></tr>
+        <td class="bug_detail"></td></tr>
     <tr><td class="bug_detail_label">Reporter :</td>
-        <td class="bug_detail">Yannick Roehlly &lt;yannick.roehlly@oamp.fr&gt;</td></tr>
+        <td class="bug_detail">Yannick Roehlly &lt;yannick@iaora.eu&gt;</td></tr>
     <tr><td class="bug_detail_label">Creator :</td>
-        <td class="bug_detail">Yannick Roehlly &lt;yannick.roehlly@oamp.fr&gt;</td></tr>
+        <td class="bug_detail">Yannick Roehlly &lt;yannick@iaora.eu&gt;</td></tr>
     <tr><td class="bug_detail_label">Created :</td>
-        <td class="bug_detail">Tue, 03 Dec 2013 16:39:42 +0000</td></tr>
+        <td class="bug_detail">Sat, 11 Jan 2014 12:54:01 +0000</td></tr>
 
     <tr><td class="bug_detail_label">Summary :</td>
-        <td class="bug_detail">Deal with observation without values in some filters.</td></tr>
+        <td class="bug_detail">Move the database to user home directory</td></tr>
   </tbody>
 </table>
 
 <hr/>
 
 
-<p>No comments.</p>
+
+
+<div class="comment root" id="C59c8fd51-02f1-43bb-a2f7-31c3eed41e91">
+
+<table>
+  <tbody>
+    <tr>
+      <td class="bug_comment_label">Comment:</td>
+      <td class="bug_comment">
+        --------- Comment ---------<br/>
+        ID: 59c8fd51-02f1-43bb-a2f7-31c3eed41e91<br/>
+        Short name: 0e5/401/59c<br/>
+        From: Yannick Roehlly &lt;yannick@iaora.eu&gt;<br/>
+        Date: Sat, 11 Jan 2014 12:59:31 +0000<br/>
+        <br/>
+        <pre>
+The pcigale database containing the models and the filters should be moved
+to the user home directory.
+
+Advantages of having a system-wide database:
+* As it is quite large, if several users use pcigale on the same database, there
+  will be only one database.
+* It make easier to install pcigale using a package.
+* The database will be installed at the same time of pcigale and will always be
+  up to date.
+
+Advantages of having the database in user's home:
+* We can develop tools allowing user to easily add new filters.
+* pcigale package becomes lighter.
+
+
+</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
 
 <p class="backlink"><a href="../../index.html">Back to Active Index</a></p>
 <p class="backlink"><a href="../../?type=target">Back to Target Index</a></p>

@@ -1,0 +1,14 @@
+The pcigale database containing the models and the filters should be moved
+to the user home directory.
+
+Advantages of having a system-wide database:
+* As it is quite large, if several users use pcigale on the same database, there
+  will be only one database.
+* It make easier to install pcigale using a package.
+* The database will be installed at the same time of pcigale and will always be
+  up to date.
+
+Advantages of having the database in user's home:
+* We can develop tools allowing user to easily add new filters.
+* pcigale package becomes lighter.
+
