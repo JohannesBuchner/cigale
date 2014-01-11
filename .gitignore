@@ -1,2 +1,7 @@
 .be/id-cache
 .DS_Store
+*.pyc
+pcigale/data/data.db
+pcigale.egg-info
+docs/_build
+docs/api
