@@ -114,11 +114,9 @@ class AnalysisModule(object):
         # of the parameter_list dictionary, we raises a KeyError. That means
         # that a parameter is missing (and has no default value) or that an
         # unexpected one was given.
-        if not set(parameters.keys()) == set(self.parameter_list.keys()):
-            missing_parameters = (set(self.parameter_list.keys())
-                                  - set(parameters.keys()))
-            unexpected_parameters = (set(parameters.keys())
-                                     - set(self.parameter_list.keys()))
+        if not set(parameters) == set(self.parameter_list):
+            missing_parameters = (set(self.parameter_list) - set(parameters))
+            unexpected_parameters = (set(parameters) - set(self.parameter_list))
             message = ""
             if missing_parameters:
                 message += ("Missing parameters: " +

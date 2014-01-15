@@ -45,11 +45,9 @@ def complete_parameters(given_parameters, parameter_list):
             given_parameters[key] = parameter_list[key][2]
     # Check parameter consistency between the parameter list and the given
     # parameters.
-    if not set(given_parameters.keys()) == set(parameter_list.keys()):
-        missing_parameters = (set(parameter_list.keys())
-                              - set(given_parameters.keys()))
-        unexpected_parameters = (set(given_parameters.keys())
-                                 - set(parameter_list.keys()))
+    if not set(given_parameters) == set(parameter_list):
+        missing_parameters = (set(parameter_list) - set(given_parameters))
+        unexpected_parameters = (set(given_parameters) - set(parameter_list))
         message = ""
         if missing_parameters:
             message += ("Missing parameters: " +
@@ -64,7 +62,7 @@ def complete_parameters(given_parameters, parameter_list):
 
     # We want the result to be ordered as the parameter_list of the module is.
     result = OrderedDict()
-    for key in parameter_list.keys():
+    for key in parameter_list:
         result[key] = given_parameters[key]
 
     return result
