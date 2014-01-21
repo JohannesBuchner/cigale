@@ -529,7 +529,7 @@ def adjust_errors(flux, error, default_error=0.1, systematic_deviation=0.1):
     error = np.copy(error)
 
     # Replace errors below tolerance by the default one.
-    error[error < TOLERANCE] = (default_error * error[error < TOLERANCE])
+    error[error < TOLERANCE] = (default_error * flux[error < TOLERANCE])
 
     # Add the systematic error.
     error = np.sqrt(np.square(error) + np.square(flux * systematic_deviation))
