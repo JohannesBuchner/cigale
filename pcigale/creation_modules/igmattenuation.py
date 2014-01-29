@@ -103,5 +103,7 @@ class IGMAtt(CreationModule):
                 igm_effect
             )
 
+            sed.redshift = redshift
+
 # CreationModule to be returned by get_module
 Module = IGMAtt

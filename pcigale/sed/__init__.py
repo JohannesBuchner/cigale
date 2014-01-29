@@ -63,6 +63,7 @@ class SED(object):
 
         """
         self.sfh = sfh
+        self.redshift = 0.
         self.modules = []
         self.wavelength_grid = None
         self.contribution_names = []
@@ -131,40 +132,21 @@ class SED(object):
         else:
             return self._luminosities.sum(0)
 
-    def lambda_fnu(self, redshift=0, apply_redshift=False):
+    @property
+    def fnu(self):
+        """Total Fν flux density of the SED
+
+        Return the total Fν density vector, i.e the total luminosity converted
+        to Fν flux in mJy.
         """
-        Return the (redshifted if asked) total Fν flux density vs wavelength
-        spectrum of the SED.
-
-        Parameters
-        ----------
-        redshift : float, default = 0
-            If 0 (the default), the flux at 10 pc is computed.
-        apply_redshift : boolean, default = None
-            If true, the spectrum will be redshifted before computing the
-            flux. The default is False because we generally use a specific
-            module to apply the redshift.
-
-        Returns
-        -------
-        wavelength, f_nu : tuple of array of floats
-            The wavelength is in nm and the Fν is in mJy.
-
-        """
-        wavelength = self.wavelength_grid
-        luminosity = self.luminosity
-
-        if apply_redshift:
-            wavelength, luminosity = utils.redshift_spectrum(
-                wavelength, luminosity, redshift)
 
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(luminosity, redshift)
+        f_lambda = utils.luminosity_to_flux(self.luminosity, self.redshift)
 
-        # Fν flux density in Jy
-        f_nu = utils.lambda_flambda_to_fnu(wavelength, f_lambda)
+        # Fν flux density in mJy
+        f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
 
-        return wavelength, f_nu
+        return f_nu
 
     def add_info(self, key, value, mass_proportional=False, force=False):
         """
@@ -319,7 +301,6 @@ class SED(object):
         return self.luminosities[idx]
 
     def compute_fnu(self, transmission, lambda_eff,
-                    redshift=0, apply_redshift=False,
                     add_line_fluxes=True):
         """
         Compute the Fν flux density corresponding the filter which
@@ -352,14 +333,6 @@ class SED(object):
         lambda_eff : float
             Effective wavelength of the filter in nm.
 
-        redshift : float
-            The redshift of the galaxy. If 0, the flux is computed at 10 pc.
-
-        apply_redshift : boolean
-            If true, the spectrum will be redshifted before computing the
-            flux. The default is False because we generally use a specific
-            module to apply the redshift.
-
         add_line_flux : boolean
             If true (default), the flux coming from the spectral lines will be
             taken into account.
@@ -376,9 +349,6 @@ class SED(object):
 
         wavelength = self.wavelength_grid
         l_lambda = self.luminosity
-        if apply_redshift:
-            wavelength, l_lambda = utils.redshift_lambda_l_lambda(
-                (wavelength, l_lambda), redshift)
 
         # Test if the spectrum cover all the filter extend
         if ((min(self.wavelength_grid) > lambda_min) or
@@ -409,7 +379,7 @@ class SED(object):
             f_lambda = utils.luminosity_to_flux(
                 (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
                  np.trapz(transmission_r, wavelength_r)),
-                redshift
+                self.redshift
             )
 
             # Add the Fλ fluxes from the spectral lines.

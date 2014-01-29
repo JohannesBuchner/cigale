@@ -133,10 +133,9 @@ class SaveFluxes(AnalysisModule):
                     row.append(value)
 
             # Add the flux in each filter to the row
-            row += [sed.compute_fnu(filter.trans_table,
-                                    filter.effective_wavelength,
-                                    0)
-                    for filter in filter_list]
+            row += [sed.compute_fnu(filter_.trans_table,
+                                    filter_.effective_wavelength)
+                    for filter_ in filter_list]
 
             out_rows.append(row)
 

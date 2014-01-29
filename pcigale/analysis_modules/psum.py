@@ -239,8 +239,7 @@ class Psum(AnalysisModule):
 
                 # Theoretical fluxes
                 theor_fluxes = [red_sed.compute_fnu(transmission[name],
-                                                    effective_wavelength[name],
-                                                    obs_redshift)
+                                                    effective_wavelength[name])
                                 for name in filter_list]
 
                 reduced_chi2, galaxy_mass, probability = compute_chi2(
@@ -305,16 +304,14 @@ class Psum(AnalysisModule):
             # we develop a way to serialise the SED, we should save the
             # complete SED object.
             if save_best_sed:
-                best_sed_lambda_fnu = best_sed.lambda_fnu(
-                    redshift=obs_table['redshift'][obs_index])
                 best_sed_table = atpy.Table()
                 best_sed_table.table_name = "Best SED"
                 best_sed_table.add_column("wavelength",
-                                          best_sed_lambda_fnu[0],
+                                          best_sed.wavelength_grid,
                                           "nm")
                 best_sed_table.add_column("fnu",
                                           best_norm_factor
-                                          * best_sed_lambda_fnu[1],
+                                          * best_sed.fnu,
                                           "mJy")
                 best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits',
                                      verbose=False)
@@ -326,11 +323,9 @@ class Psum(AnalysisModule):
 
             # Plot the best SED
             if plot_best_sed:
-                best_sed_lambda_fnu = best_sed.lambda_fnu(
-                    redshift=obs_table['redshift'][obs_index])
                 figure = plt.figure()
                 ax = figure.add_subplot(111)
-                plot_x, plot_y = best_sed_lambda_fnu
+                plot_x, plot_y = best_sed.wavelength_grid, best_sed.fnu
                 plot_mask = (
                     (plot_x >= PLOT_L_MIN * (1 + obs_redshift)) &
                     (plot_x <= PLOT_L_MAX * (1 + obs_redshift))
