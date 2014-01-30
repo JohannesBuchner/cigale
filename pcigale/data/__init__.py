@@ -36,6 +36,21 @@ BASE = declarative_base()
 SESSION = sessionmaker(bind=ENGINE)
 
 
+class DatabaseLookupError(Exception):
+    """
+    A custom exception raised when a search in the database does not find a
+    result.
+    """
+
+
+class DatabaseInsertError(Exception):
+    """
+    A custom exception raised when one tries to insert in the database
+    something that is already in it.
+    """
+
+
+
 class _Filter(BASE):
     """ Storage for filters
     """
@@ -232,7 +247,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The filter is already in the base.')
+                raise DatabaseInsertError('The filter is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -252,7 +267,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The SSP is already in the base.')
+                raise DatabaseInsertError('The SSP is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -272,7 +287,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The SSP is already in the base.')
+                raise DatabaseInsertError('The SSP is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -303,7 +318,8 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The template is already in the base.')
+                raise DatabaseInsertError(
+                    'The template is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -324,7 +340,7 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError(
+                raise DatabaseInsertError(
                     'The Dale2014 template is already in the base.')
         else:
             raise StandardError('The database is not writable.')
@@ -344,7 +360,8 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The DL07 model is already in the base.')
+                raise DatabaseInsertError(
+                    'The DL07 model is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -363,7 +380,8 @@ class Database(object):
                 self.session.commit()
             except exc.IntegrityError:
                 self.session.rollback()
-                raise StandardError('The agn model is already in the base.')
+                raise DatabaseInsertError(
+                    'The agn model is already in the base.')
         else:
             raise StandardError('The database is not writable.')
 
@@ -379,8 +397,12 @@ class Database(object):
         Returns
         -------
         filter : pcigale.base.Filter
-            The Filter object. If the filter is not in the database,
-            returns None.
+            The Filter object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested filter is not in the database.
+
         """
         result = (self.session.query(_Filter).
                   filter(_Filter.name == name).
@@ -390,7 +412,8 @@ class Database(object):
                           result.trans_type, result.trans_table,
                           result.effective_wavelength)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The filter <{0}> is not in the database".format(name))
 
     def get_ssp_bc03(self, imf, metallicity):
         """
@@ -406,8 +429,11 @@ class Database(object):
         Returns
         -------
         ssp : pcigale.data.SspBC03
-            The SspBC03 object. If no SSP corresponds to the given imf and
-            metallicity, returns None.
+            The SspBC03 object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested SSP is not in the database.
 
         """
         result = self.session.query(_SspBC03)\
@@ -419,7 +445,9 @@ class Database(object):
                            result.wavelength_grid, result.color_table,
                            result.lumin_table)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The BC03 SSP for imf <{0}> and metallicity <{1}> is not in "
+                "the database.".format(imf, metallicity))
 
     def get_ssp_m2005(self, imf, metallicity):
         """
@@ -436,8 +464,11 @@ class Database(object):
         Returns
         -------
         ssp : pcigale.base.SspM2005
-            The SspM2005 object. If no SSP corresponds to the given imf and
-            metallicity, returns None.
+            The SspM2005 object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested SSP is not in the database.
 
         """
         result = self.session.query(_SspM2005)\
@@ -449,7 +480,9 @@ class Database(object):
                             result.wavelength_grid, result.mass_table,
                             result.spec_table)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The M2005 SSP for imf <{0}> and metallicity <{1}> is not in "
+                "the database.".format(imf, metallicity))
 
     def get_dh2002_infrared_templates(self):
         """
@@ -458,8 +491,11 @@ class Database(object):
         Returns
         -------
         template : pcigale.base.IrTemplatesDH2002
-            The Dale and Helou (2002) infrared templates. If they are not in
-            the database, return None.
+            The Dale and Helou (2002) infrared templates.
+
+        Raises
+        ------
+        DatabaseLookupError : if the templates are not in the database.
 
         """
         result = (self.session.query(_DH2002InfraredTemplates).
@@ -469,7 +505,8 @@ class Database(object):
             return IrTemplatesDH2002(result.data[0], result.data[1],
                                      result.data[2])
         else:
-            return None
+            raise DatabaseLookupError(
+                "The DH2002 templates are not in the database.")
 
     def get_dale2014(self, frac_agn, alpha):
         """
@@ -484,6 +521,15 @@ class Database(object):
             alpha corresponding to the updated Dale & Helou (2002) star
             forming template.
 
+        Returns
+        -------
+        template : pcigale.data.Dale2014
+            The Dale et al. (2014) IR template.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested template is not in the database.
+
         """
         result = (self.session.query(_Dale2014).
                   filter(_Dale2014.fracAGN == frac_agn).
@@ -493,7 +539,9 @@ class Database(object):
             return Dale2014(result.fracAGN, result.alpha, result.wave,
                             result.lumin)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The Dale2014 template for frac_agn <{0}> and alpha <{1}> "
+                "is not in the database.".format(frac_agn, alpha))
 
     def get_agn_fritz2006(self, model_nb):
         """
@@ -507,7 +555,11 @@ class Database(object):
         Returns
         -------
         agn : pcigale.data.AgnFritz2006
-            The AGN model or not if no model exists for the given number.
+            The AGN model.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested template is not in the database.
 
         """
         result = (self.session.query(_Fritz2006AGN).
@@ -519,7 +571,8 @@ class Database(object):
                                 result.gamma, result.theta, result.psy,
                                 result.wave, result.luminosity)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The Fritz2006 model is not in the database.")
 
     def get_dl2007(self, qpah, umin, umax):
         """
@@ -534,8 +587,15 @@ class Database(object):
             Minimum radiation field
         umax: float
             Maximum radiation field
-        gamma: float
-            Fraction of the dust exposed from Umin to Umax
+
+        Returns
+        -------
+        model : pcigale.data.DL2007
+            The Draine and Li (2007) model.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested model is not in the database.
 
         """
         result = (self.session.query(_DL2007).
@@ -547,7 +607,9 @@ class Database(object):
             return DL2007(result.qpah, result.umin, result.umax, result.wave,
                           result.lumin)
         else:
-            return None
+            raise DatabaseLookupError(
+                "The DL2007 model for qpah <{0}>, umin <{1}>, and umax <{2}> "
+                "is not in the database.".format(qpah, umin, umax))
 
     def get_filter_list(self):
         """Get the list of the filters in the database.
