@@ -177,12 +177,11 @@ class Psum(AnalysisModule):
                        if not name.endswith('_err')]
         transmission = {}
         effective_wavelength = {}
-        base = Database()
-        for name in filter_list:
-            filt = base.get_filter(name)
-            transmission[name] = filt.trans_table
-            effective_wavelength[name] = filt.effective_wavelength
-        base.close()
+        with Database() as base:
+            for name in filter_list:
+                filt = base.get_filter(name)
+                transmission[name] = filt.trans_table
+                effective_wavelength[name] = filt.effective_wavelength
 
         # We get the redshift module.
         redshift_module = get_module(redshift_module_name,

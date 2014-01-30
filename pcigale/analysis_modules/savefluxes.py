@@ -97,9 +97,8 @@ class SaveFluxes(AnalysisModule):
         # Get the filters in the database
         filter_names = [name for name in column_list
                         if not name.endswith('_err')]
-        base = Database()
-        filter_list = [base.get_filter(name) for name in filter_names]
-        base.close()
+        with Database() as base:
+            filter_list = [base.get_filter(name) for name in filter_names]
 
         # Columns of the output table
         out_columns = []

@@ -182,10 +182,9 @@ class PowerLawAtt(CreationModule):
         filter_list = [item.strip() for item in
                        self.parameters["filters"].split("&")]
         self.filters = {}
-        base = Database()
-        for filter_name in filter_list:
-            self.filters[filter_name] = base.get_filter(filter_name)
-        base.close()
+        with Database() as base:
+            for filter_name in filter_list:
+                self.filters[filter_name] = base.get_filter(filter_name)
 
     def process(self, sed):
         """Add the CCM dust attenuation to the SED.

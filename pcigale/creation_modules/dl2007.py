@@ -76,10 +76,9 @@ class DL2007(CreationModule):
         umax = self.parameters["umax"]
         gamma = self.parameters["gamma"]
 
-        database = Database()
-        self.model_minmin = database.get_dl2007(qpah, umin, umin)
-        self.model_minmax = database.get_dl2007(qpah, umin, umax)
-        database.session.close_all()
+        with Database() as database:
+            self.model_minmin = database.get_dl2007(qpah, umin, umin)
+            self.model_minmax = database.get_dl2007(qpah, umin, umax)
 
         # The models in memory are in W/nm for 1 kg of dust. At the same time
         # we need to normalize them to 1 W here to easily scale them from the

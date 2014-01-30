@@ -217,6 +217,12 @@ class Database(object):
         self.session = SESSION()
         self.is_writable = writable
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def upgrade_base(self):
         """ Upgrade the table schemas in the database
         """

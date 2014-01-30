@@ -150,9 +150,8 @@ class Configuration(object):
         """
 
         # Getting the list of the filters available in pcigale database
-        base = Database()
-        filter_list = base.get_filter_list()[0]
-        base.close()
+        with Database() as base:
+            filter_list = base.get_filter_list()[0]
 
         # Finding the known filters in the data table
         obs_table = atpy.Table(self.config['data_file'], verbose=False)

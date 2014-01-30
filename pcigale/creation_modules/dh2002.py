@@ -48,9 +48,8 @@ class DH2002(CreationModule):
 
     def _init_code(self):
         """Get the template set out of the database"""
-        database = Database()
-        self.dh2002 = database.get_dh2002_infrared_templates()
-        database.session.close_all()
+        with Database() as database:
+            self.dh2002 = database.get_dh2002_infrared_templates()
 
     def process(self, sed):
         """Add the IR re-emission contributions
