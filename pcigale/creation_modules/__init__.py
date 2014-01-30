@@ -128,7 +128,7 @@ class CreationModule(object):
         # We want to postfix the various keys of the SED with the same
         # postfix as the module name, if any.
         if '.' in name:
-            self.postfix = "." + name.split(".", 1)
+            self.postfix = "." + name.split(".", 1)[1]
         else:
             self.postfix = ""
 

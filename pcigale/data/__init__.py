@@ -27,6 +27,7 @@ from .ir_templates_dh2002 import IrTemplatesDH2002
 from .ir_agn_templates_dale2014 import Dale2014
 from .ir_models_dl2007 import DL2007
 from .agn_fritz2006 import AgnFritz2006
+from .lines import Lines
 
 
 DATABASE_FILE = pkg_resources.resource_filename(__name__, 'data.db')
@@ -198,6 +199,23 @@ class _Fritz2006AGN(BASE):
         self.psy = agn.psy
         self.wave = agn.wave
         self.luminosity = agn.luminosity
+
+
+class _Lines(BASE):
+    """Storage for line templates
+    """
+    
+    __tablename__ = 'lines'
+    metallicity = Column(Float, primary_key=True)
+    logU = Column(Float, primary_key=True)
+    wave = Column(PickleType)
+    ratio = Column(PickleType)
+    
+    def __init__(self, lines):
+        self.metallicity = lines.metallicity
+        self.logU = lines.logU
+        self.wave = lines.wave
+        self.ratio = lines.ratio
 
 
 class Database(object):
@@ -390,6 +408,20 @@ class Database(object):
                     'The agn model is already in the base.')
         else:
             raise StandardError('The database is not writable.')
+
+    def add_lines(self, lines):
+        """
+        Add ultraviolet and optical line templates to the database.
+        """
+        if self.is_writable:
+            self.session.add(_Lines(lines))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise StandardError('The line is already in the base')
+        else:
+            raise StandardError('The database is not writable')
 
     def get_filter(self, name):
         """
@@ -616,6 +648,39 @@ class Database(object):
             raise DatabaseLookupError(
                 "The DL2007 model for qpah <{0}>, umin <{1}>, and umax <{2}> "
                 "is not in the database.".format(qpah, umin, umax))
+
+    def get_lines(self, metallicity, logU):
+        """
+        Get the line ratios corresponding to the given set of parameters.
+        
+        Parameters
+        ----------
+        metallicity: float
+            Gas phase metallicity
+        
+        logU: float
+            Radiation field intensity
+        """
+        result = (self.session.query(_Lines).
+                 filter(_Lines.metallicity == metallicity).
+                 filter(_Lines.logU == logU).
+                 first())
+        if result:
+            return Lines(result.metallicity, result.logU, result.wave,
+                         result.ratio)
+        else:
+            return None
+
+    def get_lines_metallicities(self):
+        """Get the list of metallicities in the lines database
+        
+        Returns
+        -------
+        metallicities: list
+            list of the line templates metallicities
+        """
+        result = self.session.query(_Lines.metallicity).all()
+        return [_[0] for _ in result]
 
     def get_filter_list(self):
         """Get the list of the filters in the database.
