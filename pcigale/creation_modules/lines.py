@@ -60,10 +60,11 @@ class Module(CreationModule):
            them to see the line profile.
         """
 
-        database = Database()
-        self.lines_template = {m:database.get_lines(m, self.parameters['logU'])
-                      for m in database.get_lines_metallicities()}
-        database.session.close_all()
+        with Database() as database:
+            self.lines_template = {m:database.
+                                   get_lines(m,self.parameters['logU'])
+                                   for m in database.get_lines_metallicities()
+                                  }
         
         lines_width = self.parameters['lines_width'] * 1e3
         for lines in self.lines_template.values():
