@@ -10,6 +10,7 @@ import pkgutil
 import collections
 import itertools
 import numpy as np
+from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
