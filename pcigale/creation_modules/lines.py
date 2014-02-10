@@ -97,7 +97,6 @@ class Module(CreationModule):
                     (1. - self.parameters['escape_fraction'] -
                      self.parameters['f_dust'])
                     )
-        print(self.conv)
 
 
     def process(self, sed):
