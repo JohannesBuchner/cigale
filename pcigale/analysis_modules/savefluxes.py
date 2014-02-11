@@ -54,8 +54,7 @@ class SaveFluxes(AnalysisModule):
     ])
 
     def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, redshift_module,
-                redshift_configuration, parameters):
+                creation_modules_params, parameters):
         """Process with the savedfluxes analysis.
 
         All the possible theoretical SED are created and the fluxes in the
@@ -73,10 +72,6 @@ class SaveFluxes(AnalysisModule):
             the SEDs.
         creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
-        redshift_module_name : string
-            Name of the module used to redshift the SED.
-        redshift_configuration : dictionary
-            Configuration dictionary for the module used to redshift the SED.
         parameters: dictionary
             Dictionary containing the parameters.
 

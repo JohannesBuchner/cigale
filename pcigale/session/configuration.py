@@ -128,12 +128,6 @@ class Configuration(object):
             "Order of the modules use for SED creation. Available modules : "
             + ', '.join(list_modules('pcigale.creation_modules')) + ".")
 
-        self.config['redshift_module'] = ""
-        self.config.comments['redshift_module'] = [""] + wrap(
-            "Module used to redshift the SED before the integration in the "
-            "filters. This is a SED creation module that accepts a 'redshift' "
-            "parameter (see the documentation).")
-
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
             "Method used for statistical analysis. Available methods: "
@@ -196,22 +190,6 @@ class Configuration(object):
             self.config['sed_creation_modules'].comments[module_name] = [
                 creation_modules.get_module(module_name, blank=True).comments]
 
-        # Configuration for the redshift module
-        self.config['redshift_configuration'] = {}
-        self.config.comments['redshift_configuration'] = ["", ""] + wrap(
-            "Set the 'redshift' parameter to None (or delete the line). If "
-            "there are other parameters, you must give only one value for "
-            "each.")
-        module_name = self.config['redshift_module']
-        for name, (typ, desc, default) in \
-                creation_modules.get_module(
-                    module_name,
-                    blank=True).parameter_list.items():
-            if default is None:
-                default = ''
-            self.config['redshift_configuration'][name] = default
-            self.config['redshift_configuration'].comments[name] = wrap(desc)
-
         # Configuration for the analysis method
         self.config['analysis_configuration'] = {}
         self.config.comments['analysis_configuration'] = ["", ""] + wrap(
@@ -242,9 +220,6 @@ class Configuration(object):
             Configuration parameters for each module. To each parameter, the
             dictionary associates a list of possible values (possibly only
             one).
-        configuration['redshift_module'] : string
-        configuration['redshift_configuration'] : dictionary
-            Parameters for the redshift module.
         configuration['analysis_method'] : string
             Statistical analysis module used to fit the data.
         configuration['analysis_method_params'] : dictionary
@@ -254,7 +229,7 @@ class Configuration(object):
         configuration = {}
 
         for section in ['data_file', 'column_list', 'creation_modules',
-                        'redshift_module', 'analysis_method']:
+                        'analysis_method']:
             configuration[section] = self.config[section]
 
         # Parsing the SED modules parameters
@@ -265,10 +240,8 @@ class Configuration(object):
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
             configuration['creation_modules_params'].append(module_params)
-        # We don't need to "evaluate" the configuration values for the
-        # redshit and analysis modules as we don't expect multiple values here.
-        configuration['redshift_configuration'] = \
-            self.config['redshift_configuration']
+
+        # Analysis method parameters
         configuration['analysis_method_params'] = \
             self.config['analysis_configuration']
 

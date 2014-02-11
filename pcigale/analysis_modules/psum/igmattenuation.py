@@ -15,9 +15,9 @@ Telescope. http://dev.lsstcorp.org/trac/
 
 import numpy as np
 from collections import OrderedDict
-from . import CreationModule
-from ..sed import utils
-from ..extern.lsst import Sed as lsst
+from ...creation_modules import CreationModule
+from ...sed import utils
+from .lsst import Sed as lsst
 
 
 class IGMAtt(CreationModule):

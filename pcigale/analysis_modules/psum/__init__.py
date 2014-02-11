@@ -31,10 +31,10 @@ from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
-from . import AnalysisModule
-from ..warehouse import SedWarehouse
-from ..creation_modules import get_module
-from ..data import Database
+from .igmattenuation import IGMAtt
+from .. import AnalysisModule
+from ...warehouse import SedWarehouse
+from ...data import Database
 
 
 # Tolerance threshold under which any flux or error is considered as 0.
@@ -103,8 +103,7 @@ class Psum(AnalysisModule):
     ])
 
     def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, redshift_module_name,
-                redshift_configuration, parameters):
+                creation_modules_params, parameters):
         """Process with the psum analysis.
 
         The analysis is done in two nested loops: over each observation and
@@ -122,10 +121,6 @@ class Psum(AnalysisModule):
             the SEDs.
         creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
-        redshift_module_name : string
-            Name of the module used to redshift the SED.
-        redshift_configuration : dictionary
-            Configuration dictionary for the module used to redshift the SED.
         parameters: dictionary
             Dictionary containing the parameters.
 
@@ -184,8 +179,7 @@ class Psum(AnalysisModule):
                 effective_wavelength[name] = filt.effective_wavelength
 
         # We get the redshift module.
-        redshift_module = get_module(redshift_module_name,
-                                     **redshift_configuration)
+        redshift_module = IGMAtt(name="redshifting")
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
