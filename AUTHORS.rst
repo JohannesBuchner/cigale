@@ -9,3 +9,5 @@ current email address and affiliation.
   University of Crete, Department of Physics
 * Médéric Boquien <mboquien@ast.cam.ac.uk>,
   University of Cambridge, Institute of Astronomy
+* Denis Burgarella <denis.burgarella@lam.fr>,
+  Laboratoire d'Astrophysique de Marseille
