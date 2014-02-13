@@ -31,10 +31,10 @@ from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
-from .igmattenuation import IGMAtt
-from .. import AnalysisModule
-from ...warehouse import SedWarehouse
-from ...data import Database
+from . import AnalysisModule
+from ..creation_modules import get_module
+from ..warehouse import SedWarehouse
+from ..data import Database
 
 
 # Tolerance threshold under which any flux or error is considered as 0.
@@ -178,8 +178,9 @@ class Psum(AnalysisModule):
                 transmission[name] = filt.trans_table
                 effective_wavelength[name] = filt.effective_wavelength
 
-        # We get the redshift module.
-        redshift_module = IGMAtt(name="redshifting")
+        # We get the redshift and igm modules.
+        redshift_module = get_module("redshifting", redshift=0)
+        igm_module = get_module("igm_attenuation")
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
@@ -229,6 +230,7 @@ class Psum(AnalysisModule):
                 red_sed = deepcopy(sed)
                 redshift_module.parameters["redshift"] = obs_redshift
                 redshift_module.process(red_sed)
+                igm_module.process(red_sed)
 
                 # Theoretical fluxes
                 theor_fluxes = [red_sed.compute_fnu(transmission[name],
