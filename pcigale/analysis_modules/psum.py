@@ -311,7 +311,7 @@ class Psum(AnalysisModule):
                                      format='fits')
                 # Write the SED modules parameters to a file
                 with open(OUT_DIR + obs_name + "bestSED.params", "w") as f:
-                    f.write(json.dumps(zip(creation_modules, best_params),
+                    f.write(json.dumps(list(zip(creation_modules, best_params)),
                                        indent=2,
                                        separators=(',', ': ')))
 
@@ -480,7 +480,7 @@ class Psum(AnalysisModule):
         result_table.write(OUT_DIR + RESULT_FILE)
 
         # Write the best SED table
-        out_bestsed_table = Table(zip(*out_bestsed_rows),
+        out_bestsed_table = Table(list(zip(*out_bestsed_rows)),
                                   names=out_bestsed_columns)
         out_bestsed_table.write(OUT_DIR + "bestSeds.xml", format="votable")
 
