@@ -183,10 +183,8 @@ class Psum(AnalysisModule):
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
-        if data_file[-4:] == 'fits':
-            obs_table = Table.read(data_file, format='fits')
-        elif data_file[-3:] == 'vot':
-            obs_table = Table.read(data_file, format='vot')
+        if data_file.endswith(('fits', 'vot', 'xml')):
+            obs_table = Table.read(data_file)
         else:
             obs_table = Table.read(data_file, format='ascii')
         for name in filter_list:

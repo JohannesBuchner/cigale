@@ -149,10 +149,8 @@ class Configuration(object):
             filter_list = base.get_filter_list()[0]
 
         # Finding the known filters in the data table
-        if self.config['data_file'][-4:] == 'fits':
-            obs_table = Table.read(self.config['data_file'], format='fits')
-        elif self.config['data_file'][-3:] == 'vot':
-            obs_table = Table.read(self.config['data_file'], format='votable')
+        if self.config['data_file'].endswith(('fits', 'vot', 'xml')):
+            obs_table = Table.read(self.config['data_file'])
         else:
             obs_table = Table.read(self.config['data_file'], format='ascii')
         column_list = []

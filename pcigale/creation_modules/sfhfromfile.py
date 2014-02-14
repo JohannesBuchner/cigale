@@ -64,10 +64,8 @@ class SfhFromFile(CreationModule):
 
         """
         filename = self.parameters['filename']
-        if filename[-4:] == 'fits':
-            table = Table.read(filename, format='fits')
-        elif data_file[-3:] == 'vot':
-            table = Table.read(filename, format='vot')
+        if filename.endswith(('fits', 'vot', 'xml')):
+            table = Table.read(filename)
         else:
             table = Table.read(filename, format='ascii')
 
