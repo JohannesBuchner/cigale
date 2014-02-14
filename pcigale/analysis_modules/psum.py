@@ -30,6 +30,7 @@ from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
+from ..utils import read_table
 from . import AnalysisModule
 from ..creation_modules import get_module
 from ..warehouse import SedWarehouse
@@ -183,10 +184,7 @@ class Psum(AnalysisModule):
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
-        if data_file.endswith(('fits', 'vot', 'xml')):
-            obs_table = Table.read(data_file)
-        else:
-            obs_table = Table.read(data_file, format='ascii')
+        obs_table = read_table(data_file)
         for name in filter_list:
             name_err = name + '_err'
             if name_err not in column_list:

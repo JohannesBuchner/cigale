@@ -13,6 +13,7 @@ This module reads a SED spectrum from a file.
 
 from astropy.table import Table
 from collections import OrderedDict
+from ..utils import read_table
 from . import CreationModule
 
 
@@ -49,7 +50,7 @@ class LoadSpecFile(CreationModule):
 
         """
         filename = self.parameters['filename']
-        table = Table(filename, verbose=False)
+        table = read_table(filename)
 
         sed.add_module(self.name, self.parameters)
 

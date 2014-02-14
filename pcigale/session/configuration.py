@@ -14,6 +14,7 @@ from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
+from ..utils import read_table
 from .. import creation_modules
 from .. import analysis_modules
 
@@ -149,10 +150,7 @@ class Configuration(object):
             filter_list = base.get_filter_list()[0]
 
         # Finding the known filters in the data table
-        if self.config['data_file'].endswith(('fits', 'vot', 'xml')):
-            obs_table = Table.read(self.config['data_file'])
-        else:
-            obs_table = Table.read(self.config['data_file'], format='ascii')
+        obs_table = read_table(self.config['data_file'])
         column_list = []
         for column in obs_table.columns:
             filter_name = column[:-4] if column.endswith('_err') else column
