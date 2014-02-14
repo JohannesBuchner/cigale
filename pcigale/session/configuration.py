@@ -160,7 +160,7 @@ class Configuration(object):
         # Check that we don't have an error column without the associated flux
         for column in column_list:
             if column.endswith('_err') and (column[:-4] not in column_list):
-                raise StandardError("The observation table as a {} column "
+                raise Exception("The observation table as a {} column "
                                     "but no {} column.".format(column,
                                                                column[:-4]))
 

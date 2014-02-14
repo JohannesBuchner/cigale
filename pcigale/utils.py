@@ -37,7 +37,7 @@ def read_table(file_):
         try:
             table = Table.read(file_, format="ascii")
         except InconsistentTableError:
-            raise StandardError("The file <{}> can not be parsed as a data "
+            raise Exception("The file <{}> can not be parsed as a data "
                                 "table.".format(file_))
 
     return table

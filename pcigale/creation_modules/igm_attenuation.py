@@ -77,7 +77,7 @@ def igm_transmission_meiksin(wavelength, redshift):
 
     # The redshift must be strictly positive
     if redshift <= 0.:
-        raise StandardError("The redshift provided must be strictly positive "
+        raise Exception("The redshift provided must be strictly positive "
                             "<{}>.".format(redshift))
 
     n_transitions_low = 10

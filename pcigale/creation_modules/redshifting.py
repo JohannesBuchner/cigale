@@ -50,13 +50,13 @@ class Redshifting(CreationModule):
 
         # If the SED is already redshifted, raise an error.
         if sed.redshift > 0:
-            raise StandardError("The SED is already redshifted <z={}>."
+            raise Exception("The SED is already redshifted <z={}>."
                                 .format(sed.redshift))
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
         if redshift < 0:
-            raise StandardError("The redshift provided is negative <{}>."
+            raise Exception("The redshift provided is negative <{}>."
                                 .format(redshift))
 
         # We redshift directly the SED wavelength grid
