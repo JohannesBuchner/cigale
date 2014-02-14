@@ -3,7 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-import atpy
+from astropy.table import Table
 import configobj
 import pkg_resources
 import pkgutil
@@ -149,7 +149,12 @@ class Configuration(object):
             filter_list = base.get_filter_list()[0]
 
         # Finding the known filters in the data table
-        obs_table = atpy.Table(self.config['data_file'], verbose=False)
+        if self.config['data_file'][-4:] == 'fits':
+            obs_table = Table.read(self.config['data_file'], format='fits')
+        elif self.config['data_file'][-3:] == 'vot':
+            obs_table = Table.read(self.config['data_file'], format='votable')
+        else:
+            obs_table = Table.read(self.config['data_file'], format='ascii')
         column_list = []
         for column in obs_table.columns:
             filter_name = column[:-4] if column.endswith('_err') else column

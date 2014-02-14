@@ -11,7 +11,7 @@ This module reads a SED spectrum from a file.
 
 """
 
-import atpy
+from astropy.table import Table
 from collections import OrderedDict
 from . import CreationModule
 
@@ -19,17 +19,13 @@ from . import CreationModule
 class LoadSpecFile(CreationModule):
     """Module reading a spectrum from a file and adding it to the SED.
 
-    Note that this module uses the atpy module, which is not automatically
-    installed when one installs pcigale.
-
     """
 
     parameter_list = OrderedDict([
         ("filename", (
             'str',
             "Name of the file to load and to add to the SED table. This "
-            "file must be loadable with atpy (that depends on other modules "
-            "being installed).",
+            "file must be loadable with astropy",
             None
         )),
         ("lambda_column", (
@@ -53,7 +49,7 @@ class LoadSpecFile(CreationModule):
 
         """
         filename = self.parameters['filename']
-        table = atpy.Table(filename, verbose=False)
+        table = Table(filename, verbose=False)
 
         sed.add_module(self.name, self.parameters)
 

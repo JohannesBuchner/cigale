@@ -11,7 +11,7 @@ This module reads the star formation history in a file.
 
 """
 
-import atpy
+from astropy.table import Table
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
@@ -64,7 +64,12 @@ class SfhFromFile(CreationModule):
 
         """
         filename = self.parameters['filename']
-        table = atpy.Table(filename, verbose=False)
+        if filename[-4:] == 'fits':
+            table = Table.read(filename, format='fits')
+        elif data_file[-3:] == 'vot':
+            table = Table.read(filename, format='vot')
+        else:
+            table = Table.read(filename, format='ascii')
 
         time_column_name = table.columns.keys[0]
         time_grid = table[time_column_name]
