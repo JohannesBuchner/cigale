@@ -123,11 +123,11 @@ def power_law(wavelength, delta):
 def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     """Compute the complete attenuation curve A(λ)/E(B-V)*
 
-    The Leitherer et al. (2002) formula is used between 91.2 and 150 nm and
-    the Calzetti et al. (2000) formula is used after 150 (we do an
-    extrapolation after 2200 nm). When the attenuation becomes negative, it is
-    kept to 0. This continuum is multiplied by the power law and then the UV
-    bump is added.
+    The Leitherer et al. (2002) formula is used bellow 150 nm (even if it is
+    defined only after 91.2 nm) and the Calzetti et al. (2000) formula is used
+    after 150 (we do an extrapolation after 2200 nm). When the attenuation
+    becomes negative, it is kept to 0. This continuum is multiplied by the
+    power law and then the UV bump is added.
 
     Parameters
     ----------
@@ -151,7 +151,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     attenuation = np.zeros(len(wavelength))
 
     # Leitherer et al.
-    mask = (wavelength >= 91.2) & (wavelength < 150)
+    mask = (wavelength < 150)
     attenuation[mask] = k_leitherer2002(wavelength[mask])
     # Calzetti et al.
     mask = (wavelength >= 150)

@@ -138,7 +138,7 @@ class SaveFluxes(AnalysisModule):
         progress_bar.finish()
 
         # The zip call is to convert the list of rows to a list of columns.
-        out_table = Table(zip(*out_rows), names=out_columns)
+        out_table = Table(list(zip(*out_rows)), names=out_columns)
         out_table.write(out_file, format=out_format)
 
 # AnalysisModule to be returned by get_module

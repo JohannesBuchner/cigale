@@ -3,7 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-import atpy
+from astropy.table import Table
 import configobj
 import pkg_resources
 import pkgutil
@@ -14,6 +14,7 @@ from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
+from ..utils import read_table
 from .. import creation_modules
 from .. import analysis_modules
 
@@ -149,7 +150,7 @@ class Configuration(object):
             filter_list = base.get_filter_list()[0]
 
         # Finding the known filters in the data table
-        obs_table = atpy.Table(self.config['data_file'], verbose=False)
+        obs_table = read_table(self.config['data_file'])
         column_list = []
         for column in obs_table.columns:
             filter_name = column[:-4] if column.endswith('_err') else column
@@ -159,7 +160,7 @@ class Configuration(object):
         # Check that we don't have an error column without the associated flux
         for column in column_list:
             if column.endswith('_err') and (column[:-4] not in column_list):
-                raise StandardError("The observation table as a {} column "
+                raise Exception("The observation table as a {} column "
                                     "but no {} column.".format(column,
                                                                column[:-4]))
 
