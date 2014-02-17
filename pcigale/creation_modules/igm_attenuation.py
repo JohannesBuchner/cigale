@@ -124,10 +124,8 @@ def igm_transmission_meiksin(wavelength, redshift):
             tau_n[n, :] = (tau_n[9, :] * 720. /
                            (float(n) * (float(n*n - 1.))))
 
-    for n in range(2, n_transitions_max):
-        w = np.where(z_n[n, :] >= redshift)
-        tau_n[n, w] = 0.
-
+    w = np.where(z_n > redshift)
+    tau_n[w] = 0.
     z_l = wavelength / lambda_limit - 1.
     tau_l_igm = np.zeros_like(wavelength)
     w = np.where(z_l < redshift)
@@ -139,19 +137,19 @@ def igm_transmission_meiksin(wavelength, redshift):
     n = np.arange(n_transitions_low - 1)
     term2 = np.sum(np.power(-1., n) / (factorial(n) * (2*n - 1)))
 
-    term3 = ((1.+redshift) * np.power(wavelength/lambda_limit, 1.5) -
-             np.power(wavelength/lambda_limit, 2.5))
+    w = np.where(z_l < redshift)
+    term3 = ((1.+redshift) * np.power(wavelength[w]/lambda_limit, 1.5) -
+             np.power(wavelength[w]/lambda_limit, 2.5))
 
     term4 = np.sum(np.array(
         [((2.*np.power(-1., n) / (factorial(n) * ((6*n - 5)*(2*n - 1)))) *
-          (np.power(1.+redshift, 2.5-(3 * n)) *
-           np.power(wavelength/lambda_limit, 3*n) -
-           np.power(wavelength/lambda_limit, 2.5)))
+          ((1.+redshift) ** (2.5-(3 * n)) *
+           (wavelength[w]/lambda_limit) ** (3*n) -
+           (wavelength[w]/lambda_limit) ** 2.5))
          for n in np.arange(1, n_transitions_low)]), axis=0)
 
     tau_l_lls = np.zeros_like(wavelength)
-    w = np.where(z_l < redshift)
-    tau_l_lls[w] = n0 * ((term1 - term2) * term3[w] - term4[w])
+    tau_l_lls[w] = n0 * ((term1 - term2) * term3 - term4)
 
     tau_taun = 0.
     for n in range(n_transitions_max):
