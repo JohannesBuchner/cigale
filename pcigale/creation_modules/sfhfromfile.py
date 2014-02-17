@@ -67,13 +67,12 @@ class SfhFromFile(CreationModule):
         filename = self.parameters['filename']
         table = read_table(filename)
 
-        time_column_name = table.columns.keys[0]
-        time_grid = table[time_column_name]
+        time_grid = table.columns[0].data
 
         # -1 because Python indexes start to 0.
         sfr_column_number = int(self.parameters['sfr_column']) - 1
-        sfr_column_name = table.columns.keys[sfr_column_number]
-        sfr = table[sfr_column_name]
+        sfr_column_name = table.colnames[sfr_column_number]
+        sfr = table.columns[sfr_column_number].data
 
         age = int(self.parameters['age'])
         normalise = (self.parameters["normalise"].lower() == "true")
