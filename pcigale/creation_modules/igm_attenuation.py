@@ -31,6 +31,9 @@ class IgmAttenuation(CreationModule):
 
     """
 
+    # We cache the IGM transmission computation.
+    igm_att = {}
+
     def process(self, sed):
         """Add IGM attenuation
 
@@ -41,9 +44,18 @@ class IgmAttenuation(CreationModule):
         """
 
         if sed.redshift > 0:
-            igm_transmission = igm_transmission_meiksin(sed.wavelength_grid,
-                                                        sed.redshift)
-            igm_effect = (igm_transmission - 1.) * sed.luminosity
+
+            # To memoize the IGM attenuation computation (with depends on the
+            #  wavelength grid and the redshift), we have to make the
+            # wavelength grid hashable. We do this by converting to a string.
+            wave_redshift = (sed.wavelength_grid.tostring(), sed.redshift)
+
+            if wave_redshift not in self.igm_att:
+                self.igm_att[wave_redshift] = (
+                    igm_transmission_meiksin(sed.wavelength_grid,
+                                             sed.redshift) - 1)
+
+            igm_effect = self.igm_att[wave_redshift] * sed .luminosity
 
             sed.add_module(self.name, self.parameters)
             sed.add_contribution(
