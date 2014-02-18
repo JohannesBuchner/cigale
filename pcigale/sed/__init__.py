@@ -37,6 +37,7 @@ Such SED is characterised by:
 """
 
 import numpy as np
+from collections import OrderedDict
 from . import utils
 from scipy.constants import c
 from scipy.interpolate import interp1d
@@ -69,7 +70,7 @@ class SED(object):
         self.contribution_names = []
         self.luminosities = None
         self.lines = {}
-        self.info = {}
+        self.info = OrderedDict()
         self.mass_proportional_info = []
 
     @property
