@@ -522,7 +522,7 @@ class PdfAnalysis(AnalysisModule):
                     if save_pdf and pdf_prob is not None:
                         table = Table((
                             Column(pdf_grid, name=var_name),
-                            Column(pdf_prob, name="probability")
+                            Column(pdf_prob, name="probability density")
                         ))
                         table.write(OUT_DIR + "{}_{}_pdf.fits".format(
                             obs_name, var_name))
@@ -532,7 +532,7 @@ class PdfAnalysis(AnalysisModule):
                         ax = figure.add_subplot(111)
                         ax.plot(pdf_grid, pdf_prob)
                         ax.set_xlabel(var_name)
-                        ax.set_ylabel("Probability")
+                        ax.set_ylabel("Probability density")
                         figure.savefig(OUT_DIR + "{}_{}_pdf.pdf".format(
                             obs_name, var_name))
                         plt.close(figure)
