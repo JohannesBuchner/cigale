@@ -541,5 +541,32 @@ class PdfAnalysis(AnalysisModule):
                             obs_name, var_name))
                         plt.close(figure)
 
+        ##################################################################
+        # Reduced-chisquares plots                                       #
+        ##################################################################
+        if plot_chi2_distribution:
+
+            print("Plotting the reduced chi squares distributions...")
+
+            for obs_index, obs_name in enumerate(obs_table["id"]):
+
+                obs_red_chisquares = reduced_chi_squares[:, obs_index]
+
+                for var_index, var_name in enumerate(analysed_variables):
+
+                    values = model_variables[:, obs_index, var_index]
+
+                    figure = plt.figure()
+                    ax = figure.add_subplot(111)
+                    ax.plot(values, obs_red_chisquares, "ob")
+                    ax.set_xlabel(var_name)
+                    ax.set_ylabel("reduced chi-square")
+                    figure.suptitle("Reduced chi-square distribution of {} "
+                                    "values for {}".format(obs_index, var_name))
+                    figure.savefig(OUT_DIR + "{}_{}_chisquares.pdf".format(
+                            obs_name, var_name))
+                    plt.close(figure)
+
+
 # AnalysisModule to be returned by get_module
 Module = PdfAnalysis
