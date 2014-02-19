@@ -50,7 +50,6 @@ class DatabaseInsertError(Exception):
     """
 
 
-
 class _Filter(BASE):
     """ Storage for filters
     """

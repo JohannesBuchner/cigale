@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Adjust Python path to load the module
-import sys, os
+import os
+import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 # Use astropy Sphinx configuration
@@ -36,7 +37,7 @@ version = pcigale.__version__.split('-', 1)[0]
 # The full version, including alpha/beta/rc tags.
 release = pcigale.__version__
 
-# -- Options for HTML output ---------------------------------------------------
+# -- Options for HTML output --------------------------------------------------
 
 # A NOTE ON HTML THEMES
 # The global astropy configuration uses a custom theme, 'bootstrap-astropy',
@@ -74,7 +75,7 @@ html_title = '{0} v{1}'.format(project, release)
 htmlhelp_basename = project + 'doc'
 
 
-# -- Options for LaTeX output --------------------------------------------------
+# -- Options for LaTeX output -------------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -88,7 +89,8 @@ latex_elements = {
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
+# (source start file, target name, title, author, documentclass
+# [howto/manual]).
 latex_documents = [
     ('index', 'pcigale.tex', u'pcigale Documentation',
      u'pcigale team', 'manual'),
@@ -115,7 +117,7 @@ latex_documents = [
 #latex_domain_indices = True
 
 
-# -- Options for manual page output --------------------------------------------
+# -- Options for manual page output -------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
@@ -128,7 +130,7 @@ man_pages = [
 #man_show_urls = False
 
 
-# -- Options for Texinfo output ------------------------------------------------
+# -- Options for Texinfo output -----------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
@@ -152,7 +154,7 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 
-# -- Options for Epub output ---------------------------------------------------
+# -- Options for Epub output --------------------------------------------------
 
 # Bibliographic Dublin Core info.
 epub_title = u'pcigale documentation'
@@ -209,7 +211,7 @@ epub_copyright = u'Laboratoire d\'Astrophysique de Marseille'
 # If false, no index is generated.
 #epub_use_index = True
 
-## -- Options for the edit_on_github extension ----------------------------------------
+## -- Options for the edit_on_github extension --------------------------------
 #
 #extensions += ['astropy.sphinx.ext.edit_on_github']
 #
@@ -224,4 +226,3 @@ epub_copyright = u'Laboratoire d\'Astrophysique de Marseille'
 #
 #edit_on_github_source_root = ""
 #edit_on_github_doc_root = "docs"
-

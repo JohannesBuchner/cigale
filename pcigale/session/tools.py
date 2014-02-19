@@ -34,7 +34,7 @@ def param_dict_combine(dictionary):
         string_type = basestring
     except NameError:
         string_type = str
-        
+
     for key, value in dictionary.items():
         if ((not isinstance(value, collections.Iterable)) or
                 isinstance(value, string_type)):

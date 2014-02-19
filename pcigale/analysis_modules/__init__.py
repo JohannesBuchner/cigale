@@ -49,8 +49,8 @@ class AnalysisModule(object):
         creation_modules_params : array of array of dictionaries
             Array containing all the possible combinations of configurations
             for the creation_modules. Each 'inner' array has the same length as
-            the creation_modules array and contains the configuration dictionary
-            for the corresponding module.
+            the creation_modules array and contains the configuration
+            dictionary for the corresponding module.
         parameters : dictionary
             Configuration for the module.
 
@@ -109,7 +109,8 @@ class AnalysisModule(object):
         # unexpected one was given.
         if not set(parameters) == set(self.parameter_list):
             missing_parameters = (set(self.parameter_list) - set(parameters))
-            unexpected_parameters = (set(parameters) - set(self.parameter_list))
+            unexpected_parameters = (set(parameters) -
+                                     set(self.parameter_list))
             message = ""
             if missing_parameters:
                 message += ("Missing parameters: " +

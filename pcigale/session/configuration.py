@@ -3,14 +3,12 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-from astropy.table import Table
 import configobj
 import pkg_resources
 import pkgutil
 import collections
 import itertools
 import numpy as np
-from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from .tools import param_dict_combine
 from ..data import Database
@@ -161,8 +159,8 @@ class Configuration(object):
         for column in column_list:
             if column.endswith('_err') and (column[:-4] not in column_list):
                 raise Exception("The observation table as a {} column "
-                                    "but no {} column.".format(column,
-                                                               column[:-4]))
+                                "but no {} column.".format(column,
+                                                           column[:-4]))
 
         self.config['column_list'] = column_list
         self.config.comments['column_list'] = [""] + wrap(

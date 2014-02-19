@@ -59,7 +59,6 @@ class Casey2012(CreationModule):
         ("alpha", "Mid-infrared powerlaw slope.")
     ])
 
-
     def _init_code(self):
         """Build the model for a given set of parameters."""
 
@@ -78,16 +77,16 @@ class Casey2012(CreationModule):
         lambda_c = 0.75e3 / ((b1 + b2 * alpha) ** -2. + (b3 + b4 * alpha) * T)
         lambda_0 = 200e3
         Npl = ((1. - np.exp(-(lambda_0 / lambda_c) ** beta)) * (c / lambda_c)
-              ** 3. / (np.exp(cst.h * c / (lambda_c * cst.k * T)) - 1.))
+               ** 3. / (np.exp(cst.h * c / (lambda_c * cst.k * T)) - 1.))
 
         self.wave = np.logspace(3., 6., 1000.)
         conv = c / (self.wave * self.wave)
 
-        self.lumin_blackbody = conv * (1. - np.exp(-(lambda_0 / self.wave)
-                              ** beta)) * (c / self.wave) ** 3. / (np.exp(
-                              cst.h * c / (self.wave * cst.k * T)) - 1.)
+        self.lumin_blackbody = (conv * (1. - np.exp(-(lambda_0 / self.wave)
+                                ** beta)) * (c / self.wave) ** 3. / (np.exp(
+                                cst.h * c / (self.wave * cst.k * T)) - 1.))
         self.lumin_powerlaw = (conv * Npl * (self.wave / lambda_c) ** alpha *
-                        np.exp(-(self.wave / lambda_c) ** 2.))
+                               np.exp(-(self.wave / lambda_c) ** 2.))
 
         # TODO, save the right normalisation factor to retrieve the dust mass
         norm = np.trapz(self.lumin_powerlaw + self.lumin_blackbody,
@@ -95,7 +94,6 @@ class Casey2012(CreationModule):
         self.lumin_powerlaw /= norm
         self.lumin_blackbody /= norm
         self.lumin = self.lumin_powerlaw + self.lumin_blackbody
-
 
     def process(self, sed):
         """Add the IR re-emission contributions.
@@ -114,7 +112,8 @@ class Casey2012(CreationModule):
             self.parameters["attenuation_value_keys"].split("&")]
 
         sed.add_module(name, self.parameters)
-        sed.add_info("temperature" + self.postfix, self.parameters["temperature"])
+        sed.add_info("temperature" + self.postfix,
+                     self.parameters["temperature"])
         sed.add_info("alpha" + self.postfix, self.parameters["alpha"])
         sed.add_info("beta" + self.postfix, self.parameters["beta"])
 

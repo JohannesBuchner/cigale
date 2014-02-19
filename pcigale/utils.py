@@ -38,6 +38,6 @@ def read_table(file_):
             table = Table.read(file_, format="ascii")
         except InconsistentTableError:
             raise Exception("The file <{}> can not be parsed as a data "
-                                "table.".format(file_))
+                            "table.".format(file_))
 
     return table
