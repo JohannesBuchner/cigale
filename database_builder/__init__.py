@@ -486,7 +486,7 @@ def build_fritz2006(base):
 def build_lines(base):
     lines_dir = os.path.join(os.path.dirname(__file__), 'lines/')
     
-    for Z in ['0.0000001', '0.00001', '0.0004', '0.008', '0.02']:
+    for Z in ['0.0001', '0.0004', '0.004', '0.008', '0.02', '0.05']:
         filename = "{}lines_{}.dat".format(lines_dir, Z)
         print("Importing {}...".format(filename))
         wave, ratio1, ratio2, ratio3 = np.genfromtxt(filename, unpack=True,
