@@ -1,9 +1,0 @@
-For now, the SED does not "know" its redshift (whether it was redshifted or
-not) and the redshift is given in parameter to the compute_fnu method. This
-makes thing uneasy for analysis modules like savefluxes if one wants to compute
-fluxes at various redshit because we had to hard code the redshift at which the
-flux is computed.
-* Make the redshift a SED attribute.
-* Make the compute_fnu use this redshift.
-* Change the analysis modules accordingly.
-

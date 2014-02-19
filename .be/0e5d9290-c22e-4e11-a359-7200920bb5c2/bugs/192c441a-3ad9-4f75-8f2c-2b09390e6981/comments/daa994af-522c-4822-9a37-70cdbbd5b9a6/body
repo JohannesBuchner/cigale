@@ -1,3 +1,0 @@
-When using the sfhfromfile module, we don't want to save the SED to the
-database (maybe unless we save to memory), especially when the SFH is not
-normalised. Make this saving optional in the warehouse.
