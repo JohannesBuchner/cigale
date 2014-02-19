@@ -29,11 +29,12 @@ from numpy import newaxis
 from collections import OrderedDict
 from datetime import datetime
 from progressbar import ProgressBar
+from matplotlib import pyplot as plt
 from astropy.table import Table, Column
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
 from ...creation_modules import get_module as get_creation_module
-from .utils import gen_compute_fluxes_at_redshift
+from .utils import gen_compute_fluxes_at_redshift, gen_pdf
 from ...warehouse import SedWarehouse
 from ...data import Database
 
@@ -51,6 +52,8 @@ OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 91
 PLOT_L_MAX = 1e6
+# Number of points in the PDF
+PDF_NB_POINTS = 1000
 
 
 class PdfAnalysis(AnalysisModule):
@@ -99,14 +102,6 @@ class PdfAnalysis(AnalysisModule):
             "If true, for each observation and each analysed variable "
             "plot the probability density function.",
             False
-        )),
-        ("pdf_max_bin_number", (
-            "integer",
-            "Maximum number of bins used to compute the probability density "
-            "function. This is only used when saving or printing the PDF. "
-            "If there are less values, the probability is given for each "
-            "one.",
-            50
         )),
         ("storage_type", (
             "string",
@@ -159,7 +154,6 @@ class PdfAnalysis(AnalysisModule):
             parameters["plot_chi2_distribution"].lower() == "true")
         save_pdf = (parameters["save_pdf"].lower() == "true")
         plot_pdf = (parameters["plot_pdf"].lower() == "true")
-        pdf_max_bin_number = int(parameters["pdf_max_bin_number"])
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -424,22 +418,53 @@ class PdfAnalysis(AnalysisModule):
 
         best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
 
+        ##################################################################
+        # Probability Density Functions                                  #
+        ##################################################################
 
+        # We estimate the probability density functions (PDF) of the
+        # parameters using a weighted kernel density estimation. This part
+        # should definitely be improved as we simulate the weigth by adding
+        # as many value as their probability * 100.
 
+        if save_pdf or plot_pdf:
 
+            print("Computing the probability density functions...")
 
+            for obs_index, obs_name in enumerate(obs_table["id"]):
 
+                probabilities = likelihood[:, obs_index]
 
+                for var_index, var_name in enumerate(analysed_variables):
 
+                    values = model_variables[:, obs_index, var_index]
 
+                    pdf_grid = np.linspace(values.min(), values.max(),
+                                           PDF_NB_POINTS)
+                    pdf_prob = gen_pdf(values, probabilities, pdf_grid)
 
+                    if pdf_prob is None:
+                        # TODO: use logging
+                        print("Can not compute PDF for observation <{}> and "
+                              "variable <{}>.".format(obs_name, var_name))
 
+                    if save_pdf and pdf_prob is not None:
+                        table = Table((
+                            Column(pdf_grid, name=var_name),
+                            Column(pdf_prob, name="probability")
+                        ))
+                        table.write(OUT_DIR + "{}_{}_pdf.fits".format(
+                            obs_name, var_name))
 
-
-
-
-
-
+                    if plot_pdf and pdf_prob is not None:
+                        figure = plt.figure()
+                        ax = figure.add_subplot(111)
+                        ax.plot(pdf_grid, pdf_prob)
+                        ax.set_xlabel(var_name)
+                        ax.set_ylabel("Probability")
+                        figure.savefig(OUT_DIR + "{}_{}_pdf.pdf".format(
+                            obs_name, var_name))
+                        plt.close(figure)
 
 # AnalysisModule to be returned by get_module
 Module = PdfAnalysis
