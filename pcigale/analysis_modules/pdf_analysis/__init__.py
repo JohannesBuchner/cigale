@@ -25,6 +25,7 @@ reduced χ²) is given for each observation.
 
 import os
 import numpy as np
+import matplotlib
 from numpy import newaxis
 from collections import OrderedDict
 from datetime import datetime
@@ -133,6 +134,9 @@ class PdfAnalysis(AnalysisModule):
             Dictionary containing the parameters.
 
         """
+
+        # To be sure matplotlib will not display the interactive window.
+        matplotlib.interactive(0)
 
         # Rename the output directory if it exists
         if os.path.exists(OUT_DIR):
