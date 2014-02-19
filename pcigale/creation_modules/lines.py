@@ -97,6 +97,8 @@ class Module(CreationModule):
                     (1. - self.parameters['escape_fraction'] -
                      self.parameters['f_dust'])
                     )
+        if self.conv < 0.:
+            raise Exception("Escape fraction+f_dust>1")
 
 
     def process(self, sed):
