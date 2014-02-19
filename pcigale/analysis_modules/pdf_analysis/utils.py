@@ -7,6 +7,7 @@
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.linalg import LinAlgError
+from matplotlib import pyplot as plt
 from copy import deepcopy
 from ...sed.cosmology import cosmology
 from ...creation_modules import get_module as get_creation_module
@@ -152,3 +153,43 @@ def gen_pdf(values, probabilities, grid):
 
     return result
 
+
+def gen_best_sed_fig(wave, fnu, filters_wave, filters_model, filters_obs):
+    """Generate a figure for plotting the best models
+
+    Parameters
+    ----------
+    wave : array-like of floats
+        The wavelength grid of the model spectrum.
+    fnu : array-like of floats
+        The Fnu spectrum of the model at each wavelength.
+    filters_wave : array-like of floats
+        The effective wavelengths of the various filters.
+    filters_model : array-like of floats
+        The model fluxes in each filter.
+    filters_obs : array-like of floats
+        The observed fluxes in each filter.
+
+    Returns
+    -------
+    A matplotlib.plt.figure.
+
+    """
+
+    try:
+        figure = plt.figure()
+        ax = figure.add_subplot(111)
+        ax.loglog(wave, fnu, "-b", label="Model spectrum")
+        ax.loglog(filters_wave, filters_model, "ob", label="Model fluxes")
+        ax.loglog(filters_wave, filters_obs, "or", label="Observation fluxes")
+        ax.set_xlabel("Wavelength [nm]")
+        ax.set_ylabel("Flux [mJy]")
+        ax.legend(loc=0)
+
+        return figure
+
+    except ValueError:
+        # If the SED can't be plot in x and y logarithm scaled, that means
+        # that we have either negative wavelength or flux and that something
+        # has gone wrong.
+        return None
