@@ -330,20 +330,6 @@ class CalzLeit(CreationModule):
         else:
             attenuation_old = 0
 
-        # Attenuation of spectral lines
-        if young_contrib in sed.lines:
-            line_attenuation = a_vs_ebv(sed.lines[young_contrib][0],
-                                        uv_bump_wavelength, uv_bump_width,
-                                        uv_bump_amplitude, powerlaw_slope)
-            sed.lines[young_contrib][1] *= 10 ** (ebvs_young *
-                                                  line_attenuation / -2.5)
-        if old_contrib in sed.lines:
-            line_attenuation = a_vs_ebv(sed.lines[old_contrib][0],
-                                        uv_bump_wavelength, uv_bump_width,
-                                        uv_bump_amplitude, powerlaw_slope)
-            sed.lines[old_contrib][1] *= 10 ** (ebvs_old *
-                                                line_attenuation / -2.5)
-
         # Total attenuation (we don't take into account the energy attenuated
         # in the spectral lines)
         sed.add_info("attenuation" + self.postfix,
