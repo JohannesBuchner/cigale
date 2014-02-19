@@ -247,7 +247,7 @@ class Database(object):
         if self.is_writable:
             BASE.metadata.create_all(ENGINE)
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def close(self):
         """ Close the connection to the database
@@ -273,7 +273,7 @@ class Database(object):
                 self.session.rollback()
                 raise DatabaseInsertError('The filter is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_ssp_m2005(self, ssp_m2005):
         """
@@ -293,7 +293,7 @@ class Database(object):
                 self.session.rollback()
                 raise DatabaseInsertError('The SSP is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_ssp_bc03(self, ssp_bc03):
         """
@@ -313,7 +313,7 @@ class Database(object):
                 self.session.rollback()
                 raise DatabaseInsertError('The SSP is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_dh2002_infrared_templates(self, data):
         """
@@ -345,7 +345,7 @@ class Database(object):
                 raise DatabaseInsertError(
                     'The template is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_dale2014(self, iragn):
         """
@@ -367,7 +367,7 @@ class Database(object):
                 raise DatabaseInsertError(
                     'The Dale2014 template is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_dl2007(self, model):
         """
@@ -387,7 +387,7 @@ class Database(object):
                 raise DatabaseInsertError(
                     'The DL07 model is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_fritz2006_agn(self, agn):
         """
@@ -407,7 +407,7 @@ class Database(object):
                 raise DatabaseInsertError(
                     'The agn model is already in the base.')
         else:
-            raise StandardError('The database is not writable.')
+            raise Exception('The database is not writable.')
 
     def add_lines(self, lines):
         """

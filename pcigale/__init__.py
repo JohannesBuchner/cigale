@@ -39,15 +39,12 @@ def run(config):
     column_list = config.configuration['column_list']
     creation_modules = config.configuration['creation_modules']
     creation_modules_params = config.creation_modules_conf_array
-    redshift_module = config.configuration['redshift_module']
-    redshift_configuration = config.configuration['redshift_configuration']
     analysis_module = get_analysis_module(config.configuration[
         'analysis_method'])
     analysis_module_params = config.configuration['analysis_method_params']
 
     analysis_module.process(data_file, column_list, creation_modules,
-                            creation_modules_params, redshift_module,
-                            redshift_configuration, analysis_module_params)
+                            creation_modules_params, analysis_module_params)
 
 
 def main():

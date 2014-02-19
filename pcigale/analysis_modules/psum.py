@@ -20,20 +20,20 @@ and the best fitting model (the one with the least reduced χ²) is given.
 """
 
 import os
-import atpy
 import json
 import numpy as np
 from itertools import product
-from astropy.table import Table
+from astropy.table import Table, Column
 from collections import OrderedDict
 from datetime import datetime
 from copy import deepcopy
 from scipy import stats
 from progressbar import ProgressBar
 from matplotlib import pyplot as plt
+from ..utils import read_table
 from . import AnalysisModule
-from ..warehouse import SedWarehouse
 from ..creation_modules import get_module
+from ..warehouse import SedWarehouse
 from ..data import Database
 
 
@@ -103,8 +103,7 @@ class Psum(AnalysisModule):
     ])
 
     def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, redshift_module_name,
-                redshift_configuration, parameters):
+                creation_modules_params, parameters):
         """Process with the psum analysis.
 
         The analysis is done in two nested loops: over each observation and
@@ -122,10 +121,6 @@ class Psum(AnalysisModule):
             the SEDs.
         creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
-        redshift_module_name : string
-            Name of the module used to redshift the SED.
-        redshift_configuration : dictionary
-            Configuration dictionary for the module used to redshift the SED.
         parameters: dictionary
             Dictionary containing the parameters.
 
@@ -183,22 +178,21 @@ class Psum(AnalysisModule):
                 transmission[name] = filt.trans_table
                 effective_wavelength[name] = filt.effective_wavelength
 
-        # We get the redshift module.
-        redshift_module = get_module(redshift_module_name,
-                                     **redshift_configuration)
+        # We get the redshift and igm modules.
+        redshift_module = get_module("redshifting", redshift=0)
+        igm_module = get_module("igm_attenuation")
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
-        obs_table = atpy.Table(data_file, verbose=False)
+        obs_table = read_table(data_file)
         for name in filter_list:
             name_err = name + '_err'
             if name_err not in column_list:
                 if name_err not in obs_table.columns:
-                    obs_table.add_column(name_err,
-                                         np.zeros(obs_table.data.shape),
-                                         dtype=float)
+                    obs_table.add_column(Column(name=name_err, data=
+                                         np.zeros(np.shape(obs_table))))
                 else:
-                    obs_table[name_err] = np.zeros(obs_table.data.shape)
+                    obs_table[name_err] = np.zeros(np.shape(obs_table))
 
             obs_table[name_err] = adjust_errors(obs_table[name],
                                                 obs_table[name_err])
@@ -212,7 +206,7 @@ class Psum(AnalysisModule):
         # on the analysed variables list + reduced_chi2, probability and
         # galaxy_mass at the beginning).
         comp_table = np.zeros((len(creation_modules_params),
-                               obs_table.data.shape[0],
+                               np.shape(obs_table)[0],
                                len(analysed_variables) + 3), dtype=float)
         comp_table[:, :, :] = np.nan
 
@@ -224,7 +218,7 @@ class Psum(AnalysisModule):
             # Compute the reduced Chi-square, the galaxy mass (normalisation
             # factor) and probability for each observed SEDs. Add these and
             # the values for the analysed variable to the comp_table.
-            for obs_index in range(obs_table.data.shape[0]):
+            for obs_index in range(np.shape(obs_table)[0]):
                 obs_redshift = obs_table['redshift'][obs_index]
                 obs_fluxes = [obs_table[name][obs_index]
                               for name in filter_list]
@@ -235,6 +229,7 @@ class Psum(AnalysisModule):
                 red_sed = deepcopy(sed)
                 redshift_module.parameters["redshift"] = obs_redshift
                 redshift_module.process(red_sed)
+                igm_module.process(red_sed)
 
                 # Theoretical fluxes
                 theor_fluxes = [red_sed.compute_fnu(transmission[name],
@@ -267,12 +262,12 @@ class Psum(AnalysisModule):
 
             # We will save the part of the computation table corresponding to
             # the model as a FITS file.
-            fits_table = atpy.Table()
+            fits_table = Table()
             fits_table.table_name = "Analysis computation table"
-            fits_table.add_column("reduced_chi-square",
-                                  comp_table[:, obs_index, 0])
-            fits_table.add_column("probability",
-                                  comp_table[:, obs_index, 1])
+            fits_table.add_column(Column(name="reduced_chi-square",
+                                  data=comp_table[:, obs_index, 0]))
+            fits_table.add_column(Column(name="probability",
+                                  data=comp_table[:, obs_index, 1]))
 
             # Find the model corresponding to the least reduced Chi-square;
             # if there more than one model with the minimal chi-square value
@@ -303,20 +298,20 @@ class Psum(AnalysisModule):
             # we develop a way to serialise the SED, we should save the
             # complete SED object.
             if save_best_sed:
-                best_sed_table = atpy.Table()
+                best_sed_table = Table()
                 best_sed_table.table_name = "Best SED"
-                best_sed_table.add_column("wavelength",
-                                          best_sed.wavelength_grid,
-                                          "nm")
-                best_sed_table.add_column("fnu",
-                                          best_norm_factor
+                best_sed_table.add_column(Column(name="wavelength",
+                                          data=best_sed.wavelength_grid,
+                                          unit="nm"))
+                best_sed_table.add_column(Column(name="fnu",
+                                          data=best_norm_factor
                                           * best_sed.fnu,
-                                          "mJy")
+                                          unit="mJy"))
                 best_sed_table.write(OUT_DIR + obs_name + 'bestSED.fits',
-                                     verbose=False)
+                                     format='fits')
                 # Write the SED modules parameters to a file
                 with open(OUT_DIR + obs_name + "bestSED.params", "w") as f:
-                    f.write(json.dumps(zip(creation_modules, best_params),
+                    f.write(json.dumps(list(zip(creation_modules, best_params)),
                                        indent=2,
                                        separators=(',', ': ')))
 
@@ -357,7 +352,7 @@ class Psum(AnalysisModule):
                 values = comp_table[:, obs_index, idx]
                 probabilities = comp_table[:, obs_index, 1]
 
-                fits_table.add_column(variable, values)
+                fits_table.add_column(Column(name=variable, data=values))
 
                 # We compute the Probability Density Function by binning the
                 # data into evenly populated bins. To estimate the binning
@@ -432,18 +427,21 @@ class Psum(AnalysisModule):
                     plt.close(figure)
 
                 if save_pdf:
-                    pdf_table = atpy.Table()
+                    pdf_table = Table()
                     pdf_table.table_name = "Probability Density Function"
-                    pdf_table.add_column("bin_start",
-                                         pdf_bin_boundaries[:-1])
-                    pdf_table.add_column("bin_end",
-                                         pdf_bin_boundaries[1:])
-                    pdf_table.add_column("value", pdf_values)
-                    pdf_table.add_column("value_sigma", pdf_value_sigma)
-                    pdf_table.add_column("probability", pdf_probs)
-                    pdf_table.add_column("probability_sigma", pdf_prob_sigma)
+                    pdf_table.add_column(Column(name="bin_start",
+                                         data=pdf_bin_boundaries[:-1]))
+                    pdf_table.add_column(Column(name="bin_end",
+                                         data=pdf_bin_boundaries[1:]))
+                    pdf_table.add_column(Column(name="value", data=pdf_values))
+                    pdf_table.add_column(Column(name="value_sigma",
+                                                data=pdf_value_sigma))
+                    pdf_table.add_column(Column(name="probability",
+                                                data=pdf_probs))
+                    pdf_table.add_column(Column(name="probability_sigma",
+                                                data=pdf_prob_sigma))
                     pdf_table.write(OUT_DIR + obs_name + "_" + variable +
-                                    "_pdf.fits", verbose=False)
+                                    "_pdf.fits", format='fits')
 
                 if plot_pdf:
                     figure = plt.figure()
@@ -468,20 +466,21 @@ class Psum(AnalysisModule):
                     plt.close(figure)
 
         # Write the computation table FITS
-        fits_table.write(OUT_DIR + obs_name + '_comptable.fits', verbose=False)
+        fits_table.write(OUT_DIR + obs_name + '_comptable.fits', format='fits')
 
         # Write the results to the fits file
-        result_table = atpy.Table()
+        result_table = Table()
         result_table.table_name = "Analysis results"
-        result_table.add_column('id', obs_table['id'])
+        result_table.add_column(Column(name='id', data=obs_table['id']))
         for variable in (['galaxy_mass'] + analysed_variables):
-            result_table.add_column(variable, results[variable])
-            result_table.add_column(variable + '_err',
-                                    results[variable + '_err'])
-        result_table.write(OUT_DIR + RESULT_FILE, verbose=False)
+            result_table.add_column(Column(name=variable,
+                                           data=results[variable]))
+            result_table.add_column(Column(name=variable + '_err',
+                                    data=results[variable + '_err']))
+        result_table.write(OUT_DIR + RESULT_FILE)
 
         # Write the best SED table
-        out_bestsed_table = Table(zip(*out_bestsed_rows),
+        out_bestsed_table = Table(list(zip(*out_bestsed_rows)),
                                   names=out_bestsed_columns)
         out_bestsed_table.write(OUT_DIR + "bestSeds.xml", format="votable")
 

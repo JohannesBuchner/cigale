@@ -69,7 +69,7 @@ def read_bc03_ssp(filename):
 
     file_structure = file_structure_generator()
     # Are we in a data line or a bad one.
-    what_line = file_structure.next()
+    what_line = next(file_structure)
     # Variable conting, in reverse order, the number of value still to
     # read for the read vector.
     counter = 0
@@ -112,7 +112,7 @@ def read_bc03_ssp(filename):
             # If at the end of a line, we have finished reading a vector, it's
             # time to change to the next structure context.
             if counter == 0:
-                what_line = file_structure.next()
+                what_line = next(file_structure)
 
     # The time grid is in year, we want Myr.
     time_grid = np.array(time_grid, dtype=float)
