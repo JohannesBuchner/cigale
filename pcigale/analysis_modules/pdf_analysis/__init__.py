@@ -389,7 +389,7 @@ class PdfAnalysis(AnalysisModule):
 
         # We define the best fitting model for each observation as the one
         # with the least χ².
-        best_model_index = list(reduced_chi_squares.argmin(axis=0))
+        best_model_index = list(chi_squares.argmin(axis=0))
 
         # We take the list of information added to the SEDs from the last
         # computed one.
