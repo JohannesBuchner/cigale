@@ -247,7 +247,7 @@ class PdfAnalysis(AnalysisModule):
                 progress_bar.update(model_index + 1)
 
         # Mask the invalid fluxes
-        model_fluxes = np.ma.masked_less(model_fluxes, -99)
+        model_fluxes = np.ma.masked_less(model_fluxes, -90)
 
         progress_bar.finish()
 
