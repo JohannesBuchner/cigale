@@ -39,6 +39,7 @@ Such SED is characterised by:
 import numpy as np
 from collections import OrderedDict
 from . import utils
+from .io.vo import save_sed_to_vo
 from scipy.constants import c
 from scipy.interpolate import interp1d
 
@@ -393,3 +394,18 @@ class SED(object):
             f_nu *= 1.e+29
 
         return f_nu
+
+    def to_votable(self, filename, mass=1.):
+        """
+        Save the SED to a VO-table file
+
+        Parameters
+        ----------
+        filename : string
+            Name of the VO-table file
+        mass : float
+            Galaxy mass in solar mass. When need, the saved data will be
+            multiplied by this mass.
+
+        """
+        save_sed_to_vo(self, filename, mass)
