@@ -78,7 +78,6 @@ class BC03(CreationModule):
             SED object.
 
         """
-
         imf = self.parameters["imf"]
         metallicity = float(self.parameters["metallicity"])
         separation_age = int(self.parameters["separation_age"])
@@ -102,35 +101,28 @@ class BC03(CreationModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.add_info("ssp_imf" + self.postfix, imf)
-        sed.add_info("ssp_metallicity" + self.postfix, metallicity)
-        sed.add_info("ssp_old_young_separation_age" + self.postfix,
-                     separation_age)
+        sed.add_info("stellar.imf", imf)
+        sed.add_info("stellar.metallicity", metallicity)
+        sed.add_info("stellar.old_young_separation_age", separation_age)
 
-        sed.add_info("ssp_m_star_young" + self.postfix,
-                     young_info["m_star"], True)
-        sed.add_info("ssp_m_gas_young" + self.postfix,
-                     young_info["m_gas"], True)
-        sed.add_info("ssp_n_ly_young" + self.postfix, young_info["n_ly"])
-        sed.add_info("ssp_b_400_young" + self.postfix, young_info["b_4000"])
-        sed.add_info("ssp_b4_vn_young" + self.postfix, young_info["b4_vn"])
-        sed.add_info("ssp_b4_sdss_young" + self.postfix, young_info["b4_sdss"])
-        sed.add_info("ssp_b_912_young" + self.postfix, young_info["b_912"])
+        sed.add_info("stellar.m_star_young", young_info["m_star"], True)
+        sed.add_info("stellar.m_gas_young", young_info["m_gas"], True)
+        sed.add_info("stellar.n_ly_young", young_info["n_ly"])
+        sed.add_info("stellar.b_400_young", young_info["b_4000"])
+        sed.add_info("stellar.b4_vn_young", young_info["b4_vn"])
+        sed.add_info("stellar.b4_sdss_young", young_info["b4_sdss"])
+        sed.add_info("stellar.b_912_young", young_info["b_912"])
 
-        sed.add_info("ssp_m_star_old" + self.postfix, old_info["m_star"], True)
-        sed.add_info("ssp_m_gas_old" + self.postfix, old_info["m_gas"], True)
-        sed.add_info("ssp_n_ly_old" + self.postfix, old_info["n_ly"])
-        sed.add_info("ssp_b_400_old" + self.postfix, old_info["b_4000"])
-        sed.add_info("ssp_b4_vn_old" + self.postfix, old_info["b4_vn"])
-        sed.add_info("ssp_b4_sdss_old" + self.postfix, old_info["b4_sdss"])
-        sed.add_info("ssp_b_912_old" + self.postfix, old_info["b_912"])
+        sed.add_info("stellar.m_star_old", old_info["m_star"], True)
+        sed.add_info("stellar.m_gas_old", old_info["m_gas"], True)
+        sed.add_info("stellar.n_ly_old", old_info["n_ly"])
+        sed.add_info("stellar.b_400_old", old_info["b_4000"])
+        sed.add_info("stellar.b4_vn_old", old_info["b4_vn"])
+        sed.add_info("stellar.b4_sdss_old", old_info["b4_sdss"])
+        sed.add_info("stellar.b_912_old", old_info["b_912"])
 
-        sed.add_contribution("ssp_old" + self.postfix,
-                             old_wave,
-                             old_lumin)
-        sed.add_contribution("ssp_young" + self.postfix,
-                             young_wave,
-                             young_lumin)
+        sed.add_contribution("stellar.old", old_wave, old_lumin)
+        sed.add_contribution("stellar.young", young_wave, young_lumin)
 
 # CreationModule to be returned by get_module
 Module = BC03

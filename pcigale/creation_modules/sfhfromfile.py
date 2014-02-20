@@ -83,11 +83,11 @@ class SfhFromFile(CreationModule):
 
         # Normalise the SFH to 1 solar mass produced if asked to.
         if normalise:
-            sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
+            sfr = sfr / np.trapz(sfr * 1e6, time_grid)
 
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
-        sed.add_info("sfh_id" + self.postfix, sfr_column_name)
+        sed.add_info("sfh.id", sfr_column_name)
 
 # CreationModule to be returned by get_module
 Module = SfhFromFile

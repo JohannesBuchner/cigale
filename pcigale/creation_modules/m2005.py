@@ -116,7 +116,6 @@ class M2005(CreationModule):
             SED object.
 
         """
-
         imf = self.parameters["imf"]
         metallicity = float(self.parameters["metallicity"])
         separation_age = int(self.parameters["separation_age"])
@@ -140,52 +139,41 @@ class M2005(CreationModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.add_info('ssp_imf' + self.postfix, imf)
-        sed.add_info('ssp_metallicity' + self.postfix, metallicity)
-        sed.add_info('ssp_old_young_separation_age' + self.postfix,
-                     separation_age)
+        sed.add_info('stellar.imf', imf)
+        sed.add_info('stellar.metallicity', metallicity)
+        sed.add_info('stellar.old_young_separation_age', separation_age)
 
-        sed.add_info('ssp_mass_total_old' + self.postfix, old_masses[0], True)
-        sed.add_info('ssp_mass_alive_old' + self.postfix, old_masses[1], True)
-        sed.add_info('ssp_mass_white_dwarf_old' + self.postfix, old_masses[2],
-                     True)
-        sed.add_info('ssp_mass_neutrino_old' + self.postfix, old_masses[3],
-                     True)
-        sed.add_info('ssp_mass_black_hole_old' + self.postfix, old_masses[4],
-                     True)
-        sed.add_info('ssp_mass_turn_off_old' + self.postfix, old_masses[5],
-                     True)
+        sed.add_info('stellar.mass_total_old', old_masses[0], True)
+        sed.add_info('stellar.mass_alive_old', old_masses[1], True)
+        sed.add_info('stellar.mass_white_dwarf_old', old_masses[2], True)
+        sed.add_info('stellar.mass_neutrino_old', old_masses[3], True)
+        sed.add_info('stellar.mass_black_hole_old', old_masses[4], True)
+        sed.add_info('stellar.mass_turn_off_old', old_masses[5], True)
 
-        sed.add_info('ssp_mass_total_young' + self.postfix, young_masses[0],
-                     True)
-        sed.add_info('ssp_mass_alive_young' + self.postfix, young_masses[1],
-                     True)
-        sed.add_info('ssp_mass_white_dwarf_young' + self.postfix,
-                     young_masses[2], True)
-        sed.add_info('ssp_mass_neutrino_young' + self.postfix, young_masses[3],
-                     True)
-        sed.add_info('ssp_mass_black_hole_young' + self.postfix,
-                     young_masses[4], True)
-        sed.add_info('ssp_mass_turn_off_young' + self.postfix, young_masses[5],
-                     True)
+        sed.add_info('stellar.mass_total_young', young_masses[0], True)
+        sed.add_info('stellar.mass_alive_young', young_masses[1], True)
+        sed.add_info('stellar.mass_white_dwarf_young', young_masses[2], True)
+        sed.add_info('stellar.mass_neutrino_young', young_masses[3], True)
+        sed.add_info('stellar.mass_black_hole_young', young_masses[4], True)
+        sed.add_info('stellar.mass_turn_off_young', young_masses[5], True)
 
-        sed.add_info('ssp_mass_total' + self.postfix,
+        sed.add_info('stellar.mass_total',
                      old_masses[0] + young_masses[0], True)
-        sed.add_info('ssp_mass_alive' + self.postfix,
+        sed.add_info('stellar.mass_alive',
                      old_masses[1] + young_masses[1], True)
-        sed.add_info('ssp_mass_white_dwarf' + self.postfix,
+        sed.add_info('stellar.mass_white_dwarf',
                      old_masses[2] + young_masses[2], True)
-        sed.add_info('ssp_mass_neutrino' + self.postfix,
+        sed.add_info('stellar.mass_neutrino',
                      old_masses[3] + young_masses[3], True)
-        sed.add_info('ssp_mass_black_hole' + self.postfix,
+        sed.add_info('stellar.mass_black_hole',
                      old_masses[4] + young_masses[4], True)
-        sed.add_info('ssp_mass_turn_off' + self.postfix,
+        sed.add_info('stellar.mass_turn_off',
                      old_masses[5] + young_masses[5], True)
 
-        sed.add_contribution("ssp_old" + self.postfix,
+        sed.add_contribution("ssp_old",
                              ssp.wavelength_grid,
                              old_spectrum)
-        sed.add_contribution("ssp_young" + self.postfix,
+        sed.add_contribution("ssp_young",
                              ssp.wavelength_grid,
                              young_spectrum)
 

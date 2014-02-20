@@ -132,29 +132,25 @@ class NebularEmission(CreationModule):
         parameters : dictionary containing the parameters
 
         """
-
-        # Base name for adding information to the SED.
-        name = self.name or 'nebular'
-
         f_esc = self.parameters['f_esc']
         f_dust = self.parameters['f_dust']
-        NLy_old = sed.info['ssp_n_ly_old']
-        NLy_young = sed.info['ssp_n_ly_young']
-        lines = self.lines_template[sed.info['ssp_metallicity']]
-        cont = self.cont_template[sed.info['ssp_metallicity']]
+        NLy_old = sed.info['stellar.n_ly_old']
+        NLy_young = sed.info['stellar.n_ly_young']
+        lines = self.lines_template[sed.info['stellar.metallicity']]
+        cont = self.cont_template[sed.info['stellar.metallicity']]
 
-        sed.add_module(name, self.parameters)
-        sed.add_info(name + '_f_esc', f_esc)
-        sed.add_info(name + '_f_dust', f_dust)
+        sed.add_module(self.name, self.parameters)
+        sed.add_info('nebular.f_esc', f_esc)
+        sed.add_info('nebular.f_dust', f_dust)
 
-        sed.add_contribution('nebular_lines_old', lines.wave, lines.ratio *
+        sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
                              NLy_old * self.conv_line)
-        sed.add_contribution('nebular_lines_young', lines.wave, lines.ratio *
+        sed.add_contribution('nebular.lines_young', lines.wave, lines.ratio *
                              NLy_young * self.conv_line)
 
-        sed.add_contribution('nebular_continuum_old', cont.wave, cont.lumin *
+        sed.add_contribution('nebular.continuum_old', cont.wave, cont.lumin *
                              NLy_old * self.conv_cont)
-        sed.add_contribution('nebular_continuum_young', cont.wave, cont.lumin *
+        sed.add_contribution('nebular.continuum_young', cont.wave, cont.lumin *
                              NLy_young * self.conv_cont)
 
 # CreationModule to be returned by get_module

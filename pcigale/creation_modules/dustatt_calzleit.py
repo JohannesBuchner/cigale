@@ -192,19 +192,6 @@ class CalzLeit(CreationModule):
             "to the young one (<1).",
             None
         )),
-        ("young_contribution_name", (
-            "string",
-            "Name of the contribution containing the spectrum of the "
-            "young population.",
-            "ssp_young"
-        )),
-        ("old_contribution_name", (
-            "string",
-            "Name of the contribution containing the spectrum of the "
-            "old population. If it is set to 'None', only one population "
-            "is considered.",
-            "ssp_old"
-        )),
         ("uv_bump_wavelength", (
             "float",
             "Central wavelength of the UV bump in nm.",
@@ -235,17 +222,12 @@ class CalzLeit(CreationModule):
     ])
 
     out_parameter_list = OrderedDict([
-        ("E_BVs_young", "E(B-V)*, the colour excess of the stellar continuum "
-                        "light for the young population."),
-        ("E_BVs_old", "E(B-V)*, the colour excess of the stellar "
-                      "continuum light for the old population."),
-        ("attenuation_young", "Amount of luminosity attenuated from the "
-                              "young population in W."),
-        ("E_BVs_old_factor", "Ratio of the old population E(B-V)* to the "
+        ("E_BVs", "E(B-V), the colour excess of the stellar continuum "
+                  "light for each population."),
+        ("E_BVs_old_factor", "Ratio of the old population E(B-V) to the "
                              "young one."),
-        ("attenuation_old", "Amount of luminosity attenuated from the "
-                            "old population in W."),
-        ("attenuation", "Total amount of luminosity attenuated in W."),
+        ("attenuation", "Amount of luminosity attenuated in W for each "
+                        "component and in total."),
         ("uv_bump_wavelength", "Central wavelength of UV bump in nm."),
         ("uv_bump_width", "Width of the UV bump in nm."),
         ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
@@ -270,12 +252,10 @@ class CalzLeit(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-
+        ebvs = {}
         wavelength = sed.wavelength_grid
-        ebvs_young = float(self.parameters["E_BVs_young"])
-        ebvs_old = float(self.parameters["E_BVs_old_factor"]) * ebvs_young
-        young_contrib = self.parameters["young_contribution_name"]
-        old_contrib = self.parameters["old_contribution_name"]
+        ebvs['young'] = float(self.parameters["E_BVs_young"])
+        ebvs['old'] = float(self.parameters["E_BVs_old_factor"]) * ebvs['young']
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
         uv_bump_width = float(self.parameters["uv_bump_wavelength"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
@@ -295,45 +275,26 @@ class CalzLeit(CreationModule):
                                    uv_bump_width, uv_bump_amplitude,
                                    powerlaw_slope)
 
-        # Young population attenuation
-        luminosity = sed.get_lumin_contribution(young_contrib)
-        attenuated_luminosity = luminosity * 10 ** (ebvs_young
-                                                    * sel_attenuation / -2.5)
-        attenuated_luminosity[wavelength < 91.2] = 0
-        attenuation_spectrum = attenuated_luminosity - luminosity
-        # We integrate the amount of luminosity attenuated (-1 because the
-        # spectrum is negative).
-        attenuation_young = -1 * np.trapz(attenuation_spectrum, wavelength)
-
-        sed.add_module(self.name, self.parameters)
-        sed.add_info("E_BVs_young" + self.postfix, ebvs_young)
-        sed.add_info("attenuation_young" + self.postfix, attenuation_young)
-        sed.add_contribution("attenuation_young" + self.postfix,
-                             wavelength, attenuation_spectrum)
-
-        # Old population (if any) attenuation
-        if old_contrib:
-            luminosity = sed.get_lumin_contribution(old_contrib)
-            attenuated_luminosity = (luminosity *
-                                     10 ** (ebvs_old
-                                            * sel_attenuation / -2.5))
-            attenuated_luminosity[wavelength < 91.2] = 0
+        attenuation_total = 0.
+        for contrib in list(sed.contribution_names):
+            age = contrib.split('.')[-1].split('_')[-1]
+            luminosity = sed.get_lumin_contribution(contrib)
+            attenuated_luminosity = (luminosity * 10 **
+                                    (ebvs[age] * sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
-            attenuation_old = -1 * np.trapz(attenuation_spectrum, wavelength)
+            # We integrate the amount of luminosity attenuated (-1 because the
+            # spectrum is negative).
+            attenuation = -1 * np.trapz(attenuation_spectrum, wavelength)
+            attenuation_total += attenuation
 
-            sed.add_info("E_BVs_old" + self.postfix, ebvs_old)
-            sed.add_info("E_BVs_old_factor" + self.postfix,
-                         self.parameters["E_BVs_old_factor"])
-            sed.add_info("attenuation_old" + self.postfix, attenuation_old)
-            sed.add_contribution("attenuation_old" + self.postfix,
-                                 wavelength, attenuation_spectrum)
-        else:
-            attenuation_old = 0
+            sed.add_module(self.name, self.parameters)
+            sed.add_info("attenuation.E_BVs." + contrib, ebvs[age])
+            sed.add_info("attenuation." + contrib, attenuation)
+            sed.add_contribution("attenuation." + contrib, wavelength,
+                                 attenuation_spectrum)
 
-        # Total attenuation (we don't take into account the energy attenuated
-        # in the spectral lines)
-        sed.add_info("attenuation" + self.postfix,
-                     attenuation_young + attenuation_old)
+        # Total attenuation
+        sed.add_info("attenuation.total", attenuation_total)
 
         # Fλ fluxes (only from continuum) in each filter after attenuation.
         flux_att = {}
@@ -345,7 +306,7 @@ class CalzLeit(CreationModule):
 
         # Attenuation in each filter
         for filter_name in filters:
-            sed.add_info(filter_name + "_attenuation" + self.postfix,
+            sed.add_info("attenuation." + filter_name,
                          -2.5 * np.log10(flux_att[filter_name] /
                                          flux_noatt[filter_name]))
 

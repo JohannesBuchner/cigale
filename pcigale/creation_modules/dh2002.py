@@ -60,21 +60,16 @@ class DH2002(CreationModule):
 
         """
         alpha = float(self.parameters["alpha"])
-        attenuation_value_keys = [
-            item.strip() for item in
-            self.parameters["attenuation_value_keys"].split("&")]
+
+        luminosity = sed.info['attenuation.total']
 
         ir_template = self.dh2002.get_template(alpha)
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("alpha" + self.postfix, alpha)
+        sed.add_info("dust.alpha", alpha)
 
-        for attenuation in attenuation_value_keys:
-            sed.add_contribution(
-                self.name + "_" + attenuation,
-                self.dh2002.wavelength_grid,
-                sed.info[attenuation] * ir_template
-            )
+        sed.add_contribution('dust', self.dh2002.wavelength_grid,
+                             luminosity * ir_template)
 
 # CreationModule to be returned by get_module
 Module = DH2002

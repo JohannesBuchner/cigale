@@ -42,9 +42,7 @@ class IgmAttenuation(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-
         if sed.redshift > 0:
-
             # To memoize the IGM attenuation computation (with depends on the
             #  wavelength grid and the redshift), we have to make the
             # wavelength grid hashable. We do this by converting to a string.
@@ -58,11 +56,7 @@ class IgmAttenuation(CreationModule):
             igm_effect = self.igm_att[wave_redshift] * sed .luminosity
 
             sed.add_module(self.name, self.parameters)
-            sed.add_contribution(
-                self.name,
-                sed.wavelength_grid,
-                igm_effect
-            )
+            sed.add_contribution('igm', sed.wavelength_grid, igm_effect)
 
 
 def igm_transmission_meiksin(wavelength, redshift):
