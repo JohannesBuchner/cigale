@@ -453,16 +453,10 @@ class PdfAnalysis(AnalysisModule):
                                                                obs_index]
 
                     if save_best_sed:
-                        table = Table((
-                            Column(best_lambda,
-                                   name="Wavelength",
-                                   unit="nm"),
-                            Column(best_fnu,
-                                   name="Fnu density",
-                                   unit="mJy")
-                        ))
-                        table.write(OUT_DIR + "{}_best_model.fits".format(
-                            obs_name))
+                        sed.to_votable(
+                            OUT_DIR + "{}_best_model.xml".format(obs_name),
+                            mass=normalisation_factors[best_index, obs_index]
+                        )
 
                     if plot_best_sed:
 
