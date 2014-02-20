@@ -111,7 +111,7 @@ class SaveFluxes(AnalysisModule):
             sed = sed_warehouse.get_sed(creation_modules, parameters)
 
             # Take the content of the sed info dictionary.
-            row = sed.info.values()
+            row = list(sed.info.values())
 
             # Add the flux in each filter to the row
             row += [sed.compute_fnu(filter_.trans_table,
@@ -125,7 +125,7 @@ class SaveFluxes(AnalysisModule):
         progress_bar.finish()
 
         # We take the names of the columns from the last computed SED.
-        out_columns = sed.info.keys() + filter_names
+        out_columns = list(sed.info.keys()) + filter_names
 
         # The zip call is to convert the list of rows to a list of columns.
         out_table = Table(list(zip(*output)), names=out_columns)
