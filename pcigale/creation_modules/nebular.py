@@ -10,7 +10,7 @@ import scipy.constants as cst
 from . import CreationModule
 
 
-class Module(CreationModule):
+class NebularEmission(CreationModule):
     """
     Module computing the nebular emission from the ultraviolet to the
     near-infrared. It includes both the nebular lines and the nubular
@@ -156,3 +156,6 @@ class Module(CreationModule):
                              NLy_old * self.conv_cont)
         sed.add_contribution('nebular_continuum_young', cont.wave, cont.lumin *
                              NLy_young * self.conv_cont)
+
+# CreationModule to be returned by get_module
+Module = NebularEmission
