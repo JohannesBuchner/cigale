@@ -27,6 +27,8 @@ from .ir_templates_dh2002 import IrTemplatesDH2002
 from .ir_agn_templates_dale2014 import Dale2014
 from .ir_models_dl2007 import DL2007
 from .agn_fritz2006 import AgnFritz2006
+from .nebular_cont import NebularContinuum
+from .nebular_lines import NebularLines
 
 
 DATABASE_FILE = pkg_resources.resource_filename(__name__, 'data.db')
@@ -197,6 +199,40 @@ class _Fritz2006AGN(BASE):
         self.psy = agn.psy
         self.wave = agn.wave
         self.luminosity = agn.luminosity
+
+
+class _NebularLines(BASE):
+    """Storage for line templates
+    """
+
+    __tablename__ = 'nebular_lines'
+    metallicity = Column(Float, primary_key=True)
+    logU = Column(Float, primary_key=True)
+    wave = Column(PickleType)
+    ratio = Column(PickleType)
+
+    def __init__(self, nebular_lines):
+        self.metallicity = nebular_lines.metallicity
+        self.logU = nebular_lines.logU
+        self.wave = nebular_lines.wave
+        self.ratio = nebular_lines.ratio
+
+
+class _NebularContinuum(BASE):
+    """Storage for nebular continuum templates
+    """
+
+    __tablename__ = 'nebular_continuum'
+    metallicity = Column(Float, primary_key=True)
+    logU = Column(Float, primary_key=True)
+    wave = Column(PickleType)
+    lumin = Column(PickleType)
+
+    def __init__(self, nebular_continuum):
+        self.metallicity = nebular_continuum.metallicity
+        self.logU = nebular_continuum.logU
+        self.wave = nebular_continuum.wave
+        self.lumin = nebular_continuum.lumin
 
 
 class Database(object):
@@ -389,6 +425,35 @@ class Database(object):
                     'The agn model is already in the base.')
         else:
             raise Exception('The database is not writable.')
+
+    def add_nebular_lines(self, nebular_lines):
+        """
+        Add ultraviolet and optical line templates to the database.
+        """
+        if self.is_writable:
+            self.session.add(_NebularLines(nebular_lines))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise Exception('The line is already in the base')
+        else:
+            raise Exception('The database is not writable')
+
+    def add_nebular_continuum(self, nebular_continuum):
+        """
+        Add nebular continuum templates to the database.
+        """
+        if self.is_writable:
+            self.session.add(_NebularContinuum(nebular_continuum))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise Exception('The continuum template is already in the '
+                                'base')
+        else:
+            raise Exception('The database is not writable')
 
     def get_filter(self, name):
         """
@@ -615,6 +680,59 @@ class Database(object):
             raise DatabaseLookupError(
                 "The DL2007 model for qpah <{0}>, umin <{1}>, and umax <{2}> "
                 "is not in the database.".format(qpah, umin, umax))
+
+    def get_nebular_lines(self, metallicity, logU):
+        """
+        Get the line ratios corresponding to the given set of parameters.
+
+        Parameters
+        ----------
+        metallicity: float
+            Gas phase metallicity
+        logU: float
+            Radiation field intensity
+        """
+        result = (self.session.query(_NebularLines).
+                  filter(_NebularLines.metallicity == metallicity).
+                  filter(_NebularLines.logU == logU).
+                  first())
+        if result:
+            return NebularLines(result.metallicity, result.logU, result.wave,
+                                result.ratio)
+        else:
+            return None
+
+    def get_nebular_continuum(self, metallicity, logU):
+        """
+        Get the nebular continuum corresponding to the given set of parameters.
+
+        Parameters
+        ----------
+        metallicity: float
+            Gas phase metallicity
+        logU: float
+            Radiation field intensity
+        """
+        result = (self.session.query(_NebularContinuum).
+                  filter(_NebularContinuum.metallicity == metallicity).
+                  filter(_NebularContinuum.logU == logU).
+                  first())
+        if result:
+            return NebularContinuum(result.metallicity, result.logU,
+                                    result.wave, result.lumin)
+        else:
+            return None
+
+    def get_nebular_metallicities(self):
+        """Get the list of metallicities for the nebular emission.
+
+        Returns
+        -------
+        metallicities: list
+            list of the nebular emission metallicities
+        """
+        result = self.session.query(_NebularLines.metallicity).all()
+        return [_[0] for _ in result]
 
     def get_filter_list(self):
         """Get the list of the filters in the database.
