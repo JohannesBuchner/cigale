@@ -1,2 +1,0 @@
-Code SED serialisation to store them in a database without pickling the whole
-object.

@@ -95,17 +95,11 @@ class SaveFluxes(AnalysisModule):
         with Database() as base:
             filter_list = [base.get_filter(name) for name in filter_names]
 
-        # Columns of the output table
-        out_columns = []
-        for module_param_list in zip(creation_modules,
-                                     creation_modules_params[0]):
-            for module_param in product([module_param_list[0]],
-                                        module_param_list[1].keys()):
-                out_columns.append(".".join(module_param))
-        out_columns += filter_names
-
-        # Content of the output table
-        out_rows = []
+        # Content of the output table.
+        # In the output table, we put the content of the sed.info dictionary
+        # plus the flux in all the filters. As all the SEDs are made with the
+        #  same pipeline, they should have the same sed.info dictionary keys.
+        output = []
 
         # Open the warehouse
         sed_warehouse = SedWarehouse(
@@ -116,29 +110,25 @@ class SaveFluxes(AnalysisModule):
         for model_index, parameters in enumerate(creation_modules_params):
             sed = sed_warehouse.get_sed(creation_modules, parameters)
 
-            row = []
-
-            # Add the parameter values to the row. Some parameters are array
-            # so we must join their content.
-            for module_param in parameters:
-                for value in module_param.values():
-                    if type(value) == list:
-                        value = ".".join(value)
-                    row.append(value)
+            # Take the content of the sed info dictionary.
+            row = sed.info.values()
 
             # Add the flux in each filter to the row
             row += [sed.compute_fnu(filter_.trans_table,
                                     filter_.effective_wavelength)
                     for filter_ in filter_list]
 
-            out_rows.append(row)
+            output.append(row)
 
             progress_bar.update(model_index + 1)
 
         progress_bar.finish()
 
+        # We take the names of the columns from the last computed SED.
+        out_columns = sed.info.keys() + filter_names
+
         # The zip call is to convert the list of rows to a list of columns.
-        out_table = Table(list(zip(*out_rows)), names=out_columns)
+        out_table = Table(list(zip(*output)), names=out_columns)
         out_table.write(out_file, format=out_format)
 
 # AnalysisModule to be returned by get_module

@@ -1,2 +1,0 @@
-In the psum module, when dealing with an observation, only use the models aged
-less than the age of the Universe at observation redshift.

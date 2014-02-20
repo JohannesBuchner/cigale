@@ -25,15 +25,17 @@ reduced χ²) is given for each observation.
 
 import os
 import numpy as np
+import matplotlib
 from numpy import newaxis
 from collections import OrderedDict
 from datetime import datetime
 from progressbar import ProgressBar
+from matplotlib import pyplot as plt
 from astropy.table import Table, Column
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
 from ...creation_modules import get_module as get_creation_module
-from .utils import gen_compute_fluxes_at_redshift
+from .utils import gen_compute_fluxes_at_redshift, gen_pdf, gen_best_sed_fig
 from ...warehouse import SedWarehouse
 from ...data import Database
 
@@ -51,6 +53,8 @@ OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 91
 PLOT_L_MAX = 1e6
+# Number of points in the PDF
+PDF_NB_POINTS = 1000
 
 
 class PdfAnalysis(AnalysisModule):
@@ -100,14 +104,6 @@ class PdfAnalysis(AnalysisModule):
             "plot the probability density function.",
             False
         )),
-        ("pdf_max_bin_number", (
-            "integer",
-            "Maximum number of bins used to compute the probability density "
-            "function. This is only used when saving or printing the PDF. "
-            "If there are less values, the probability is given for each "
-            "one.",
-            50
-        )),
         ("storage_type", (
             "string",
             "Type of storage used to cache the generate SED.",
@@ -139,6 +135,9 @@ class PdfAnalysis(AnalysisModule):
 
         """
 
+        # To be sure matplotlib will not display the interactive window.
+        matplotlib.interactive(0)
+
         # Rename the output directory if it exists
         if os.path.exists(OUT_DIR):
             new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + OUT_DIR
@@ -159,7 +158,6 @@ class PdfAnalysis(AnalysisModule):
             parameters["plot_chi2_distribution"].lower() == "true")
         save_pdf = (parameters["save_pdf"].lower() == "true")
         plot_pdf = (parameters["plot_pdf"].lower() == "true")
-        pdf_max_bin_number = int(parameters["pdf_max_bin_number"])
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -228,9 +226,10 @@ class PdfAnalysis(AnalysisModule):
         with SedWarehouse(cache_type=parameters["storage_type"]) as \
                 sed_warehouse:
 
-            for model_index, parameters in enumerate(creation_modules_params):
+            for model_index, model_params in enumerate(
+                    creation_modules_params):
 
-                sed = sed_warehouse.get_sed(creation_modules, parameters)
+                sed = sed_warehouse.get_sed(creation_modules, model_params)
 
                 # Cached function to compute the SED fluxes at a redshift
                 gen_fluxes = gen_compute_fluxes_at_redshift(
@@ -248,7 +247,7 @@ class PdfAnalysis(AnalysisModule):
                 progress_bar.update(model_index + 1)
 
         # Mask the invalid fluxes
-        model_fluxes = np.ma.masked_less(model_fluxes, -99)
+        model_fluxes = np.ma.masked_less(model_fluxes, -90)
 
         progress_bar.finish()
 
@@ -345,6 +344,8 @@ class PdfAnalysis(AnalysisModule):
         # Variable analysis                                              #
         ##################################################################
 
+        print("Analysing the variables...")
+
         # We compute the weighted average and standard deviation using the
         # likelihood as weight. We first build the weight array by expanding
         # the likelihood along a new axis corresponding to the analysed
@@ -387,9 +388,11 @@ class PdfAnalysis(AnalysisModule):
         # Best models                                                    #
         ##################################################################
 
+        print("Analysing the best models...")
+
         # We define the best fitting model for each observation as the one
         # with the least χ².
-        best_model_index = list(reduced_chi_squares.argmin(axis=0))
+        best_model_index = list(chi_squares.argmin(axis=0))
 
         # We take the list of information added to the SEDs from the last
         # computed one.
@@ -424,21 +427,145 @@ class PdfAnalysis(AnalysisModule):
 
         best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
 
+        if plot_best_sed or save_best_sed:
 
+            print("Plotting/saving the best models...")
 
+            with SedWarehouse(cache_type=parameters["storage_type"]) as \
+                    sed_warehouse:
+                for obs_index, obs_name in enumerate(obs_table["id"]):
 
+                    obs_redshift = obs_table["redshift"][obs_index]
+                    best_index = best_model_index[obs_index]
 
+                    sed = sed_warehouse.get_sed(
+                        creation_modules,
+                        creation_modules_params[best_index]
+                    )
+                    if use_observation_redshift:
+                        redshifting_module.parameters["redshift"] = \
+                            obs_redshift
+                        redshifting_module.process(sed)
+                        igm_module.process(sed)
 
+                    best_lambda = sed.wavelength_grid
+                    best_fnu = sed.fnu * normalisation_factors[best_index,
+                                                               obs_index]
 
+                    if save_best_sed:
+                        table = Table((
+                            Column(best_lambda,
+                                   name="Wavelength",
+                                   unit="nm"),
+                            Column(best_fnu,
+                                   name="Fnu density",
+                                   unit="mJy")
+                        ))
+                        table.write(OUT_DIR + "{}_best_model.fits".format(
+                            obs_name))
 
+                    if plot_best_sed:
 
+                        plot_mask = (
+                            (best_lambda >= PLOT_L_MIN * (1 + obs_redshift)) &
+                            (best_lambda <= PLOT_L_MAX * (1 + obs_redshift))
+                        )
 
+                        figure = gen_best_sed_fig(
+                            best_lambda[plot_mask],
+                            best_fnu[plot_mask],
+                            [f.effective_wavelength for f in filters.values()],
+                            norm_model_fluxes[best_index, obs_index, :],
+                            [obs_table[f][obs_index] for f in filters]
+                        )
 
+                        if figure is None:
+                            print("Can not plot best model for observation "
+                                  "{}!".format(obs_name))
+                        else:
+                            figure.suptitle(
+                                u"Best model for {} - red-chi² = {}".format(
+                                    obs_name,
+                                    reduced_chi_squares[best_index, obs_index]
+                                )
+                            )
+                            figure.savefig(OUT_DIR + "{}_best_model.pdf".format(
+                                obs_name))
+                            plt.close(figure)
 
+        ##################################################################
+        # Probability Density Functions                                  #
+        ##################################################################
 
+        # We estimate the probability density functions (PDF) of the
+        # parameters using a weighted kernel density estimation. This part
+        # should definitely be improved as we simulate the weigth by adding
+        # as many value as their probability * 100.
 
+        if save_pdf or plot_pdf:
 
+            print("Computing the probability density functions...")
 
+            for obs_index, obs_name in enumerate(obs_table["id"]):
+
+                probabilities = likelihood[:, obs_index]
+
+                for var_index, var_name in enumerate(analysed_variables):
+
+                    values = model_variables[:, obs_index, var_index]
+
+                    pdf_grid = np.linspace(values.min(), values.max(),
+                                           PDF_NB_POINTS)
+                    pdf_prob = gen_pdf(values, probabilities, pdf_grid)
+
+                    if pdf_prob is None:
+                        # TODO: use logging
+                        print("Can not compute PDF for observation <{}> and "
+                              "variable <{}>.".format(obs_name, var_name))
+
+                    if save_pdf and pdf_prob is not None:
+                        table = Table((
+                            Column(pdf_grid, name=var_name),
+                            Column(pdf_prob, name="probability density")
+                        ))
+                        table.write(OUT_DIR + "{}_{}_pdf.fits".format(
+                            obs_name, var_name))
+
+                    if plot_pdf and pdf_prob is not None:
+                        figure = plt.figure()
+                        ax = figure.add_subplot(111)
+                        ax.plot(pdf_grid, pdf_prob)
+                        ax.set_xlabel(var_name)
+                        ax.set_ylabel("Probability density")
+                        figure.savefig(OUT_DIR + "{}_{}_pdf.pdf".format(
+                            obs_name, var_name))
+                        plt.close(figure)
+
+        ##################################################################
+        # Reduced-chisquares plots                                       #
+        ##################################################################
+        if plot_chi2_distribution:
+
+            print("Plotting the reduced chi squares distributions...")
+
+            for obs_index, obs_name in enumerate(obs_table["id"]):
+
+                obs_red_chisquares = reduced_chi_squares[:, obs_index]
+
+                for var_index, var_name in enumerate(analysed_variables):
+
+                    values = model_variables[:, obs_index, var_index]
+
+                    figure = plt.figure()
+                    ax = figure.add_subplot(111)
+                    ax.plot(values, obs_red_chisquares, "ob")
+                    ax.set_xlabel(var_name)
+                    ax.set_ylabel("reduced chi-square")
+                    figure.suptitle("Reduced chi-square distribution of {} "
+                                    "values for {}".format(obs_index, var_name))
+                    figure.savefig(OUT_DIR + "{}_{}_chisquares.pdf".format(
+                            obs_name, var_name))
+                    plt.close(figure)
 
 
 # AnalysisModule to be returned by get_module
