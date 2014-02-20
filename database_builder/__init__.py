@@ -20,7 +20,7 @@ import numpy as np
 from scipy import interpolate
 import scipy.constants as cst
 from pcigale.data import (Database, Filter, SspM2005, SspBC03, AgnFritz2006,
-                          Dale2014, DL2007, Lines)
+                          Dale2014, DL2007, NebularLines, NebularContinuum)
 
 
 def read_bc03_ssp(filename):
@@ -483,37 +483,66 @@ def build_fritz2006(base):
         base.add_fritz2006_agn(agn)
 
 
-def build_lines(base):
-    lines_dir = os.path.join(os.path.dirname(__file__), 'lines/')
-    
+def build_nebular(base):
+    lines_dir = os.path.join(os.path.dirname(__file__), 'nebular/')
+
+    # Number of Lyman continuum photon to normalize the nebular continuum
+    # templates
+    nlyc_continuum = {'0.0001': 2.68786E+53, '0.0004': 2.00964E+53,
+                      '0.004': 1.79593E+53, '0.008': 1.58843E+53,
+                      '0.02': 1.24713E+53, '0.05': 8.46718E+52}
+
     for Z in ['0.0001', '0.0004', '0.004', '0.008', '0.02', '0.05']:
         filename = "{}lines_{}.dat".format(lines_dir, Z)
         print("Importing {}...".format(filename))
         wave, ratio1, ratio2, ratio3 = np.genfromtxt(filename, unpack=True,
                                                      usecols=(0, 3, 7, 11))
-        
+
         # Convert wavelength from Å to nm
         wave *= 0.1
-        
+
         # Convert log(flux) into flux (arbitrary units)
         ratio1 = 10**(ratio1-38.)
         ratio2 = 10**(ratio2-38.)
         ratio3 = 10**(ratio3-38.)
-        
+
         # Normalize all lines to Hβ
-        w = np.where(wave==486.1)
+        w = np.where(wave == 486.1)
         ratio1 = ratio1/ratio1[w]
         ratio2 = ratio2/ratio2[w]
         ratio3 = ratio3/ratio3[w]
-        
-        lines = Lines(np.float(Z), -3., wave, ratio1)
-        base.add_lines(lines)
-        
-        lines = Lines(np.float(Z), -2., wave, ratio2)
-        base.add_lines(lines)
 
-        lines = Lines(np.float(Z), -1., wave, ratio3)
-        base.add_lines(lines)
+        lines = NebularLines(np.float(Z), -3., wave, ratio1)
+        base.add_nebular_lines(lines)
+
+        lines = NebularLines(np.float(Z), -2., wave, ratio2)
+        base.add_nebular_lines(lines)
+
+        lines = NebularLines(np.float(Z), -1., wave, ratio3)
+        base.add_nebular_lines(lines)
+
+        filename = "{}continuum_{}.dat".format(lines_dir, Z)
+        print("Importing {}...".format(filename))
+        wave, cont1, cont2, cont3 = np.genfromtxt(filename, unpack=True,
+                                                  usecols=(0, 3, 7, 11))
+
+        # Convert wavelength from Å to nm
+        wave *= 0.1
+
+        # Normalize flux from erg s¯¹ Hz¯¹ (Msun/yr)¯¹ to W nm¯¹ photon¯¹ s¯¹
+        conv = 1e-7 * cst.c * 1e9 / (wave * wave) / nlyc_continuum[Z]
+        cont1 *= conv
+        cont2 *= conv
+        cont3 *= conv
+
+        cont = NebularContinuum(np.float(Z), -3., wave, cont1)
+        base.add_nebular_continuum(cont)
+
+        cont = NebularContinuum(np.float(Z), -2., wave, cont2)
+        base.add_nebular_continuum(cont)
+
+        cont = NebularContinuum(np.float(Z), -1., wave, cont3)
+        base.add_nebular_continuum(cont)
 
 
 def build_base():
@@ -556,8 +585,8 @@ def build_base():
     print("\nDONE\n")
     print('#' * 78)
     
-    print("8- Build nebular lines\n")
-    build_lines(base)
+    print("8- Importing nebular lines and continuum\n")
+    build_nebular(base)
     print("\nDONE\n")
     print('#' * 78)
 

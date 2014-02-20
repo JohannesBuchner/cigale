@@ -5,7 +5,7 @@
 # Author: Médéric Boquien
 
 
-class Lines(object):
+class NebularLines(object):
     """Nebular lines templates.
 
     This class holds the data associated with the line templates
