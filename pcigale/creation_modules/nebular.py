@@ -117,7 +117,7 @@ class NebularEmission(CreationModule):
         # To take into acount the escape fraction and the fraction of Lyman
         # continuum photons absorbed by dust we correct by a factor
         # k=(1-fesc-fdust)/(1+(α1/αβ)*(fesc+fdust))
-        alpha_1 = 1.81e-19  # Ferland 1980, m³ s¯¹
+        alpha_1 = 1.54e-19  # αA-αB, Ferland 1980, m³ s¯¹
         k = (1. - fesc - fdust) / (1. + alpha_1 / alpha_B * (fesc + fdust))
 
         self.conv_line = gamma_Hbeta / alpha_B * k
