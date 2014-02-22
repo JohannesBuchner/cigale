@@ -125,13 +125,6 @@ class CreationModule(object):
         # module class is coded.
         self.name = name or os.path.basename(inspect.getfile(self))[:4]
 
-        # We want to postfix the various keys of the SED with the same
-        # postfix as the module name, if any.
-        if '.' in name:
-            self.postfix = "." + name.split(".", 1)[1]
-        else:
-            self.postfix = ""
-
         if not blank:
             # Parameters given in constructor.
             parameters = kwargs

@@ -50,14 +50,6 @@ class DL2007(CreationModule):
             'float',
             "Fraction illuminated from Umin to Umax",
             None
-        )),
-        ('attenuation_value_keys', (
-            'string',
-            "Keys of the SED information dictionary where the module will "
-            "look for the attenuation (in W) to re-emit. You can give several "
-            "keys separated with a & (don't use commas), a re-emission "
-            "contribution will be added for each key.",
-            "attenuation"
         ))
     ])
 
@@ -104,30 +96,18 @@ class DL2007(CreationModule):
         parameters : dictionary containing the parameters
 
         """
-        attenuation_value_keys = [
-            item.strip() for item in
-            self.parameters["attenuation_value_keys"].split("&")]
+        luminosity = sed.info['attenuation.total']
 
-        # Base name for adding information to the SED.
-        name = self.name or 'dl2007'
+        sed.add_module(self.name, self.parameters)
+        sed.add_info('dust.qpah', self.parameters["qpah"])
+        sed.add_info('dust.umin', self.parameters["umin"])
+        sed.add_info('dust.umax', self.parameters["umax"])
+        sed.add_info('dust.gamma', self.parameters["gamma"])
 
-        sed.add_module(name, self.parameters)
-        sed.add_info('qpah' + self.postfix, self.parameters["qpah"])
-        sed.add_info('umin' + self.postfix, self.parameters["umin"])
-        sed.add_info('umax' + self.postfix, self.parameters["umax"])
-        sed.add_info('gamma' + self.postfix, self.parameters["gamma"])
-
-        for attenuation in attenuation_value_keys:
-            sed.add_contribution(
-                name + '_Umin_Umin_' + attenuation,
-                self.model_minmin.wave,
-                sed.info[attenuation] * self.model_minmin.lumin
-            )
-            sed.add_contribution(
-                name + '_Umin_Umax_' + attenuation,
-                self.model_minmax.wave,
-                sed.info[attenuation] * self.model_minmax.lumin
-            )
+        sed.add_contribution('dust.Umin_Umin', self.model_minmin.wave,
+                             luminosity * self.model_minmin.lumin)
+        sed.add_contribution('dust.Umin_Umax', self.model_minmax.wave,
+                             luminosity * self.model_minmax.lumin)
 
 # CreationModule to be returned by get_module
 Module = DL2007

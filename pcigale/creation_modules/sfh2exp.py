@@ -76,7 +76,6 @@ class Sfh2Exp(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-
         tau_main = float(self.parameters["tau_main"])
         tau_burst = float(self.parameters["tau_burst"])
         f_burst = float(self.parameters["f_burst"])
@@ -105,16 +104,16 @@ class Sfh2Exp(CreationModule):
             (-time_grid[mask] + age - burst_age) / tau_burst)
 
         # We normalise the SFH to have one solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
+        sfr = sfr / np.trapz(sfr * 1e6, time_grid)
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
-        sed.add_info("sfh_tau_main" + self.postfix, tau_main)
-        sed.add_info("sfh_tau_burst" + self.postfix, tau_burst)
-        sed.add_info("sfh_f_burst" + self.postfix, f_burst)
-        sed.add_info("sfh_burst_age" + self.postfix, burst_age)
+        sed.add_info("sfh.tau_main", tau_main)
+        sed.add_info("sfh.tau_burst", tau_burst)
+        sed.add_info("sfh.f_burst", f_burst)
+        sed.add_info("sfh.burst_age", burst_age)
 
 # CreationModule to be returned by get_module
 Module = Sfh2Exp

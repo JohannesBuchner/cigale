@@ -79,28 +79,18 @@ class Dale2014(CreationModule):
         parameters : dictionary containing the parameters
 
         """
-        attenuation_value_keys = [
-            item.strip() for item in
-            self.parameters["attenuation_value_keys"].split("&")]
+        luminosity = sed.info['attenuation.total']
 
         frac_agn = self.parameters["fracAGN"]
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("fracAGN" + self.postfix, self.parameters["fracAGN"])
-        sed.add_info("alpha" + self.postfix, self.parameters["alpha"])
+        sed.add_info("agn.fracAGN", self.parameters["fracAGN"])
+        sed.add_info("dust.alpha", self.parameters["alpha"])
 
-        for attenuation in attenuation_value_keys:
-            sed.add_contribution(
-                'dale2014_sb_' + attenuation + self.postfix,
-                self.model_sb.wave,
-                sed.info[attenuation] * self.model_sb.lumin
-            )
-
-            sed.add_contribution(
-                'dale2014_quasar_' + attenuation + self.postfix,
-                self.model_quasar.wave,
-                frac_agn * sed.info[attenuation] * self.model_quasar.lumin
-            )
+        sed.add_contribution('dust', self.model_sb.wave,
+                             luminosity * self.model_sb.lumin)
+        sed.add_contribution('agn', self.model_quasar.wave,
+                             frac_agn * luminosity * self.model_quasar.lumin)
 
 # CreationModule to be returned by get_module
 Module = Dale2014

@@ -42,14 +42,6 @@ class Casey2012(CreationModule):
             "float",
             "Mid-infrared powerlaw slope.",
             None
-        )),
-        ('attenuation_value_keys', (
-            'string',
-            "Keys of the SED information dictionary where the module will "
-            "look for the attenuation (in W) to re-emit. You can give several "
-            "keys separated with a & (don't use commas), a re-emission "
-            "contribution will be added for each key.",
-            "attenuation"
         ))
     ])
 
@@ -103,31 +95,17 @@ class Casey2012(CreationModule):
         sed : pcigale.sed.SED object
 
         """
+        luminosity = sed.info['attenuation.total']
 
-        # Base name for adding information to the SED.
-        name = self.name or 'casey2012'
+        sed.add_module(self.name, self.parameters)
+        sed.add_info("dust.temperature", self.parameters["temperature"])
+        sed.add_info("dust.alpha", self.parameters["alpha"])
+        sed.add_info("dust.beta", self.parameters["beta"])
 
-        attenuation_value_keys = [
-            item.strip() for item in
-            self.parameters["attenuation_value_keys"].split("&")]
-
-        sed.add_module(name, self.parameters)
-        sed.add_info("temperature" + self.postfix,
-                     self.parameters["temperature"])
-        sed.add_info("alpha" + self.postfix, self.parameters["alpha"])
-        sed.add_info("beta" + self.postfix, self.parameters["beta"])
-
-        for attenuation in attenuation_value_keys:
-            sed.add_contribution(
-                name + '_powerlaw_' + attenuation,
-                self.wave,
-                sed.info[attenuation] * self.lumin_powerlaw
-            )
-            sed.add_contribution(
-                name + '_blackbody_' + attenuation,
-                self.wave,
-                sed.info[attenuation] * self.lumin_blackbody
-            )
+        sed.add_contribution('dust.powerlaw', self.wave,
+                             luminosity * self.lumin_powerlaw)
+        sed.add_contribution('dust.blackbody', self.wave,
+                             luminosity * self.lumin_blackbody)
 
 # CreationModule to be returned by get_module
 Module = Casey2012
