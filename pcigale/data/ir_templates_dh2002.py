@@ -7,7 +7,7 @@ import numpy as np
 from scipy import interpolate
 
 
-class IrTemplatesDH2002(object):
+class DH2002(object):
     """Dale an Helou 2002 infra-red templates
 
     This class holds the data associated with the Dale and Helou (2002)

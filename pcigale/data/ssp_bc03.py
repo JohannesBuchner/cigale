@@ -6,7 +6,7 @@
 import numpy as np
 
 
-class SspBC03(object):
+class BC03(object):
     """Single Stellar Population as defined in Bruzual and Charlot (2003)
 
     This class holds the data associated with a single stellar population
