@@ -22,13 +22,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np
 from .filters import Filter
-from .ssp_m2005 import M2005
-from .ssp_bc03 import BC03
-from .ir_templates_dh2002 import DH2002
-from .ir_agn_templates_dale2014 import Dale2014
-from .ir_models_dl2007 import DL2007
-from .agn_fritz2006 import Fritz2006
-from .nebular_cont import NebularContinuum
+from .m2005 import M2005
+from .bc03 import BC03
+from .dh2002 import DH2002
+from .dale2014 import Dale2014
+from .dl2007 import DL2007
+from .fritz2006 import Fritz2006
+from .nebular_continuum import NebularContinuum
 from .nebular_lines import NebularLines
 
 
