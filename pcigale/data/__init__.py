@@ -724,17 +724,6 @@ class Database(object):
         else:
             return None
 
-    def get_nebular_metallicities(self):
-        """Get the list of metallicities for the nebular emission.
-
-        Returns
-        -------
-        metallicities: list
-            list of the nebular emission metallicities
-        """
-        result = self.session.query(_NebularLines.metallicity).all()
-        return [_[0] for _ in result]
-
     def _get_parameters(self, schema):
         """Generic function to get parameters from an arbitrary schema.
 
