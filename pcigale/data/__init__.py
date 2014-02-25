@@ -275,24 +275,6 @@ class Database(object):
         """
         self.session.close_all()
 
-    def add_filter(self, pcigale_filter):
-        """
-        Add a filter to pcigale database.
-
-        Parameters
-        ----------
-        pcigale_filter : pcigale.data.Filter
-        """
-        if self.is_writable:
-            self.session.add(_Filter(pcigale_filter))
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise DatabaseInsertError('The filter is already in the base.')
-        else:
-            raise Exception('The database is not writable.')
-
     def add_m2005(self, ssp_m2005):
         """
         Add a Maraston 2005 SSP to pcigale database
@@ -313,6 +295,51 @@ class Database(object):
         else:
             raise Exception('The database is not writable.')
 
+    def get_m2005(self, imf, metallicity):
+        """
+        Query the database for a Maraston 2005 SSP corresponding to the given
+        initial mass function and metallicity.
+
+        Parameters
+        ----------
+        imf : string
+            Initial mass function (ss for Salpeter, kr for Kroupa)
+        metallicity : float
+            [Z/H] = Log10(Z/Zsun) - Log10(H/Hsun)
+
+        Returns
+        -------
+        ssp : pcigale.base.M2005
+            The M2005 object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested SSP is not in the database.
+
+        """
+        result = self.session.query(_M2005)\
+            .filter(_M2005.imf == imf)\
+            .filter(_M2005.metallicity == metallicity)\
+            .first()
+        if result:
+            return M2005(result.imf, result.metallicity, result.time_grid,
+                         result.wavelength_grid, result.mass_table,
+                         result.spec_table)
+        else:
+            raise DatabaseLookupError(
+                "The M2005 SSP for imf <{0}> and metallicity <{1}> is not in "
+                "the database.".format(imf, metallicity))
+
+    def get_m2005_parameters(self):
+        """Get parameters for the Maraston 2005 stellar models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_M2005)
+
     def add_bc03(self, ssp_bc03):
         """
         Add a Bruzual and Charlot 2003 SSP to pcigale database
@@ -332,6 +359,50 @@ class Database(object):
                 raise DatabaseInsertError('The SSP is already in the base.')
         else:
             raise Exception('The database is not writable.')
+
+    def get_bc03(self, imf, metallicity):
+        """
+        Query the database for the Bruzual and Charlot 2003 SSP corresponding
+        to the given initial mass function and metallicity.
+
+        Parameters
+        ----------
+        imf : string
+            Initial mass function (salp for Salpeter, chab for Chabrier)
+        metallicity : float
+            0.02 for Solar metallicity
+        Returns
+        -------
+        ssp : pcigale.data.BC03
+            The BC03 object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested SSP is not in the database.
+
+        """
+        result = self.session.query(_BC03)\
+            .filter(_BC03.imf == imf)\
+            .filter(_BC03.metallicity == metallicity)\
+            .first()
+        if result:
+            return BC03(result.imf, result.metallicity, result.time_grid,
+                        result.wavelength_grid, result.color_table,
+                        result.lumin_table)
+        else:
+            raise DatabaseLookupError(
+                "The BC03 SSP for imf <{0}> and metallicity <{1}> is not in "
+                "the database.".format(imf, metallicity))
+
+    def get_bc03_parameters(self):
+        """Get parameters for the Bruzual & Charlot 2003 stellar models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_BC03)
 
     def add_dh2002(self, data):
         """
@@ -365,27 +436,38 @@ class Database(object):
         else:
             raise Exception('The database is not writable.')
 
-    def add_dale2014(self, iragn):
+    def get_dh2002(self):
         """
-        Add Dale et al (2014) templates the collection.
+        Get the Dale and Helou infrared templates from the database
 
-        Parameters
-        ----------
-        iragn : pcigale.data.Dale2014
+        Returns
+        -------
+        template : pcigale.base.DH2002
+            The Dale and Helou (2002) infrared templates.
+
+        Raises
+        ------
+        DatabaseLookupError : if the templates are not in the database.
 
         """
-
-        if self.is_writable:
-            template = _Dale2014(iragn)
-            self.session.add(template)
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise DatabaseInsertError(
-                    'The Dale2014 template is already in the base.')
+        result = (self.session.query(_DH2002).
+                  filter(_DH2002.name == 'dh2002').
+                  first())
+        if result:
+            return DH2002(result.data[0], result.data[1], result.data[2])
         else:
-            raise Exception('The database is not writable.')
+            raise DatabaseLookupError(
+                "The DH2002 templates are not in the database.")
+
+    def get_dh2002_parameters(self):
+        """Get parameters for the Dale 2014 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_DH2002)
 
     def add_dl2007(self, model):
         """
@@ -406,244 +488,6 @@ class Database(object):
                     'The DL07 model is already in the base.')
         else:
             raise Exception('The database is not writable.')
-
-    def add_fritz2006(self, agn):
-        """
-        Add a Fritz et al. (2006) AGN model to the database.
-
-        Parameters
-        ----------
-        agn : pcigale.data.Fritz2006
-
-        """
-        if self.is_writable:
-            self.session.add(_Fritz2006(agn))
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise DatabaseInsertError(
-                    'The agn model is already in the base.')
-        else:
-            raise Exception('The database is not writable.')
-
-    def add_nebular_lines(self, nebular_lines):
-        """
-        Add ultraviolet and optical line templates to the database.
-        """
-        if self.is_writable:
-            self.session.add(_NebularLines(nebular_lines))
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise Exception('The line is already in the base')
-        else:
-            raise Exception('The database is not writable')
-
-    def add_nebular_continuum(self, nebular_continuum):
-        """
-        Add nebular continuum templates to the database.
-        """
-        if self.is_writable:
-            self.session.add(_NebularContinuum(nebular_continuum))
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise Exception('The continuum template is already in the '
-                                'base')
-        else:
-            raise Exception('The database is not writable')
-
-    def get_filter(self, name):
-        """
-        Get a specific filter from the collection
-
-        Parameters
-        ----------
-        name : string
-            Name of the filter
-
-        Returns
-        -------
-        filter : pcigale.base.Filter
-            The Filter object.
-
-        Raises
-        ------
-        DatabaseLookupError : if the requested filter is not in the database.
-
-        """
-        result = (self.session.query(_Filter).
-                  filter(_Filter.name == name).
-                  first())
-        if result:
-            return Filter(result.name, result.description,
-                          result.trans_type, result.trans_table,
-                          result.effective_wavelength)
-        else:
-            raise DatabaseLookupError(
-                "The filter <{0}> is not in the database".format(name))
-
-    def get_bc03(self, imf, metallicity):
-        """
-        Query the database for the Bruzual and Charlot 2003 SSP corresponding
-        to the given initial mass function and metallicity.
-
-        Parameters
-        ----------
-        imf : string
-            Initial mass function (salp for Salpeter, chab for Chabrier)
-        metallicity : float
-            0.02 for Solar metallicity
-        Returns
-        -------
-        ssp : pcigale.data.BC03
-            The BC03 object.
-
-        Raises
-        ------
-        DatabaseLookupError : if the requested SSP is not in the database.
-
-        """
-        result = self.session.query(_BC03)\
-            .filter(_BC03.imf == imf)\
-            .filter(_BC03.metallicity == metallicity)\
-            .first()
-        if result:
-            return BC03(result.imf, result.metallicity, result.time_grid,
-                           result.wavelength_grid, result.color_table,
-                           result.lumin_table)
-        else:
-            raise DatabaseLookupError(
-                "The BC03 SSP for imf <{0}> and metallicity <{1}> is not in "
-                "the database.".format(imf, metallicity))
-
-    def get_m2005(self, imf, metallicity):
-        """
-        Query the database for a Maraston 2005 SSP corresponding to the given
-        initial mass function and metallicity.
-
-        Parameters
-        ----------
-        imf : string
-            Initial mass function (ss for Salpeter, kr for Kroupa)
-        metallicity : float
-            [Z/H] = Log10(Z/Zsun) - Log10(H/Hsun)
-
-        Returns
-        -------
-        ssp : pcigale.base.M2005
-            The M2005 object.
-
-        Raises
-        ------
-        DatabaseLookupError : if the requested SSP is not in the database.
-
-        """
-        result = self.session.query(_M2005)\
-            .filter(_M2005.imf == imf)\
-            .filter(_M2005.metallicity == metallicity)\
-            .first()
-        if result:
-            return M2005(result.imf, result.metallicity, result.time_grid,
-                            result.wavelength_grid, result.mass_table,
-                            result.spec_table)
-        else:
-            raise DatabaseLookupError(
-                "The M2005 SSP for imf <{0}> and metallicity <{1}> is not in "
-                "the database.".format(imf, metallicity))
-
-    def get_dh2002(self):
-        """
-        Get the Dale and Helou infrared templates from the database
-
-        Returns
-        -------
-        template : pcigale.base.DH2002
-            The Dale and Helou (2002) infrared templates.
-
-        Raises
-        ------
-        DatabaseLookupError : if the templates are not in the database.
-
-        """
-        result = (self.session.query(_DH2002).
-                  filter(_DH2002.name == 'dh2002').
-                  first())
-        if result:
-            return DH2002(result.data[0], result.data[1],
-                                     result.data[2])
-        else:
-            raise DatabaseLookupError(
-                "The DH2002 templates are not in the database.")
-
-    def get_dale2014(self, frac_agn, alpha):
-        """
-        Get the Dale et al (2014) template corresponding to the given set of
-        parameters.
-
-        Parameters
-        ----------
-        frac_agn: float
-            contribution of the AGN to the IR luminosity
-        alpha: float
-            alpha corresponding to the updated Dale & Helou (2002) star
-            forming template.
-
-        Returns
-        -------
-        template : pcigale.data.Dale2014
-            The Dale et al. (2014) IR template.
-
-        Raises
-        ------
-        DatabaseLookupError : if the requested template is not in the database.
-
-        """
-        result = (self.session.query(_Dale2014).
-                  filter(_Dale2014.fracAGN == frac_agn).
-                  filter(_Dale2014.alpha == alpha).
-                  first())
-        if result:
-            return Dale2014(result.fracAGN, result.alpha, result.wave,
-                            result.lumin)
-        else:
-            raise DatabaseLookupError(
-                "The Dale2014 template for frac_agn <{0}> and alpha <{1}> "
-                "is not in the database.".format(frac_agn, alpha))
-
-    def get_fritz2006(self, model_nb):
-        """
-        Get the Fritz et al. (2006) AGN model corresponding to the number.
-
-        Parameters
-        ----------
-        model_nb : integer
-            Model number.
-
-        Returns
-        -------
-        agn : pcigale.data.Fritz2006
-            The AGN model.
-
-        Raises
-        ------
-        DatabaseLookupError : if the requested template is not in the database.
-
-        """
-        result = (self.session.query(_Fritz2006).
-                  filter(_Fritz2006.model_nb == model_nb).
-                  first())
-        if result:
-            return Fritz2006(result.model_nb, result.agn_type,
-                                result.r_ratio, result.tau, result.beta,
-                                result.gamma, result.theta, result.psy,
-                                result.wave, result.luminosity)
-        else:
-            raise DatabaseLookupError(
-                "The Fritz2006 model is not in the database.")
 
     def get_dl2007(self, qpah, umin, umax):
         """
@@ -682,6 +526,158 @@ class Database(object):
                 "The DL2007 model for qpah <{0}>, umin <{1}>, and umax <{2}> "
                 "is not in the database.".format(qpah, umin, umax))
 
+    def get_dl2007_parameters(self):
+        """Get parameters for the DL2007 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_DL2007)
+
+    def add_dale2014(self, iragn):
+        """
+        Add Dale et al (2014) templates the collection.
+
+        Parameters
+        ----------
+        iragn : pcigale.data.Dale2014
+
+        """
+
+        if self.is_writable:
+            template = _Dale2014(iragn)
+            self.session.add(template)
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError(
+                    'The Dale2014 template is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def get_dale2014(self, frac_agn, alpha):
+        """
+        Get the Dale et al (2014) template corresponding to the given set of
+        parameters.
+
+        Parameters
+        ----------
+        frac_agn: float
+            contribution of the AGN to the IR luminosity
+        alpha: float
+            alpha corresponding to the updated Dale & Helou (2002) star
+            forming template.
+
+        Returns
+        -------
+        template : pcigale.data.Dale2014
+            The Dale et al. (2014) IR template.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested template is not in the database.
+
+        """
+        result = (self.session.query(_Dale2014).
+                  filter(_Dale2014.fracAGN == frac_agn).
+                  filter(_Dale2014.alpha == alpha).
+                  first())
+        if result:
+            return Dale2014(result.fracAGN, result.alpha, result.wave,
+                            result.lumin)
+        else:
+            raise DatabaseLookupError(
+                "The Dale2014 template for frac_agn <{0}> and alpha <{1}> "
+                "is not in the database.".format(frac_agn, alpha))
+
+    def get_dale2014_parameters(self):
+        """Get parameters for the Dale 2014 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_Dale2014)
+
+    def add_fritz2006(self, agn):
+        """
+        Add a Fritz et al. (2006) AGN model to the database.
+
+        Parameters
+        ----------
+        agn : pcigale.data.Fritz2006
+
+        """
+        if self.is_writable:
+            self.session.add(_Fritz2006(agn))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError(
+                    'The agn model is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def get_fritz2006(self, model_nb):
+        """
+        Get the Fritz et al. (2006) AGN model corresponding to the number.
+
+        Parameters
+        ----------
+        model_nb : integer
+            Model number.
+
+        Returns
+        -------
+        agn : pcigale.data.Fritz2006
+            The AGN model.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested template is not in the database.
+
+        """
+        result = (self.session.query(_Fritz2006).
+                  filter(_Fritz2006.model_nb == model_nb).
+                  first())
+        if result:
+            return Fritz2006(result.model_nb, result.agn_type,
+                             result.r_ratio, result.tau, result.beta,
+                             result.gamma, result.theta, result.psy,
+                             result.wave, result.luminosity)
+        else:
+            raise DatabaseLookupError(
+                "The Fritz2006 model is not in the database.")
+
+    def get_fritz2006_parameters(self):
+        """Get parameters for the Fritz 2006 AGN models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_Fritz2006)
+
+    def add_nebular_lines(self, nebular_lines):
+        """
+        Add ultraviolet and optical line templates to the database.
+        """
+        if self.is_writable:
+            self.session.add(_NebularLines(nebular_lines))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise Exception('The line is already in the base')
+        else:
+            raise Exception('The database is not writable')
+
     def get_nebular_lines(self, metallicity, logU):
         """
         Get the line ratios corresponding to the given set of parameters.
@@ -702,6 +698,31 @@ class Database(object):
                                 result.ratio)
         else:
             return None
+
+    def get_nebular_lines_parameters(self):
+        """Get parameters for the nebular lines.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_NebularLines)
+
+    def add_nebular_continuum(self, nebular_continuum):
+        """
+        Add nebular continuum templates to the database.
+        """
+        if self.is_writable:
+            self.session.add(_NebularContinuum(nebular_continuum))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise Exception('The continuum template is already in the '
+                                'base')
+        else:
+            raise Exception('The database is not writable')
 
     def get_nebular_continuum(self, metallicity, logU):
         """
@@ -724,6 +745,16 @@ class Database(object):
         else:
             return None
 
+    def get_nebular_continuum_parameters(self):
+        """Get parameters for the nebular continuum.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_NebularContinuum)
+
     def _get_parameters(self, schema):
         """Generic function to get parameters from an arbitrary schema.
 
@@ -737,85 +768,53 @@ class Database(object):
                 [v[0] for v in set(self.session.query(schema).values(k))])
                 for k in class_mapper(schema).primary_key}
 
-    def get_m2005_parameters(self):
-        """Get parameters for the Maraston 2005 stellar models.
+    def add_filter(self, pcigale_filter):
+        """
+        Add a filter to pcigale database.
+
+        Parameters
+        ----------
+        pcigale_filter : pcigale.data.Filter
+        """
+        if self.is_writable:
+            self.session.add(_Filter(pcigale_filter))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError('The filter is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def get_filter(self, name):
+        """
+        Get a specific filter from the collection
+
+        Parameters
+        ----------
+        name : string
+            Name of the filter
 
         Returns
         -------
-        paramaters: dictionary
-            dictionary of parameters and their values
+        filter : pcigale.base.Filter
+            The Filter object.
+
+        Raises
+        ------
+        DatabaseLookupError : if the requested filter is not in the database.
+
         """
-        return self._get_parameters(_M2005)
-
-    def get_bc03_parameters(self):
-        """Get parameters for the Bruzual & Charlot 2003 stellar models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_BC03)
-
-    def get_dh2002_parameters(self):
-        """Get parameters for the Dale 2014 models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_DH2002)
-
-    def get_dale2014_parameters(self):
-        """Get parameters for the Dale 2014 models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_Dale2014)
-
-    def get_dl2007_parameters(self):
-        """Get parameters for the DL2007 models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_DL2007)
-
-    def get_nebular_lines_parameters(self):
-        """Get parameters for the nebular lines.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_NebularLines)
-
-    def get_nebular_continuum_parameters(self):
-        """Get parameters for the nebular continuum.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_NebularContinuum)
-
-    def get_fritz2006_parameters(self):
-        """Get parameters for the Fritz 2006 AGN models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_Fritz2006)
+        result = (self.session.query(_Filter).
+                  filter(_Filter.name == name).
+                  first())
+        if result:
+            return Filter(result.name, result.description,
+                          result.trans_type, result.trans_table,
+                          result.effective_wavelength)
+        else:
+            raise DatabaseLookupError(
+                "The filter <{0}> is not in the database".format(name))
 
     def get_filter_list(self):
         """Get the list of the filters in the database.
@@ -842,5 +841,4 @@ class Database(object):
         """Generator to parse the Maraston 2005 SSP database."""
         for ssp in self.session.query(_M2005):
             yield M2005(ssp.imf, ssp.metallicity, ssp.time_grid,
-                           ssp.wavelength_grid, ssp.mass_table,
-                           ssp.spec_table)
+                        ssp.wavelength_grid, ssp.mass_table, ssp.spec_table)
