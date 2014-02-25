@@ -19,7 +19,8 @@ import pkg_resources
 from sqlalchemy import (create_engine, exc, Column, String, Text,
                         Float, Integer, PickleType)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import class_mapper, sessionmaker
+import numpy as np
 from .filters import Filter
 from .ssp_m2005 import SspM2005
 from .ssp_bc03 import SspBC03
@@ -733,6 +734,99 @@ class Database(object):
         """
         result = self.session.query(_NebularLines.metallicity).all()
         return [_[0] for _ in result]
+
+    def _get_parameters(self, schema):
+        """Generic function to get parameters from an arbitrary schema.
+
+        Returns
+        -------
+        parameters: dictionary
+            Dictionary of parameters and their values
+        """
+
+        return {k.name: np.sort(
+                [v[0] for v in set(self.session.query(schema).values(k))])
+                for k in class_mapper(schema).primary_key}
+
+    def get_ssp_m2005_parameters(self):
+        """Get parameters for the Fritz 2006 AGN models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_SspM2005)
+
+    def get_ssp_bc03_parameters(self):
+        """Get parameters for the Fritz 2006 AGN models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_SspBC03)
+
+    def get_dh2002_infrared_templates_parameters(self):
+        """Get parameters for the Dale 2014 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_DH2002InfraredTemplates)
+
+    def get_dale2014_parameters(self):
+        """Get parameters for the Dale 2014 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_Dale2014)
+
+    def get_dl2007_parameters(self):
+        """Get parameters for the DL2007 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_DL2007)
+
+    def get_nebular_lines_parameters(self):
+        """Get parameters for the nebular lines.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_NebularLines)
+
+    def get_nebular_continuum_parameters(self):
+        """Get parameters for the nebular continuum.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_NebularContinuum)
+
+    def get_agn_fritz2006_parameters(self):
+        """Get parameters for the Fritz 2006 AGN models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_Fritz2006AGN)
 
     def get_filter_list(self):
         """Get the list of the filters in the database.
