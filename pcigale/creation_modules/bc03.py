@@ -67,7 +67,7 @@ class BC03(CreationModule):
         imf = self.parameters["imf"]
         metallicity = float(self.parameters["metallicity"])
         with Database() as database:
-            self.ssp = database.get_ssp_bc03(imf, metallicity)
+            self.ssp = database.get_bc03(imf, metallicity)
 
     def process(self, sed):
         """Add the convolution of a Bruzual and Charlot SSP to the SED

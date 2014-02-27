@@ -79,13 +79,15 @@ class NebularEmission(CreationModule):
                                    db.
                                    get_nebular_lines(m,
                                                      self.parameters['logU'])
-                                   for m in db.get_nebular_metallicities()
+                                   for m in db.get_nebular_lines_parameters()
+                                   ['metallicity']
                                    }
             self.cont_template = {m:
                                   db.
                                   get_nebular_continuum(m,
                                                         self.parameters['logU'])
-                                  for m in db.get_nebular_metallicities()
+                                  for m in db.get_nebular_continuum_parameters()
+                                  ['metallicity']
                                   }
 
         lines_width = self.parameters['nebular_lines_width'] * 1e3

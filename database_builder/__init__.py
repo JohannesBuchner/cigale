@@ -19,7 +19,7 @@ import itertools
 import numpy as np
 from scipy import interpolate
 import scipy.constants as cst
-from pcigale.data import (Database, Filter, SspM2005, SspBC03, AgnFritz2006,
+from pcigale.data import (Database, Filter, M2005, BC03, Fritz2006,
                           Dale2014, DL2007, NebularLines, NebularContinuum)
 
 
@@ -229,8 +229,8 @@ def build_m2005(base):
                        0.0: 0.02,
                        0.35: 0.04}[metallicity]
 
-        base.add_ssp_m2005(SspM2005(imf, metallicity, age_grid,
-                                    lambda_grid, mass_table, flux_age))
+        base.add_m2005(M2005(imf, metallicity, age_grid, lambda_grid,
+                             mass_table, flux_age))
 
 
 def build_bc2003(base):
@@ -278,7 +278,7 @@ def build_bc2003(base):
         ssp_lumin = interpolate.interp1d(ssp_time,
                                          ssp_lumin)(time_grid)
 
-        base.add_ssp_bc03(SspBC03(
+        base.add_bc03(BC03(
             imf,
             metallicity[key],
             time_grid,
@@ -317,7 +317,7 @@ def build_dh2002(base):
 
     data = (alpha_grid, lambda_grid, templates)
 
-    base.add_dh2002_infrared_templates(data)
+    base.add_dh2002(data)
 
 
 def build_dale2014(base):
@@ -482,10 +482,10 @@ def build_fritz2006(base):
         # Convert the luminosity from erg/s^-1/Å to W/nm
         lumin = lumin * 10 * 1.e-7
 
-        agn = AgnFritz2006(model_nb, agn_type, r_ratio, tau, beta, gamma,
+        agn = Fritz2006(model_nb, agn_type, r_ratio, tau, beta, gamma,
                            theta, psy, wave, lumin)
 
-        base.add_fritz2006_agn(agn)
+        base.add_fritz2006(agn)
 
 
 def build_nebular(base):

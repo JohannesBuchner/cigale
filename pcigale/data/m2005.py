@@ -6,7 +6,7 @@
 import numpy as np
 
 
-class SspM2005(object):
+class M2005(object):
     """Single Stellar Population as defined in Maraston (2005)
 
     This class holds the data associated with a single stellar population

@@ -105,7 +105,7 @@ class M2005(CreationModule):
         imf = self.parameters["imf"]
         metallicity = float(self.parameters["metallicity"])
         with Database() as database:
-            self.ssp = database.get_ssp_m2005(imf, metallicity)
+            self.ssp = database.get_m2005(imf, metallicity)
 
     def process(self, sed):
         """Add the convolution of a Maraston 2005 SSP to the SED
