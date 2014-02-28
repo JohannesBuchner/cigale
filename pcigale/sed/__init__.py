@@ -232,26 +232,31 @@ class SED(object):
             self.wavelength_grid = np.copy(results_wavelengths)
             self.luminosities = np.copy(results_lumin)
         else:
-            # Compute the new wavelength grid for the spectrum.
-            new_wavelength_grid = utils.best_grid(results_wavelengths,
-                                                  self.wavelength_grid)
+            if (results_wavelengths.size != self.wavelength_grid.size or
+                    not np.all(results_wavelengths == self.wavelength_grid)):
+                # Compute the new wavelength grid for the spectrum.
+                new_wavelength_grid = utils.best_grid(results_wavelengths,
+                                                      self.wavelength_grid)
 
-            # Interpolate each luminosity component to the new wavelength grid
-            # setting everything outside the wavelength domain to 0.
-            new_luminosities = interp1d(self.wavelength_grid,
-                                        self.luminosities,
+                # Interpolate each luminosity component to the new wavelength
+                # grid setting everything outside the wavelength domain to 0.
+                new_luminosities = interp1d(self.wavelength_grid,
+                                            self.luminosities,
+                                            bounds_error=False,
+                                            fill_value=0.)(new_wavelength_grid)
+
+                # Interpolate the added luminosity array to the new wavelength
+                # grid
+                interp_lumin = interp1d(results_wavelengths,
+                                        results_lumin,
                                         bounds_error=False,
-                                        fill_value=0.)(new_wavelength_grid)
+                                        fill_value=0)(new_wavelength_grid)
 
-            # Interpolate the added luminosity array to the new wavelength
-            # grid
-            interp_lumin = interp1d(results_wavelengths,
-                                    results_lumin,
-                                    bounds_error=False,
-                                    fill_value=0)(new_wavelength_grid)
-
-            self.wavelength_grid = new_wavelength_grid
-            self.luminosities = np.vstack((new_luminosities, interp_lumin))
+                self.wavelength_grid = new_wavelength_grid
+                self.luminosities = np.vstack((new_luminosities, interp_lumin))
+            else:
+                self.luminosities = np.vstack((self.luminosities,
+                                               results_lumin))
 
     def add_lines(self, set_name, wavelengths, luminosities, widths):
         """Add a set of spectral lines to the SED.
