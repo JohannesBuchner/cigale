@@ -243,9 +243,9 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
             if name_err not in obs_table.columns:
                 obs_table.add_column(Column(
                     name=name_err,
-                    data=np.zeros(len(obs_table), dtype=float),
+                    data=np.zeros(len(obs_table), dtype=float)),
                     index=obs_table.colnames.index(name)+1
-                ))
+                )
             else:
                 obs_table[name_err] = np.zeros(len(obs_table))
 
