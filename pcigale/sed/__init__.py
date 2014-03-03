@@ -232,6 +232,10 @@ class SED(object):
             self.wavelength_grid = np.copy(results_wavelengths)
             self.luminosities = np.copy(results_lumin)
         else:
+            # If the added luminosity contribution changes the SED wavelength
+            # grid, we interpolate everything on a common wavelength grid.
+            # TODO: If most modules change the grid, maybe it's better not to
+            # test the grid size first.
             if (results_wavelengths.size != self.wavelength_grid.size or
                     not np.all(results_wavelengths == self.wavelength_grid)):
                 # Compute the new wavelength grid for the spectrum.
