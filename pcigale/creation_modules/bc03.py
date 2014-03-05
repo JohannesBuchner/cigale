@@ -107,7 +107,7 @@ class BC03(CreationModule):
 
         sed.add_info("stellar.m_star_young", young_info["m_star"], True)
         sed.add_info("stellar.m_gas_young", young_info["m_gas"], True)
-        sed.add_info("stellar.n_ly_young", young_info["n_ly"])
+        sed.add_info("stellar.n_ly_young", young_info["n_ly"], True)
         sed.add_info("stellar.b_400_young", young_info["b_4000"])
         sed.add_info("stellar.b4_vn_young", young_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_young", young_info["b4_sdss"])
@@ -115,7 +115,7 @@ class BC03(CreationModule):
 
         sed.add_info("stellar.m_star_old", old_info["m_star"], True)
         sed.add_info("stellar.m_gas_old", old_info["m_gas"], True)
-        sed.add_info("stellar.n_ly_old", old_info["n_ly"])
+        sed.add_info("stellar.n_ly_old", old_info["n_ly"], True)
         sed.add_info("stellar.b_400_old", old_info["b_4000"])
         sed.add_info("stellar.b4_vn_old", old_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_old", old_info["b4_sdss"])

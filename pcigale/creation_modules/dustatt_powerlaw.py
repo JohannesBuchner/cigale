@@ -214,12 +214,12 @@ class PowerLawAtt(CreationModule):
 
             sed.add_module(self.name, self.parameters)
             sed.add_info("attenuation.Av." + contrib, av[age])
-            sed.add_info("attenuation." + contrib, attenuation)
+            sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
         # Total attenuation
-        sed.add_info("attenuation.total", attenuation_total)
+        sed.add_info("attenuation.total", attenuation_total, True)
 
         # Fλ fluxes (only in continuum) in each filter after attenuation.
         flux_att = {}
