@@ -44,6 +44,8 @@ TOLERANCE = 1.e-12
 # Probability threshold: models with a lower probability are excluded from
 # the moments computation.
 MIN_PROBABILITY = 1.e-20
+# Limit the redshift to this number of decimals
+REDSHIFT_DECIMALS=2
 # Name of the file containing the analysis results
 RESULT_FILE = "analysis_results.fits"
 # Name of the file containing the best models information
@@ -183,6 +185,9 @@ class PdfAnalysis(AnalysisModule):
             filters,
             TOLERANCE
         )
+        # Limit the observation table redshift decimals.
+        obs_table["redshift"] = np.round(obs_table["redshift"],
+                                         REDSHIFT_DECIMALS)
 
         ##################################################################
         # Model computation                                              #
