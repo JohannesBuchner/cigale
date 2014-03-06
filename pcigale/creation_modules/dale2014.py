@@ -79,7 +79,9 @@ class Dale2014(CreationModule):
         parameters : dictionary containing the parameters
 
         """
-        luminosity = sed.info['attenuation.total']
+        if 'dust.luminosity' not in sed.info.keys():
+            sed.add_info('dust.luminosity', 1., True)
+        luminosity = 1.
 
         frac_agn = self.parameters["fracAGN"]
 

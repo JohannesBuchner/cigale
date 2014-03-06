@@ -61,7 +61,9 @@ class DH2002(CreationModule):
         """
         alpha = float(self.parameters["alpha"])
 
-        luminosity = sed.info['attenuation.total']
+        if 'dust.luminosity' not in sed.info.keys():
+            sed.add_info('dust.luminosity', 1., True)
+        luminosity = 1.
 
         ir_template = self.dh2002.get_template(alpha)
 

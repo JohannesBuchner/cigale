@@ -294,7 +294,7 @@ class CalzLeit(CreationModule):
                                  attenuation_spectrum)
 
         # Total attenuation
-        sed.add_info("attenuation.total", attenuation_total, True)
+        sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only from continuum) in each filter after attenuation.
         flux_att = {}

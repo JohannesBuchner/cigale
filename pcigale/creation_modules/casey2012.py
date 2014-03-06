@@ -95,7 +95,9 @@ class Casey2012(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-        luminosity = sed.info['attenuation.total']
+        if 'dust.luminosity' not in sed.info.keys():
+            sed.add_info('dust.luminosity', 1., True)
+        luminosity = 1.
 
         sed.add_module(self.name, self.parameters)
         sed.add_info("dust.temperature", self.parameters["temperature"])

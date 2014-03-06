@@ -6,7 +6,7 @@
 from astropy.io.votable.tree import VOTableFile, Resource, Table, Field, Info
 
 
-def save_sed_to_vo(sed, filename, mass=1.):
+def save_sed_to_vo(sed, filename, norm=1.):
     """
     Save a SED object to a VO-Table file
 
@@ -16,8 +16,8 @@ def save_sed_to_vo(sed, filename, mass=1.):
         The SED to save.
     filename : string
         Name of the file to save the SED to.
-    mass : float
-        Mass of the galaxy in solar mass.
+    norm : float
+        Normalisation factor of the SED
 
     """
     votable = VOTableFile()
@@ -36,7 +36,7 @@ def save_sed_to_vo(sed, filename, mass=1.):
     ])
     fnu_table.create_arrays(len(sed.wavelength_grid))
     fnu_table.array["wavelength"] = sed.wavelength_grid
-    fnu_table.array["F_nu"] = mass * sed.fnu
+    fnu_table.array["F_nu"] = norm * sed.fnu
 
     # F_lambda contributions and total
     flambda_table = Table(votable, name="Flambda", id="Flambda")
@@ -52,31 +52,35 @@ def save_sed_to_vo(sed, filename, mass=1.):
     flambda_table.fields.extend(flambda_fields)
     flambda_table.create_arrays(len(sed.wavelength_grid))
     flambda_table.array["wavelength"] = sed.wavelength_grid
-    flambda_table.array["F_lambda_total"] = mass * sed.luminosity
+    flambda_table.array["F_lambda_total"] = norm * sed.luminosity
     for name in sed.contribution_names:
-        flambda_table.array[name] = mass * sed.get_lumin_contribution(name)
+        flambda_table.array[name] = norm * sed.get_lumin_contribution(name)
 
     # SFH
-    sfh_resource = Resource(id="Star_Formation_History")
-    votable.resources.append(sfh_resource)
-    sfh_table = Table(votable, name="SFH", id="SFH")
-    sfh_resource.tables.append(sfh_table)
-    sfh_table.fields.extend([
-        Field(votable, name="time", datatype="double", unit="Myr",
-              ucd="time.age"),
-        Field(votable, name="SFR", datatype="double", unit="Msun/yr",
-              ucd="phys.SFR")
-    ])
-    sfh_table.create_arrays(len(sed.sfh[0]))
-    sfh_table.array["time"] = sed.sfh[0]
-    sfh_table.array["SFR"] = mass * sed.sfh[1]
+    if sed.sfh is not None:
+        sfh_resource = Resource(id="Star_Formation_History")
+        votable.resources.append(sfh_resource)
+        sfh_table = Table(votable, name="SFH", id="SFH")
+        sfh_resource.tables.append(sfh_table)
+        sfh_table.fields.extend([
+            Field(votable, name="time", datatype="double", unit="Myr",
+                ucd="time.age"),
+            Field(votable, name="SFR", datatype="double", unit="Msun/yr",
+                ucd="phys.SFR")
+        ])
+        sfh_table.create_arrays(len(sed.sfh[0]))
+        sfh_table.array["time"] = sed.sfh[0]
+        sfh_table.array["SFR"] = norm * sed.sfh[1]
 
     # SED information to keywords
-    votable.infos.append(Info(name="Galaxy mass in Msun", value=mass))
+    if sed.sfh is not None:
+        # If there is a stellar population then the norm factor is the stellar
+        # mass.
+        votable.infos.append(Info(name="Galaxy mass in Msun", value=norm))
     votable.infos.append(Info(name="Redshift", value=sed.redshift))
     for name, value in sed.info.items():
         if name in sed.mass_proportional_info:
-            votable.infos.append(Info(name=name, value=mass * value))
+            votable.infos.append(Info(name=name, value=norm * value))
         else:
             votable.infos.append(Info(name=name, value=value))
 

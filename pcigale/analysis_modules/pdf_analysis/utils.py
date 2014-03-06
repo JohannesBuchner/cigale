@@ -77,7 +77,7 @@ def gen_compute_fluxes_at_redshift(sed, filters, redshifting_module,
             except AttributeError:
                 age_at_redshift = cosmology.age(redshift) * 1000
 
-            if sed.info["age"] > age_at_redshift:
+            if "age" in sed.info.keys() and sed.info["age"] > age_at_redshift:
                 cache[redshift] = -99 * np.ones(len(filters))
             else:
 
