@@ -337,7 +337,7 @@ class PdfAnalysis(AnalysisModule):
                 model_variables[:, :, index] *= normalisation_factors
 
         # We also add the galaxy mass to the analysed variables
-        if any(module in creation_modules for module in ('bc03', 'm2005')):
+        if sed.sfh is not None:
             analysed_variables.insert(0, "galaxy_mass")
             model_variables = np.dstack((normalisation_factors, model_variables))
 
@@ -412,7 +412,7 @@ class PdfAnalysis(AnalysisModule):
             reduced_chi_squares[best_model_index, range(len(best_model_index))],
             name="reduced_chi_square"
         ))
-        if any(module in creation_modules for module in ('bc03', 'm2005')):
+        if sed.sfh is not None:
             best_model_table.add_column(Column(
                 normalisation_factors[best_model_index,
                                     range(len(best_model_index))],
