@@ -289,12 +289,12 @@ class CalzLeit(CreationModule):
 
             sed.add_module(self.name, self.parameters)
             sed.add_info("attenuation.E_BVs." + contrib, ebvs[age])
-            sed.add_info("attenuation." + contrib, attenuation)
+            sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
         # Total attenuation
-        sed.add_info("attenuation.total", attenuation_total)
+        sed.add_info("attenuation.total", attenuation_total, True)
 
         # Fλ fluxes (only from continuum) in each filter after attenuation.
         flux_att = {}

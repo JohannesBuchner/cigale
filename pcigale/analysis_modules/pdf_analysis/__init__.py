@@ -419,11 +419,12 @@ class PdfAnalysis(AnalysisModule):
         ))
 
         for index, name in enumerate(model_info_names):
-            best_model_table.add_column(Column(
-                [model_info[model_idx][index] for model_idx
-                 in best_model_index],
-                name=name
-            ))
+            column = Column([list(model_info[model_idx])[index] for model_idx
+                             in best_model_index], name=name)
+            if name in sed.mass_proportional_info:
+                column *= (normalisation_factors[best_model_index,
+                                                range(len(best_model_index))])
+            best_model_table.add_column(column)
 
         best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
 
