@@ -65,7 +65,6 @@ class SED(object):
 
         """
         self.sfh = sfh
-        self.redshift = 0.
         self.modules = []
         self.wavelength_grid = None
         self.contribution_names = []
@@ -143,7 +142,7 @@ class SED(object):
         """
 
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(self.luminosity, self.redshift)
+        f_lambda = utils.luminosity_to_flux(self.luminosity, self.info['redshift'])
 
         # Fν flux density in mJy
         f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
@@ -388,7 +387,7 @@ class SED(object):
             f_lambda = utils.luminosity_to_flux(
                 (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
                  np.trapz(transmission_r, wavelength_r)),
-                self.redshift
+                self.info['redshift']
             )
 
             # Add the Fλ fluxes from the spectral lines.

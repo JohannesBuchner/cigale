@@ -49,9 +49,9 @@ class Redshifting(CreationModule):
         redshift = float(self.parameters["redshift"])
 
         # If the SED is already redshifted, raise an error.
-        if sed.redshift > 0:
+        if 'redshift' in sed.info.keys() > 0:
             raise Exception("The SED is already redshifted <z={}>."
-                            .format(sed.redshift))
+                            .format(sed.info['redshift']))
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
@@ -65,7 +65,7 @@ class Redshifting(CreationModule):
         # We modify each luminosity contribution to keep energy constant
         sed.luminosities /= 1. + redshift
 
-        sed.redshift = redshift
+        sed.add_info("redshift", redshift)
         sed.add_module(self.name, self.parameters)
 
 # CreationModule to be returned by get_module
