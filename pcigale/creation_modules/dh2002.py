@@ -63,7 +63,7 @@ class DH2002(CreationModule):
 
         if 'dust.luminosity' not in sed.info.keys():
             sed.add_info('dust.luminosity', 1., True)
-        luminosity = 1.
+        luminosity = sed.info['dust.luminosity']
 
         ir_template = self.dh2002.get_template(alpha)
 

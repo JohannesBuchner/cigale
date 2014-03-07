@@ -97,7 +97,7 @@ class Casey2012(CreationModule):
         """
         if 'dust.luminosity' not in sed.info.keys():
             sed.add_info('dust.luminosity', 1., True)
-        luminosity = 1.
+        luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
         sed.add_info("dust.temperature", self.parameters["temperature"])

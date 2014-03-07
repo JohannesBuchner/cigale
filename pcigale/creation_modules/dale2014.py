@@ -81,7 +81,7 @@ class Dale2014(CreationModule):
         """
         if 'dust.luminosity' not in sed.info.keys():
             sed.add_info('dust.luminosity', 1., True)
-        luminosity = 1.
+        luminosity = sed.info['dust.luminosity']
 
         frac_agn = self.parameters["fracAGN"]
 
