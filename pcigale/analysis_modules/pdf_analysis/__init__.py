@@ -193,9 +193,9 @@ class PdfAnalysis(AnalysisModule):
         # For convenience, the redshift of each model is stored in
         # model_redshift.
 
-        model_fluxes = np.ma.zeros((len(creation_modules_params),
+        model_fluxes = np.ma.empty((len(creation_modules_params),
                                     len(filters)))
-        model_variables = np.ma.zeros((len(creation_modules_params),
+        model_variables = np.ma.empty((len(creation_modules_params),
                                        len(analysed_variables)))
 
         model_redshift = np.empty(len(creation_modules_params))
