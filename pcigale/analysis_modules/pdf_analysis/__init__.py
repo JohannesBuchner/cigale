@@ -25,16 +25,14 @@ reduced χ²) is given for each observation.
 
 import os
 import numpy as np
-import matplotlib
 from numpy import newaxis
 from collections import OrderedDict
 from datetime import datetime
 from progressbar import ProgressBar
-from matplotlib import pyplot as plt
 from astropy.table import Table, Column
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
-from .utils import gen_pdf, gen_best_sed_fig
+from .utils import gen_pdf
 from ...warehouse import SedWarehouse
 from ...data import Database
 
@@ -51,9 +49,6 @@ RESULT_FILE = "analysis_results.fits"
 BEST_MODEL_FILE = "best_models.fits"
 # Directory where the output files are stored
 OUT_DIR = "out/"
-# Wavelength limits (restframe) when plotting the best SED.
-PLOT_L_MIN = 91
-PLOT_L_MAX = 1e6
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
 
@@ -73,28 +68,16 @@ class PdfAnalysis(AnalysisModule):
             "If true, save the best SED for each observation to a file.",
             False
         )),
-        ("plot_best_sed", (
+        ("save_chi2", (
             "boolean",
-            "If true, for each observation save a plot of the best SED "
-            "and the observed fluxes.",
-            False
-        )),
-        ("plot_chi2_distribution", (
-            "boolean",
-            "If true, for each observation and each analysed variable "
-            "plot the value vs reduced chi-square distribution.",
+            "If true, for each observation and each analysed variable save "
+            "the reduced chi².",
             False
         )),
         ("save_pdf", (
             "boolean",
-            "If true, for each observation and each analysed variable "
-            "save the probability density function.",
-            False
-        )),
-        ("plot_pdf", (
-            "boolean",
-            "If true, for each observation and each analysed variable "
-            "plot the probability density function.",
+            "If true, for each observation and each analysed variable save "
+            "the probability density function.",
             False
         )),
         ("storage_type", (
@@ -128,9 +111,6 @@ class PdfAnalysis(AnalysisModule):
 
         """
 
-        # To be sure matplotlib will not display the interactive window.
-        matplotlib.interactive(0)
-
         # Rename the output directory if it exists
         if os.path.exists(OUT_DIR):
             new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + OUT_DIR
@@ -144,11 +124,8 @@ class PdfAnalysis(AnalysisModule):
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
         save_best_sed = (parameters["save_best_sed"].lower() == "true")
-        plot_best_sed = (parameters["plot_best_sed"].lower() == "true")
-        plot_chi2_distribution = (
-            parameters["plot_chi2_distribution"].lower() == "true")
+        save_chi2 = (parameters["save_chi2"].lower() == "true")
         save_pdf = (parameters["save_pdf"].lower() == "true")
-        plot_pdf = (parameters["plot_pdf"].lower() == "true")
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -253,6 +230,8 @@ class PdfAnalysis(AnalysisModule):
         best_chi2_all = np.empty_like(best_idx_all)
         best_chi2_red_all = np.empty_like(best_idx_all)
         normalisation_factors_all = np.empty_like(best_idx_all)
+        
+        best_fluxes = np.empty((len(obs_table), len(filters)))
 
         best_variables_all = [None]*len(obs_table)
 
@@ -370,10 +349,11 @@ class PdfAnalysis(AnalysisModule):
             best_chi2_all[idx_obs] = chi_squares[best_index]
             best_chi2_red_all[idx_obs] = reduced_chi_squares[best_index]
             best_variables_all[idx_obs] = list(model_info_obs[best_index])
+            best_fluxes[idx_obs, :] = model_fluxes_obs[best_index, :]
 
-            if plot_best_sed or save_best_sed:
+            if save_best_sed:
 
-                print("Plotting/saving the best models...")
+                print("Saving the best models...")
 
                 with SedWarehouse(cache_type=parameters["storage_type"]) as \
                         sed_warehouse:
@@ -383,44 +363,10 @@ class PdfAnalysis(AnalysisModule):
                         np.array(creation_modules_params)[w_models][best_index]
                     )
 
-                    best_lambda = sed.wavelength_grid
-                    best_fnu = sed.fnu * normalisation_factors[best_index]
-
-                    if save_best_sed:
-                        sed.to_votable(
-                            OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                            mass=normalisation_factors[best_index]
-                        )
-
-                    if plot_best_sed:
-
-                        plot_mask = (
-                            (best_lambda >= PLOT_L_MIN * (1 + obs["redshift"]))
-                            &
-                            (best_lambda <= PLOT_L_MAX * (1 + obs["redshift"]))
-                        )
-
-                        figure = gen_best_sed_fig(
-                            best_lambda[plot_mask],
-                            best_fnu[plot_mask],
-                            [f.effective_wavelength for f in filters.values()],
-                            norm_model_fluxes[best_index, :],
-                            [obs[f] for f in filters]
-                        )
-
-                        if figure is None:
-                            print("Can not plot best model for observation "
-                                  "{}!".format(obs['id']))
-                        else:
-                            figure.suptitle(
-                                u"Best model for {} - red-chi² = {}".format(
-                                    obs['id'],
-                                    reduced_chi_squares[best_index]
-                                )
-                            )
-                            figure.savefig(OUT_DIR + "{}_best_model.pdf".format
-                                           (obs['id']))
-                            plt.close(figure)
+                    sed.to_votable(
+                        OUT_DIR + "{}_best_model.xml".format(obs['id']),
+                        mass=normalisation_factors[best_index]
+                    )
 
             ##################################################################
             # Probability Density Functions                                  #
@@ -430,8 +376,7 @@ class PdfAnalysis(AnalysisModule):
             # parameters using a weighted kernel density estimation. This part
             # should definitely be improved as we simulate the weight by adding
             # as many value as their probability * 100.
-
-            if save_pdf or plot_pdf:
+            if save_pdf:
 
                 print("Computing the probability density functions...")
 
@@ -447,8 +392,7 @@ class PdfAnalysis(AnalysisModule):
                         # TODO: use logging
                         print("Can not compute PDF for observation <{}> and "
                               "variable <{}>.".format(obs['id'], var_name))
-
-                    if save_pdf and pdf_prob is not None:
+                    else:
                         table = Table((
                             Column(pdf_grid, name=var_name),
                             Column(pdf_prob, name="probability density")
@@ -456,38 +400,17 @@ class PdfAnalysis(AnalysisModule):
                         table.write(OUT_DIR + "{}_{}_pdf.fits".format(
                             obs['id'], var_name))
 
-                    if plot_pdf and pdf_prob is not None:
-                        figure = plt.figure()
-                        ax = figure.add_subplot(111)
-                        ax.plot(pdf_grid, pdf_prob)
-                        ax.set_xlabel(var_name)
-                        ax.set_ylabel("Probability density")
-                        figure.savefig(OUT_DIR + "{}_{}_pdf.pdf".format(
-                            obs['id'], var_name))
-                        plt.close(figure)
+            if save_chi2:
 
-            ##################################################################
-            # Reduced-chisquares plots                                       #
-            ##################################################################
-            if plot_chi2_distribution:
-
-                print("Plotting the reduced chi squares distributions...")
+                print("Saving the chi²...")
 
                 for var_index, var_name in enumerate(analysed_variables):
-
-                    values = model_variables_obs[:, var_index]
-
-                    figure = plt.figure()
-                    ax = figure.add_subplot(111)
-                    ax.plot(values, reduced_chi_squares, "ob")
-                    ax.set_xlabel(var_name)
-                    ax.set_ylabel("reduced chi-square")
-                    figure.suptitle("Reduced chi-square distribution of {} "
-                                    "values for {}".format(obs['id'],
-                                                           var_name))
-                    figure.savefig(OUT_DIR + "{}_{}_chisquares.pdf".format(
-                                   obs['id'], var_name))
-                    plt.close(figure)
+                    table = Table((
+                        Column(model_variables_obs[:, var_index],
+                               name=var_name),
+                        Column(reduced_chi_squares, name="chi2")))
+                    table.write(OUT_DIR + "{}_{}_chi2.fits".format(obs['id'],
+                                var_name))
 
         # Create and save the result table.
         result_table = Table()
@@ -532,6 +455,11 @@ class PdfAnalysis(AnalysisModule):
                             name=name)
             if name in sed.mass_proportional_info:
                 column *= normalisation_factors_all
+            best_model_table.add_column(column)
+
+        for index, name in enumerate(filters):
+            column = Column(best_fluxes[:, index] * normalisation_factors_all,
+                            name=name, unit='mJy')
             best_model_table.add_column(column)
 
         best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
