@@ -133,7 +133,7 @@ def chi2(config):
     chi2_vars = (config.configuration['analysis_method_params']
                  ['analysed_variables'])
 
-    with mp.Pool(1) as pool:
+    with mp.Pool(processes=config.configuration['cores']) as pool:
         items = product(input_data['id'], chi2_vars)
         pool.starmap(_chi2_worker, items)
         pool.close()
@@ -147,7 +147,7 @@ def pdf(config):
     pdf_vars = (config.configuration['analysis_method_params']
                 ['analysed_variables'])
 
-    with mp.Pool(1) as pool:
+    with mp.Pool(processes=config.configuration['cores']) as pool:
         items = product(input_data['id'], pdf_vars)
         pool.starmap(_pdf_worker, items)
         pool.close()
@@ -164,7 +164,7 @@ def sed(config):
                                for name in config.configuration['column_list']
                                if not name.endswith('_err')])
 
-    with mp.Pool(1) as pool:
+    with mp.Pool(processes=config.configuration['cores']) as pool:
         pool.starmap(_sed_worker, zip(obs, mod, repeat(filters)))
         pool.close()
         pool.join()
