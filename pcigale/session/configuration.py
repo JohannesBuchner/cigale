@@ -8,6 +8,7 @@ import pkg_resources
 import pkgutil
 import collections
 import itertools
+import multiprocessing as mp
 import numpy as np
 from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
@@ -133,6 +134,11 @@ class Configuration(object):
             "Method used for statistical analysis. Available methods: "
             + ', '.join(list_modules('pcigale.analysis_modules')) + ".")
 
+        self.config['cores'] = ""
+        self.config.comments['cores'] = [""] + wrap(
+            "Number of CPU cores available. This computer has {} cores."
+            .format(mp.cpu_count()))
+
         self.config.write()
 
     def generate_conf(self):
@@ -231,6 +237,7 @@ class Configuration(object):
         for section in ['data_file', 'column_list', 'creation_modules',
                         'analysis_method']:
             configuration[section] = self.config[section]
+        configuration['cores'] = int(self.config['cores'])
 
         # Parsing the SED modules parameters
         configuration['creation_modules_params'] = []
