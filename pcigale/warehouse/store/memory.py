@@ -39,6 +39,16 @@ class SedStore(object):
         # We store a copy not to modify the stored object.
         self.dictionary[key] = deepcopy(value)
 
+    def delete(self, key):
+        """Delete a key, value pair from the cache
+
+        Parameters
+        ----------
+        key: key of the element to be deleted
+
+        """
+        del self.dictionary[key]
+
     def close(self):
         """Do nothing"""
         pass

@@ -242,7 +242,7 @@ class Configuration(object):
         # Parsing the SED modules parameters
         configuration['creation_modules_params'] = []
         for module in self.config['creation_modules']:
-            module_params = {}
+            module_params = collections.OrderedDict()
             for key, value in \
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)

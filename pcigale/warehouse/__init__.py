@@ -3,7 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-from json import JSONEncoder
+from json import JSONEncoder, JSONDecoder
 from ..sed import SED
 from .. import creation_modules
 
@@ -66,6 +66,33 @@ class SedWarehouse(object):
             self.module_cache[module_key] = module
 
         return module
+
+    def partial_clear_cache(self, flagged_param):
+        """Clear the cache of SEDs that are not relevant anymore
+
+        To do partial clearing of the cache, we go through the entire cache and
+        delete the SEDs that correspond to a given parameter key/value.
+
+        Parameters
+        ----------
+        flagged_param: tuple
+            Tuple of 2 elements containing the parameter name and its value
+
+        """
+        if flagged_param is not None:
+            decoder = JSONDecoder()
+            # Going through all SEDs
+            for k in list(self.storage.dictionary.keys()):
+                list_params = decoder.decode(k)[1]
+                # Going through all parameters of a given SED. We start with
+                # the last module because it is more likely that the parameter
+                # we look for belongs to one of the last modules.
+                list_params.reverse()
+                for params in list_params:
+                    if (flagged_param[0] in params.keys() and
+                       params[flagged_param[0]] == flagged_param[1]):
+                        self.storage.delete(k)
+                        break
 
     def get_sed(self, module_list, parameter_list):
         """Get the SED corresponding to the module and parameter lists

@@ -24,7 +24,7 @@ def param_dict_combine(dictionary):
 
     """
     # We make a copy of the dictionary as we are modifying it.
-    dictionary = dict(dictionary)
+    dictionary = collections.OrderedDict(dictionary)
 
     # First, we must ensure that all values are lists; when a value is a
     # single element, we put it in a list.
@@ -44,7 +44,8 @@ def param_dict_combine(dictionary):
     # value lists.
     key_list = dictionary.keys()
     value_array_list = [dictionary[key] for key in key_list]
-    combination_list = [dict(zip(key_list, combination)) for combination in
+    combination_list = [collections.OrderedDict(zip(key_list, combination))
+                        for combination in
                         itertools.product(*value_array_list)]
 
     return combination_list
