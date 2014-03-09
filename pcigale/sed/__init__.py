@@ -382,12 +382,17 @@ class SED(object):
             transmission_r = np.interp(wavelength_r, transmission[0],
                                        transmission[1])
 
+            if 'redshift' in self.info.keys():
+                redshift = self.info['redshift']
+            else:
+                redshift = 0.
+
             # TODO: Can we avoid to normalise as the filter transmission is
             # already normalised?
             f_lambda = utils.luminosity_to_flux(
                 (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
                  np.trapz(transmission_r, wavelength_r)),
-                self.info['redshift']
+                redshift
             )
 
             # Add the Fλ fluxes from the spectral lines.

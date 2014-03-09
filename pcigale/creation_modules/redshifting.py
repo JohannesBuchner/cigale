@@ -54,7 +54,7 @@ class Redshifting(CreationModule):
 
         """
         # If the SED is already redshifted, raise an error.
-        if 'redshift' in sed.info.keys() > 0:
+        if 'redshift' in sed.info.keys() and sed.info['redshift'] > 0.:
             raise Exception("The SED is already redshifted <z={}>."
                             .format(sed.info['redshift']))
 
