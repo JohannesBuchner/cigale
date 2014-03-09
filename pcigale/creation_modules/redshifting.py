@@ -20,6 +20,7 @@ is changed, this module may need to be adapted.
 
 from collections import OrderedDict
 from ..creation_modules import CreationModule
+from pcigale.sed.cosmology import cosmology
 
 
 class Redshifting(CreationModule):
@@ -38,6 +39,12 @@ class Redshifting(CreationModule):
         ))
     ])
 
+    def _init_code(self):
+        """Compute the age of the Universe at a given redshift
+        """
+        self.redshift = float(self.parameters["redshift"])
+        self.universe_age = cosmology.age(self.redshift).value * 1000.
+
     def process(self, sed):
         """Redshift the SED
 
@@ -46,8 +53,6 @@ class Redshifting(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-        redshift = float(self.parameters["redshift"])
-
         # If the SED is already redshifted, raise an error.
         if 'redshift' in sed.info.keys() > 0:
             raise Exception("The SED is already redshifted <z={}>."
@@ -55,17 +60,18 @@ class Redshifting(CreationModule):
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
-        if redshift < 0:
+        if self.redshift < 0:
             raise Exception("The redshift provided is negative <{}>."
-                            .format(redshift))
+                            .format(self.redshift))
 
         # We redshift directly the SED wavelength grid
-        sed.wavelength_grid *= 1. + redshift
+        sed.wavelength_grid *= 1. + self.redshift
 
         # We modify each luminosity contribution to keep energy constant
-        sed.luminosities /= 1. + redshift
+        sed.luminosities /= 1. + self.redshift
 
-        sed.add_info("redshift", redshift)
+        sed.add_info("redshift", self.redshift)
+        sed.add_info("universe.age", self.universe_age)
         sed.add_module(self.name, self.parameters)
 
 # CreationModule to be returned by get_module

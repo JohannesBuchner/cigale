@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
-# Copyright (C) 2013-2014 Yannick Roehlly
+# Copyright (C) 2013-2014 Institute of Astronomy
+# Copyright (C) 2013-2014 Yannick Roehlly <yannick@iaora.eu>
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly
+# Author: Yannick Roehlly & Médéric Boquien
 
 """
 Probability Density Function analysis module
@@ -25,32 +26,24 @@ reduced χ²) is given for each observation.
 
 import os
 import numpy as np
-from numpy import newaxis
 from collections import OrderedDict
 from datetime import datetime
-from progressbar import ProgressBar
-from astropy.table import Table, Column
+from itertools import repeat
+import multiprocessing as mp
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
-from .utils import gen_pdf
+from .utils import save_table_analysis, save_table_best
 from ...warehouse import SedWarehouse
 from ...data import Database
+from .workers import sed as worker_sed
+from .workers import analysis as worker_analysis
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
-# Probability threshold: models with a lower probability are excluded from
-# the moments computation.
-MIN_PROBABILITY = 1e-20
 # Limit the redshift to this number of decimals
 REDSHIFT_DECIMALS = 2
-# Name of the file containing the analysis results
-RESULT_FILE = "analysis_results.fits"
-# Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.fits"
 # Directory where the output files are stored
 OUT_DIR = "out/"
-# Number of points in the PDF
-PDF_NB_POINTS = 1000
 
 
 class PdfAnalysis(AnalysisModule):
@@ -88,7 +81,7 @@ class PdfAnalysis(AnalysisModule):
     ])
 
     def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, parameters):
+                creation_modules_params, parameters, cores):
         """Process with the psum analysis.
 
         The analysis is done in two nested loops: over each observation and
@@ -108,6 +101,8 @@ class PdfAnalysis(AnalysisModule):
             List of the parameter dictionaries for each module.
         parameters: dictionary
             Dictionary containing the parameters.
+        core: integer
+            Number of cores to run the analysis on
 
         """
 
@@ -123,9 +118,9 @@ class PdfAnalysis(AnalysisModule):
 
         # Get the parameters
         analysed_variables = parameters["analysed_variables"]
-        save_best_sed = (parameters["save_best_sed"].lower() == "true")
-        save_chi2 = (parameters["save_chi2"].lower() == "true")
-        save_pdf = (parameters["save_pdf"].lower() == "true")
+        save = (parameters["save_best_sed"].lower() == "true",
+                parameters["save_chi2"].lower() == "true",
+                parameters["save_pdf"].lower() == "true")
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -179,291 +174,108 @@ class PdfAnalysis(AnalysisModule):
 
         # We keep the information (i.e. the content of the sed.info
         # dictionary) for each model.
-        model_info = []
-
-        progress_bar = ProgressBar(maxval=len(creation_modules_params)).start()
+        model_info = [None] * len(creation_modules_params)
 
         # The SED warehouse is used to retrieve SED corresponding to some
         # modules and parameters.
-        with SedWarehouse(cache_type=parameters["storage_type"]) as \
-                sed_warehouse:
+        with SedWarehouse(cache_type=parameters["storage_type"]) as warehouse,\
+                mp.Pool(processes=cores) as pool:
+            # First we get a dummy sed to obtain some information on the
+            # parameters, such as which ones are dependent on the normalisation
+            # factor of the fit.
+            sed = warehouse.get_sed(creation_modules,
+                                    creation_modules_params[0])
+            items = pool.starmap(worker_sed, zip(repeat(warehouse),
+                                                 repeat(creation_modules),
+                                                 creation_modules_params,
+                                                 repeat(analysed_variables),
+                                                 repeat(filters)))
+            pool.close()
+            pool.join()
+            for idx_item, item in enumerate(items):
+                model_fluxes[idx_item, :] = item[0]
+                model_variables[idx_item, :] = item[1]
+                model_redshift[idx_item] = item[2]
+                model_info[idx_item] = item[3]
 
-            for model_index, model_params in enumerate(
-                    creation_modules_params):
-
-                sed = sed_warehouse.get_sed(creation_modules, model_params)
-
-                model_fluxes[model_index, :] = np.array(
-                    [sed.compute_fnu(filter_.trans_table,
-                                     filter_.effective_wavelength)
-                     for filter_ in filters.values()])
-                model_variables[model_index, :] = np.array(
-                    [sed.info[name] for name in analysed_variables]
-                )
-
-                model_redshift[model_index] = sed.info['redshift']
-
-                model_info.append(sed.info.values())
-
-                progress_bar.update(model_index + 1)
-
-        unique_redshifts = np.unique(model_redshift)
-
+            del items
         # Mask the invalid fluxes
         model_fluxes = np.ma.masked_less(model_fluxes, -90)
-
-        progress_bar.finish()
 
         ##################################################################
         # Observations to models comparison                              #
         ##################################################################
 
-        print("Comparing the observations to the models...")
+        # We compute the χ² only for models with the closest redshift. We
+        # extract model fluxes and information into arrays dedicated to a
+        # given observation.
 
-        # As we are looping over all the observations we store data for the
-        # output tables in various arrays
-        analysed_averages_all = np.empty((len(obs_table),
-                                          len(analysed_variables)))
-        analysed_std_all = np.empty_like(analysed_averages_all)
+        # This is a tricky part here. The data arrays we have computed are for
+        # all redshifts. However, for memory efficiency concerns, we want to
+        # transmit to the worker arrays containing only data corresponding to
+        # the redshift of the observed object. The idea here is that we will
+        # constructs these arrays thanks to generators. Thw basic algorithm is
+        # the following:
 
-        best_idx_all = np.empty(len(obs_table))
-        best_chi2_all = np.empty_like(best_idx_all)
-        best_chi2_red_all = np.empty_like(best_idx_all)
-        normalisation_factors_all = np.empty_like(best_idx_all)
-        
-        best_fluxes = np.empty((len(obs_table), len(filters)))
+        # 1) We compute the set of unique redshifts (as we do not have access
+        # to the configuration file)
+        # 2) We build a dictionary containing the indices of the models at a
+        # given redshift
+        # 3) We find for each observation, which is the closest redshift
+        # 4) We build the generators slicing the input arrays with the indices
+        # corresponding to the observation redshift
+        redshifts = np.unique(model_redshift)
+        w_redshifts = {redshift: model_redshift == redshift
+                       for redshift in redshifts}
+        closest_redshifts = [redshifts[np.abs(obs_redshift -
+                                       redshifts).argmin()]
+                             for obs_redshift in obs_table['redshift']]
+        model_fluxes_obs = (model_fluxes[w_redshifts[redshift], :]
+                            for redshift in closest_redshifts)
+        model_info_obs = (np.array(model_info)[w_redshifts[redshift]]
+                          for redshift in closest_redshifts)
+        model_variables_obs = (model_variables[w_redshifts[redshift], :]
+                               for redshift in closest_redshifts)
 
-        best_variables_all = [None]*len(obs_table)
+        with mp.Pool(processes=cores) as pool:
+            items = pool.starmap(worker_analysis,
+                                 zip(obs_table,
+                                     model_fluxes_obs,
+                                     model_variables_obs,
+                                     model_info_obs,
+                                     repeat(filters),
+                                     repeat(sed),
+                                     repeat(analysed_variables),
+                                     repeat(creation_modules),
+                                     repeat(creation_modules_params),
+                                     repeat(save)))
 
-        for idx_obs, obs in enumerate(obs_table):
-            obs_fluxes = np.array([obs[name] for name in filters])
-            obs_errors = np.array([obs[name + "_err"] for name in filters])
+            pool.close()
+            pool.join()
 
-            # Some observations may not have flux value in some filters, in
-            # that case the user is asked to put -9999 as value. We mask these
-            # values. Note, we must mask obs_fluxes after obs_errors.
-            obs_errors = np.ma.masked_where(obs_fluxes < -9990., obs_errors)
-            obs_fluxes = np.ma.masked_less(obs_fluxes, -9990.)
+        analysed_averages = np.empty((len(items), len(analysed_variables)))
+        analysed_std = np.empty_like(analysed_averages)
+        chi2_ = np.empty(len(obs_table))
+        chi2_red = np.empty_like(chi2_)
+        normalisation_factors = np.empty_like(chi2_)
+        variables = [None] * len(items)
+        fluxes = np.empty((len(items), len(filters)))
 
-            # We compute the χ² only for models with the closest redshift. We
-            # extract model fluxes and information into arrays dedicated to a
-            # given observation.
-            closest_redshift = unique_redshifts[np.abs(obs["redshift"] -
-                                                unique_redshifts).argmin()]
-            w_models = model_redshift == closest_redshift
-            model_fluxes_obs = model_fluxes[w_models, :]
-            model_info_obs = np.array(model_info)[w_models]
-            model_variables_obs = model_variables[w_models]
+        for item_idx, item in enumerate(items):
+            analysed_averages[item_idx, :] = item[0]
+            analysed_std[item_idx, :] = item[1]
+            chi2_[item_idx] = item[2]
+            chi2_red[item_idx] = item[3]
+            normalisation_factors[item_idx] = item[4]
+            variables[item_idx] = item[5]
+            fluxes[item_idx, :] = item[6]
 
-            # Normalisation factor to be applied to a model fluxes to best fit
-            # an observation fluxes. Normalised flux of the models. χ² and
-            # likelihood of the fitting. Reduced χ² (divided by the number of
-            # filters to do the fit).
-            normalisation_factors = (
-                np.sum(
-                    model_fluxes_obs * obs_fluxes / (
-                        obs_errors * obs_errors), axis=1
-                ) / np.sum(
-                    model_fluxes_obs * model_fluxes_obs / (
-                        obs_errors * obs_errors), axis=1)
-            )
-            norm_model_fluxes = (model_fluxes_obs *
-                                 normalisation_factors[:, np.newaxis])
+        del items
 
-            # χ² of the comparison of each model to each observation.
-            chi_squares = np.sum(
-                np.square((obs_fluxes - norm_model_fluxes) / obs_errors),
-                axis=1)
-
-            # We define the reduced χ² as the χ² divided by the number of
-            # fluxes used for the fitting.
-            reduced_chi_squares = chi_squares / obs_fluxes.count()
-
-            # We use the exponential probability associated with the χ² as
-            # likelihood function.
-            likelihood = np.exp(-chi_squares/2)
-            # For the analysis, we consider that the computed models explain
-            # each observation. We normalise the likelihood function to have a
-            # total likelihood of 1 for each observation.
-            likelihood /= np.sum(likelihood)
-            # We don't want to take into account the models with a probability
-            # less that the threshold.
-            likelihood = np.ma.masked_less(likelihood, MIN_PROBABILITY)
-            # We re-normalise the likelihood.
-            likelihood /= np.sum(likelihood)
-
-            # We take the mass-dependent variable list from the last computed
-            # sed.
-            for index, variable in enumerate(analysed_variables):
-                if variable in sed.mass_proportional_info:
-                    model_variables_obs[:, index] *= normalisation_factors
-
-            # We also add the galaxy mass to the analysed variables if relevant
-            if sed.sfh is not None:
-                analysed_variables.insert(0, "galaxy_mass")
-                model_variables_obs = np.dstack((normalisation_factors,
-                                                 model_variables_obs))
-
-            ##################################################################
-            # Variable analysis                                              #
-            ##################################################################
-
-            print("Analysing the variables...")
-
-            # We compute the weighted average and standard deviation using the
-            # likelihood as weight. We first build the weight array by
-            # expanding the likelihood along a new axis corresponding to the
-            # analysed variable.
-            weights = likelihood[:, newaxis].repeat(len(analysed_variables),
-                                                    axis=1)
-
-            # Analysed variables average and standard deviation arrays.
-            analysed_averages = np.ma.average(model_variables_obs,
-                                              axis=0, weights=weights)
-
-            analysed_std = np.ma.sqrt(np.ma.average(
-                (model_variables_obs - analysed_averages[newaxis, :])**2,
-                axis=0, weights=weights))
-
-            # We record the estimated averages and standard deviations to
-            # save in a table later on when this has been computed for all
-            # objects.
-            analysed_averages_all[idx_obs, :] = analysed_averages
-            analysed_std_all[idx_obs, :] = analysed_std
-
-            ##################################################################
-            # Best models                                                    #
-            ##################################################################
-
-            print("Analysing the best models...")
-
-            # We define the best fitting model for each observation as the one
-            # with the least χ².
-            best_index = chi_squares.argmin()
-
-            # We save the relevant data related to the model with the lowest
-            # χ²
-            best_idx_all[idx_obs] = best_index
-            normalisation_factors_all[idx_obs] = \
-                normalisation_factors[best_index]
-            best_chi2_all[idx_obs] = chi_squares[best_index]
-            best_chi2_red_all[idx_obs] = reduced_chi_squares[best_index]
-            best_variables_all[idx_obs] = list(model_info_obs[best_index])
-            best_fluxes[idx_obs, :] = model_fluxes_obs[best_index, :]
-
-            if save_best_sed:
-
-                print("Saving the best models...")
-
-                with SedWarehouse(cache_type=parameters["storage_type"]) as \
-                        sed_warehouse:
-
-                    sed = sed_warehouse.get_sed(
-                        creation_modules,
-                        np.array(creation_modules_params)[w_models][best_index]
-                    )
-
-                    sed.to_votable(
-                        OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                        mass=normalisation_factors[best_index]
-                    )
-
-            ##################################################################
-            # Probability Density Functions                                  #
-            ##################################################################
-
-            # We estimate the probability density functions (PDF) of the
-            # parameters using a weighted kernel density estimation. This part
-            # should definitely be improved as we simulate the weight by adding
-            # as many value as their probability * 100.
-            if save_pdf:
-
-                print("Computing the probability density functions...")
-
-                for var_index, var_name in enumerate(analysed_variables):
-
-                    values = model_variables_obs[:, var_index]
-
-                    pdf_grid = np.linspace(values.min(), values.max(),
-                                           PDF_NB_POINTS)
-                    pdf_prob = gen_pdf(values, likelihood, pdf_grid)
-
-                    if pdf_prob is None:
-                        # TODO: use logging
-                        print("Can not compute PDF for observation <{}> and "
-                              "variable <{}>.".format(obs['id'], var_name))
-                    else:
-                        table = Table((
-                            Column(pdf_grid, name=var_name),
-                            Column(pdf_prob, name="probability density")
-                        ))
-                        table.write(OUT_DIR + "{}_{}_pdf.fits".format(
-                            obs['id'], var_name))
-
-            if save_chi2:
-
-                print("Saving the chi²...")
-
-                for var_index, var_name in enumerate(analysed_variables):
-                    table = Table((
-                        Column(model_variables_obs[:, var_index],
-                               name=var_name),
-                        Column(reduced_chi_squares, name="chi2")))
-                    table.write(OUT_DIR + "{}_{}_chi2.fits".format(obs['id'],
-                                var_name))
-
-        # Create and save the result table.
-        result_table = Table()
-        result_table.add_column(Column(
-            obs_table["id"].data,
-            name="observation_id"
-        ))
-        for index, variable in enumerate(analysed_variables):
-            result_table.add_column(Column(
-                analysed_averages_all[:, index],
-                name=variable
-            ))
-            result_table.add_column(Column(
-                analysed_std_all[:, index],
-                name=variable+"_err"
-            ))
-        result_table.write(OUT_DIR + RESULT_FILE)
-
-        best_model_table = Table()
-        best_model_table.add_column(Column(
-            obs_table["id"].data,
-            name="observation_id"
-        ))
-        best_model_table.add_column(Column(
-            best_chi2_all,
-            name="chi_square"
-        ))
-        best_model_table.add_column(Column(
-            best_chi2_red_all,
-            name="reduced_chi_square"
-        ))
-        if sed.sfh is not None:
-            best_model_table.add_column(Column(
-                normalisation_factors_all,
-                name="galaxy_mass",
-                unit="Msun"
-            ))
-
-        for index, name in enumerate(sed.info.keys()):
-            column = Column([best_variables[index]
-                             for best_variables in best_variables_all],
-                            name=name)
-            if name in sed.mass_proportional_info:
-                column *= normalisation_factors_all
-            best_model_table.add_column(column)
-
-        for index, name in enumerate(filters):
-            column = Column(best_fluxes[:, index] * normalisation_factors_all,
-                            name=name, unit='mJy')
-            best_model_table.add_column(column)
-
-        best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
-
+        save_table_analysis(obs_table['id'], analysed_variables,
+                            analysed_averages, analysed_std)
+        save_table_best(obs_table['id'], chi2_, chi2_red,
+                        normalisation_factors, variables, fluxes, filters, sed)
 
 # AnalysisModule to be returned by get_module
 Module = PdfAnalysis

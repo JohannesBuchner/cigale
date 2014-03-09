@@ -42,9 +42,11 @@ def run(config):
     analysis_module = get_analysis_module(config.configuration[
         'analysis_method'])
     analysis_module_params = config.configuration['analysis_method_params']
+    cores = config.configuration['cores']
 
     analysis_module.process(data_file, column_list, creation_modules,
-                            creation_modules_params, analysis_module_params)
+                            creation_modules_params, analysis_module_params,
+                            cores)
 
 
 def main():
