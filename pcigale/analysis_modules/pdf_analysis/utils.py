@@ -5,11 +5,14 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly & Médéric Boquien
 
+from datetime import datetime
+import os
 from astropy.table import Table, Column
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.linalg import LinAlgError
 from ...warehouse import SedWarehouse
+import pcigale.analysis_modules.myglobals as gbl
 
 # Directory where the output files are stored
 OUT_DIR = "out/"
@@ -185,8 +188,7 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
     result_table.write(OUT_DIR + RESULT_FILE)
 
 
-def save_table_best(obsid, chi2, chi2_red, norm,
-                    variables, fluxes, filters, sed):
+def save_table_best(obsid, chi2, chi2_red, norm, variables, fluxes, filters):
     """Save the values corresponding to the best fit
 
     Parameters
@@ -205,21 +207,16 @@ def save_table_best(obsid, chi2, chi2_red, norm,
         Fluxes in all bands for each object
     filters: list
         Filters used to compute the fluxes
-    sed: SED object
-        Used to identify what to output in the table
 
     """
     best_model_table = Table()
     best_model_table.add_column(Column(obsid.data, name="observation_id"))
     best_model_table.add_column(Column(chi2, name="chi_square"))
     best_model_table.add_column(Column(chi2_red, name="reduced_chi_square"))
-    if sed.sfh is not None:
-        best_model_table.add_column(Column(norm, name="galaxy_mass",
-                                           unit="Msun"))
 
-    for index, name in enumerate(sed.info.keys()):
+    for index, name in enumerate(gbl.info_keys):
         column = Column([variable[index] for variable in variables], name=name)
-        if name in sed.mass_proportional_info:
+        if name in gbl.mass_proportional_info:
             column *= norm
         best_model_table.add_column(column)
 
@@ -228,3 +225,14 @@ def save_table_best(obsid, chi2, chi2_red, norm,
         best_model_table.add_column(column)
 
     best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
+
+
+def backup_dir(directory):
+    if os.path.exists(directory):
+        new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + directory
+        os.rename(directory, new_name)
+        print("The existing {} directory was renamed to {}".format(
+            OUT_DIR,
+            new_name
+        ))
+    os.mkdir(OUT_DIR)

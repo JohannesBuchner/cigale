@@ -24,9 +24,9 @@ from astropy.table import Table
 from . import AnalysisModule
 from ..warehouse import SedWarehouse
 from ..data import Database
+from .utils import find_changed_parameters
 
-
-def _worker_sed(warehouse, filters, modules, parameters):
+def _worker_sed(warehouse, filters, modules, parameters, changed):
     """Internal function to parallelize the computation of fluxes.
 
     Parameters
@@ -45,6 +45,7 @@ def _worker_sed(warehouse, filters, modules, parameters):
 
     """
     sed = warehouse.get_sed(modules, parameters)
+    warehouse.partial_clear_cache(changed)
 
     row = []
 
@@ -147,11 +148,13 @@ class SaveFluxes(AnalysisModule):
         # Parallel computation of the fluxes
         with SedWarehouse(cache_type=parameters["storage_type"]) as warehouse,\
                 mp.Pool(processes=cores) as pool:
+            changed_pars = find_changed_parameters(creation_modules_params)
             out_rows = pool.starmap(_worker_sed,
                                     zip(repeat(warehouse),
                                         repeat(filter_list),
                                         repeat(creation_modules),
-                                        creation_modules_params))
+                                        creation_modules_params,
+                                        changed_pars))
 
         # The zip call is to convert the list of rows to a list of columns.
         out_table = Table(list(zip(*out_rows)), names=out_columns)
