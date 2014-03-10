@@ -3,8 +3,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-import numpy as np
-
 
 class Fritz2006(object):
     """Fritz et al. (2006) AGN dust torus emission model.
@@ -14,16 +12,11 @@ class Fritz2006(object):
 
     """
 
-    def __init__(self, model_nb, agn_type, r_ratio, tau, beta, gamma, theta,
-                 psy, wave, luminosity):
+    def __init__(self, r_ratio, tau, beta, gamma, opening_angle, psy, wave, lumin_therm, lumin_scatt, lumin_agn):
         """Create a new AGN model
 
         Parameters
         ----------
-        model_nb : integer
-            Number identifying the AGN model.
-        agn_type : integer
-            Type of AGN.
         r_ratio : float
             Ratio of the maximum and minimum radii of the dust torus.
         tau : float
@@ -32,23 +25,19 @@ class Fritz2006(object):
             Beta
         gamma : float
             Gamma
-        theta : float
+        opening_angle : float
             Opening angle of the dust torus.
         psy : float
             Angle between AGN axis and line of sight.
-        wave : array of float
-            Wavelength grid in nm.
-        luminosity : array of float
-            Luminosity density at each wavelength in W/nm.
-
         """
-        self.model_nb = model_nb
-        self.agn_type = agn_type
+        
         self.r_ratio = r_ratio
         self.tau = tau
         self.beta = beta
         self.gamma = gamma
-        self.theta = theta
+        self.opening_angle = opening_angle
         self.psy = psy
-        self.wave = np.array(wave)
-        self.luminosity = np.array(luminosity)
+        self.wave = wave
+        self.lumin_therm = lumin_therm
+        self.lumin_scatt = lumin_scatt
+        self.lumin_agn = lumin_agn
