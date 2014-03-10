@@ -170,6 +170,8 @@ class M2005(CreationModule):
         sed.add_info('stellar.mass_turn_off',
                      old_masses[5] + young_masses[5], True)
 
+        sed.add_info("galaxy_mass", 1., True)
+
         sed.add_contribution("ssp_old",
                              ssp.wavelength_grid,
                              old_spectrum)
