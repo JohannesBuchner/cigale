@@ -17,7 +17,7 @@ SqlAlchemy ORM to store the data in a unique SQLite3 database.
 
 import pkg_resources
 from sqlalchemy import (create_engine, exc, Column, String, Text,
-                        Float, Integer, PickleType)
+                        Float, PickleType)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np
@@ -177,29 +177,29 @@ class _Fritz2006(BASE):
     """Storage for Fritz et al. (2006) models
     """
 
-    __tablename__ = 'fritz2006_agn'
-    model_nb = Column(Integer, primary_key=True)
-    agn_type = Column(Integer)
-    r_ratio = Column(Float)
-    tau = Column(Float)
-    beta = Column(Float)
-    gamma = Column(Float)
-    theta = Column(Float)
-    psy = Column(Float)
+    __tablename__ = 'fritz2006'
+    r_ratio = Column(Float, primary_key=True)
+    tau = Column(Float, primary_key=True)
+    beta = Column(Float, primary_key=True)
+    gamma = Column(Float, primary_key=True)
+    opening_angle = Column(Float, primary_key=True)
+    psy = Column(Float, primary_key=True)
     wave = Column(PickleType)
-    luminosity = Column(PickleType)
+    lumin_therm = Column(PickleType)
+    lumin_scatt = Column(PickleType)
+    lumin_agn = Column(PickleType)
 
     def __init__(self, agn):
-        self.model_nb = agn.model_nb
-        self.agn_type = agn.agn_type
         self.r_ratio = agn.r_ratio
         self.tau = agn.tau
         self.beta = agn.beta
         self.gamma = agn.gamma
-        self.theta = agn.theta
+        self.opening_angle = agn.opening_angle
         self.psy = agn.psy
         self.wave = agn.wave
-        self.luminosity = agn.luminosity
+        self.lumin_therm = agn.lumin_therm
+        self.lumin_scatt = agn.lumin_scatt
+        self.lumin_agn = agn.lumin_agn
 
 
 class _NebularLines(BASE):
@@ -623,14 +623,34 @@ class Database(object):
         else:
             raise Exception('The database is not writable.')
 
-    def get_fritz2006(self, model_nb):
+    def get_fritz2006(self, r_ratio, tau, beta, gamma, opening_angle, psy):
         """
         Get the Fritz et al. (2006) AGN model corresponding to the number.
 
         Parameters
         ----------
-        model_nb : integer
-            Model number.
+        r_ratio : float
+            Ratio of the maximum and minimum radii of the dust torus.
+        tau : float
+            Tau at 9.7µm
+        beta : float
+            Beta
+        gamma : float
+            Gamma
+        opening_angle : float
+            Opening angle of the dust torus.
+        psy : float
+            Angle between AGN axis and line of sight.
+        wave : array of float
+            Wavelength grid in nm.
+        lumin_therm : array of float
+            Luminosity density of the dust torus at each wavelength in W/nm.
+        lumin_scatt : array of float
+            Luminosity density of the scattered emission at each wavelength
+            in W/nm.
+        lumin_agn : array of float
+            Luminosity density of the central AGN at each wavelength in W/nm.
+
 
         Returns
         -------
@@ -643,13 +663,18 @@ class Database(object):
 
         """
         result = (self.session.query(_Fritz2006).
-                  filter(_Fritz2006.model_nb == model_nb).
+                  filter(_Fritz2006.r_ratio == r_ratio).
+                  filter(_Fritz2006.tau == tau).
+                  filter(_Fritz2006.beta == beta).
+                  filter(_Fritz2006.gamma == gamma).
+                  filter(_Fritz2006.opening_angle == opening_angle).
+                  filter(_Fritz2006.psy == psy).
                   first())
         if result:
-            return Fritz2006(result.model_nb, result.agn_type,
-                             result.r_ratio, result.tau, result.beta,
-                             result.gamma, result.theta, result.psy,
-                             result.wave, result.luminosity)
+            return Fritz2006(result.r_ratio, result.tau, result.beta,
+                             result.gamma, result.opening_angle, result.psy,
+                             result.wave, result.lumin_therm,
+                             result.lumin_scatt, result.lumin_agn)
         else:
             raise DatabaseLookupError(
                 "The Fritz2006 model is not in the database.")
