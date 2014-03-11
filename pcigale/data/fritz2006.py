@@ -12,7 +12,8 @@ class Fritz2006(object):
 
     """
 
-    def __init__(self, r_ratio, tau, beta, gamma, opening_angle, psy, wave, lumin_therm, lumin_scatt, lumin_agn):
+    def __init__(self, r_ratio, tau, beta, gamma, opening_angle, psy, wave,
+                 lumin_therm, lumin_scatt, lumin_agn):
         """Create a new AGN model
 
         Parameters
@@ -30,7 +31,7 @@ class Fritz2006(object):
         psy : float
             Angle between AGN axis and line of sight.
         """
-        
+
         self.r_ratio = r_ratio
         self.tau = tau
         self.beta = beta

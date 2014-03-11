@@ -65,14 +65,6 @@ class Fritz2006(CreationModule):
             "Contribution of the AGN"
             "",
             None
-        )),
-        ('attenuation_value_keys', (
-            'string',
-            "Keys of the SED information dictionary where the module will "
-            "look for the attenuation (in W) to re-emit. You can give several "
-            "keys separated with a & (don't use commas), a re-emission "
-            "contribution will be added for each key.",
-            "attenuation"
         ))
     ])
 
@@ -80,7 +72,6 @@ class Fritz2006(CreationModule):
         ('fracAGN', 'Contribution of the AGN'),
         ('L_AGN', 'Luminosity of the AGN contribution')
     ])
-
 
     def _init_code(self):
         """Get the template set out of the database"""
@@ -93,9 +84,7 @@ class Fritz2006(CreationModule):
 
         with Database() as base:
             self.fritz2006 = base.get_fritz2006(r_ratio, tau, beta, gamma,
-                                                    opening_angle, psy)
-
-
+                                                opening_angle, psy)
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -108,9 +97,8 @@ class Fritz2006(CreationModule):
         """
 
         if 'dust.luminosity' not in sed.info.keys():
-            sed.add_info('dust.luminosity',1.,True)
+            sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
-
 
         fracAGN = self.parameters["fracAGN"]
 
@@ -123,27 +111,15 @@ class Fritz2006(CreationModule):
         sed.add_info('psy', self.parameters["psy"])
         sed.add_info('fracAGN', self.parameters["fracAGN"])
 
-
         # Compute the AGN luminosity
         L_AGN = fracAGN * (luminosity + 1)
-        #sed.add_info("L_AGN" + self.postfix, self.parameters["L_AGN"])
-        sed.add_contribution(
-            'agn_fritz2006_therm',
-                self.fritz2006.wave,
-                L_AGN * self.fritz2006.lumin_therm
-            )
 
-        sed.add_contribution(
-            'agn_fritz2006_scatt',
-                self.fritz2006.wave,
-                L_AGN * self.fritz2006.lumin_scatt
-            )
-
-        sed.add_contribution(
-            'agn_fritz2006_agn',
-                self.fritz2006.wave,
-                L_AGN * self.fritz2006.lumin_agn
-            )
+        sed.add_contribution('agn_fritz2006_therm', self.fritz2006.wave,
+                             L_AGN * self.fritz2006.lumin_therm)
+        sed.add_contribution('agn_fritz2006_scatt', self.fritz2006.wave,
+                             L_AGN * self.fritz2006.lumin_scatt)
+        sed.add_contribution('agn_fritz2006_agn', self.fritz2006.wave,
+                             L_AGN * self.fritz2006.lumin_agn)
 
 # CreationModule to be returned by get_module
 Module = Fritz2006

@@ -17,7 +17,7 @@ SqlAlchemy ORM to store the data in a unique SQLite3 database.
 
 import pkg_resources
 from sqlalchemy import (create_engine, exc, Column, String, Text,
-                        Float, Integer, PickleType)
+                        Float, PickleType)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np
@@ -187,7 +187,7 @@ class _Fritz2006(BASE):
     wave = Column(PickleType)
     lumin_therm = Column(PickleType)
     lumin_scatt = Column(PickleType)
-    lumin_agn=  Column(PickleType)
+    lumin_agn = Column(PickleType)
 
     def __init__(self, agn):
         self.r_ratio = agn.r_ratio
@@ -200,6 +200,7 @@ class _Fritz2006(BASE):
         self.lumin_therm = agn.lumin_therm
         self.lumin_scatt = agn.lumin_scatt
         self.lumin_agn = agn.lumin_agn
+
 
 class _NebularLines(BASE):
     """Storage for line templates
@@ -645,7 +646,7 @@ class Database(object):
         lumin_therm : array of float
             Luminosity density of the dust torus at each wavelength in W/nm.
         lumin_scatt : array of float
-            Luminosity density of the scattered emission at each wavelength 
+            Luminosity density of the scattered emission at each wavelength
             in W/nm.
         lumin_agn : array of float
             Luminosity density of the central AGN at each wavelength in W/nm.
@@ -668,12 +669,12 @@ class Database(object):
                   filter(_Fritz2006.gamma == gamma).
                   filter(_Fritz2006.opening_angle == opening_angle).
                   filter(_Fritz2006.psy == psy).
-                  first()) 
+                  first())
         if result:
             return Fritz2006(result.r_ratio, result.tau, result.beta,
-                                result.gamma, result.opening_angle, result.psy,
-                                result.wave, result.lumin_therm, 
-                                result.lumin_scatt, result.lumin_agn)
+                             result.gamma, result.opening_angle, result.psy,
+                             result.wave, result.lumin_therm,
+                             result.lumin_scatt, result.lumin_agn)
         else:
             raise DatabaseLookupError(
                 "The Fritz2006 model is not in the database.")

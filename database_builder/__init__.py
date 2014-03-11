@@ -459,25 +459,21 @@ def build_dl2007(base):
 
 
 def build_fritz2006(base):
-
     fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
     # Parameters of Fritz+2006
     psy = [0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100,
-               80.100, 89.990] # Viewing angle in degrees
-    opening_angle = ["20", "40", "60"] # Theta = 2*(90 - opening_angle)
+           80.100, 89.990]  # Viewing angle in degrees
+    opening_angle = ["20", "40", "60"]  # Theta = 2*(90 - opening_angle)
     gamma = ["0.0", "2.0", "4.0", "6.0"]
     beta = ["-1.00", "-0.75", "-0.50", "-0.25", "0.00"]
     tau = ["0.1", "0.3", "0.6", "1.0", "2.0", "3.0", "6.0", "10.0"]
-    r_ratio = ["10","30", "60", "100", "150"]
-
+    r_ratio = ["10", "30", "60", "100", "150"]
 
     # Read and convert the wavelength
-    datafile = open(fritz2006_dir + "ct{}al{}be{}ta{}rm{}.tot".format(opening_angle[0],
-                                                                        gamma[0],
-                                                                        beta[0],
-                                                                        tau[0],
-                                                                        r_ratio[0]))
+    datafile = open(fritz2006_dir + "ct{}al{}be{}ta{}rm{}.tot"
+                    .format(opening_angle[0], gamma[0], beta[0], tau[0],
+                            r_ratio[0]))
     data = "".join(datafile.readlines()[-178:])
     datafile.close()
     wave = np.genfromtxt(io.BytesIO(data.encode()), usecols=(0))
@@ -486,55 +482,47 @@ def build_fritz2006(base):
     nskip = 28
     blocksize = 178
 
-    for oa in opening_angle:
-        for gam in gamma:
-            for be in beta:
-                for ta in tau:
-                    for rm in r_ratio:
-                        filename = fritz2006_dir + "ct{}al{}be{}ta{}rm{}.tot".format(
-                                                                oa,
-                                                                gam,
-                                                                be,
-                                                                ta,
-                                                                rm)
-                        print("Importing {}...".format(filename))
-                        try :
-                            datafile = open(filename)
-                        except IOError:
-                            continue
-                        data = datafile.readlines()
-                        datafile.close()
+    iter_params = ((oa, gam, be, ta, rm)
+                   for oa in opening_angle
+                   for gam in gamma
+                   for be in beta
+                   for ta in tau
+                   for rm in r_ratio)
 
-                        for n in range(len(psy)):
+    for params in iter_params:
+        filename = fritz2006_dir + "ct{}al{}be{}ta{}rm{}.tot".format(*params)
+        print("Importing {}...".format(filename))
+        try:
+            datafile = open(filename)
+        except IOError:
+            continue
+        data = datafile.readlines()
+        datafile.close()
 
-                            block = data[nskip + blocksize * n + 4 * (n + 1) - 1: nskip + blocksize * (n+1) + 4 * (n + 1) - 1]
-                            lumin_therm, lumin_scatt, lumin_agn = np.genfromtxt(io.BytesIO("".join(block).encode()), usecols=(2,3,4), unpack=True)
-                            # Remove NaN
-                            lumin_therm = np.nan_to_num(lumin_therm)
-                            lumin_scatt = np.nan_to_num(lumin_scatt)
-                            lumin_agn = np.nan_to_num(lumin_agn)
-                            # Conversion from erg/s/microns to W/nm
-                            lumin_therm *= 1e-4
-                            lumin_scatt *= 1e-4
-                            lumin_agn *= 1e-4
-                            # Normalization of the lumin_therm to 1W
-                            norm = np.trapz(lumin_therm, x = wave)
-                            lumin_therm = lumin_therm / norm
-                            lumin_scatt = lumin_scatt / norm
-                            lumin_agn = lumin_agn / norm
+        for n in range(len(psy)):
+            block = data[nskip + blocksize * n + 4 * (n + 1) - 1:
+                         nskip + blocksize * (n+1) + 4 * (n + 1) - 1]
+            lumin_therm, lumin_scatt, lumin_agn = np.genfromtxt(
+                io.BytesIO("".join(block).encode()), usecols=(2, 3, 4),
+                unpack=True)
+            # Remove NaN
+            lumin_therm = np.nan_to_num(lumin_therm)
+            lumin_scatt = np.nan_to_num(lumin_scatt)
+            lumin_agn = np.nan_to_num(lumin_agn)
+            # Conversion from erg/s/microns to W/nm
+            lumin_therm *= 1e-4
+            lumin_scatt *= 1e-4
+            lumin_agn *= 1e-4
+            # Normalization of the lumin_therm to 1W
+            norm = np.trapz(lumin_therm, x=wave)
+            lumin_therm = lumin_therm / norm
+            lumin_scatt = lumin_scatt / norm
+            lumin_agn = lumin_agn / norm
 
+            base.add_fritz2006(Fritz2006(params[4], params[3], params[2],
+                                         params[1], params[0], psy[n], wave,
+                                         lumin_therm, lumin_scatt, lumin_agn))
 
-                            base.add_fritz2006(Fritz2006(rm,
-                                                                ta,
-                                                                be,
-                                                                gam,
-                                                                oa,
-                                                                psy[n],
-                                                                wave,
-                                                                lumin_therm,
-                                                                lumin_scatt,
-                                                                lumin_agn))
-                        
 
 def build_nebular(base):
     lines_dir = os.path.join(os.path.dirname(__file__), 'nebular/')
