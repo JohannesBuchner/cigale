@@ -40,7 +40,7 @@ import numpy as np
 from collections import OrderedDict
 from . import utils
 from .io.vo import save_sed_to_vo
-from scipy.constants import c
+from scipy.constants import c, parsec
 from scipy.interpolate import interp1d
 
 # Time lapse used to compute the average star formation rate. We use a
@@ -142,7 +142,8 @@ class SED(object):
         """
 
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(self.luminosity, self.info['redshift'])
+        f_lambda = utils.luminosity_to_flux(self.luminosity,
+                                            self.info['universe.luminosity_distance'])
 
         # Fν flux density in mJy
         f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
@@ -382,17 +383,17 @@ class SED(object):
             transmission_r = np.interp(wavelength_r, transmission[0],
                                        transmission[1])
 
-            if 'redshift' in self.info.keys():
-                redshift = self.info['redshift']
+            if 'universe.luminosity_distance' in self.info.keys():
+                dist = self.info['universe.luminosity_distance']
             else:
-                redshift = 0.
+                dist = 10. * parsec
 
             # TODO: Can we avoid to normalise as the filter transmission is
             # already normalised?
             f_lambda = utils.luminosity_to_flux(
                 (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
                  np.trapz(transmission_r, wavelength_r)),
-                redshift
+                dist
             )
 
             # Add the Fλ fluxes from the spectral lines.

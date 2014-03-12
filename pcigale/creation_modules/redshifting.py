@@ -21,6 +21,7 @@ is changed, this module may need to be adapted.
 from collections import OrderedDict
 from ..creation_modules import CreationModule
 from pcigale.sed.cosmology import cosmology
+from scipy.constants import parsec
 
 
 class Redshifting(CreationModule):
@@ -44,6 +45,12 @@ class Redshifting(CreationModule):
         """
         self.redshift = float(self.parameters["redshift"])
         self.universe_age = cosmology.age(self.redshift).value * 1000.
+        if self.redshift == 0.:
+            self.luminosity_distance = 10. * parsec
+        else:
+            self.luminosity_distance = (
+                cosmology.luminosity_distance(self.redshift).value * 1e6 *
+                parsec)
 
     def process(self, sed):
         """Redshift the SED
@@ -71,6 +78,7 @@ class Redshifting(CreationModule):
         sed.luminosities /= 1. + self.redshift
 
         sed.add_info("redshift", self.redshift)
+        sed.add_info("universe.luminosity_distance", self.luminosity_distance)
         sed.add_info("universe.age", self.universe_age)
         sed.add_module(self.name, self.parameters)
 

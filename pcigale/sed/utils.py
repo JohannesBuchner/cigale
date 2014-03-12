@@ -4,8 +4,7 @@
 # Authors: Yannick Roehlly, Médéric Boquien
 
 import numpy as np
-from scipy.constants import c, pi, parsec
-from .cosmology import cosmology
+from scipy.constants import c, pi
 
 
 def lambda_to_nu(wavelength):
@@ -68,7 +67,7 @@ def best_grid(wavelengths1, wavelengths2):
     return new_grid
 
 
-def luminosity_to_flux(luminosity, redshift=0):
+def luminosity_to_flux(luminosity, dist):
     """
     Convert a luminosity (or luminosity density) to a flux (or flux density).
 
@@ -76,11 +75,10 @@ def luminosity_to_flux(luminosity, redshift=0):
 
     Parameters
     ----------
-    luminosity : float or array of floats
+    luminosity: float or array of floats
         Luminosity (typically in W) or luminosity density (W/nm or W/Hz).
-    redshift :
-        Redshift. If redshift is 0 (the default) the flux at a luminosity
-        distance of 10 pc is returned.
+    dist: float
+        Luminosity distance of the object in metres
 
     Returns
     -------
@@ -88,20 +86,10 @@ def luminosity_to_flux(luminosity, redshift=0):
         The flux (typically in W/m²) of flux density (W/m²/nm or W/m²/Hz).
 
     """
-    if redshift == 0:
-        dist = 10 * parsec
-    else:
-        dist = cosmology.luminosity_distance(redshift) * 1.e6 * parsec
 
-    flux = luminosity / (4 * pi * np.square(dist))
+    flux = luminosity / (4. * pi * dist * dist)
 
-    # astropy 0.3 cosmology functions return quantities
-    try:
-        result = flux.value
-    except AttributeError:
-        result = flux
-
-    return result
+    return flux
 
 
 def lambda_flambda_to_fnu(wavelength, flambda):
