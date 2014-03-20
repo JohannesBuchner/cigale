@@ -145,7 +145,7 @@ def analysis(obs):
 
     if gbl.save_best_sed:
         save_best_sed(obs['id'], gbl.creation_modules,
-                      gbl.creation_modules_params[best_index],
+                      gbl.creation_modules_params[w[0][best_index]],
                       norm_facts[best_index])
     if gbl.save_chi2:
         save_chi2(obs['id'], gbl.analysed_variables, model_variables, chi2_red)
