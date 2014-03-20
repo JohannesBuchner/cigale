@@ -72,7 +72,7 @@ def gen_pdf(values, probabilities, grid):
 
     try:
         result = gaussian_kde(combined_values)(grid)
-    except LinAlgError:
+    except (LinAlgError, ValueError):
         result = None
 
     return result
