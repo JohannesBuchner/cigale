@@ -194,10 +194,6 @@ class PdfAnalysis(AnalysisModule):
             gbl.model_redshifts[idx_item] = item[2]
             gbl.model_info[idx_item] = item[3]
 
-        # We transform model_info into an array as it is easier for
-        # selecting only models are the right redshift
-        gbl.model_info = np.array(gbl.model_info)
-
         print('Analysing models...')
 
         # Mask the invalid fluxes

@@ -47,7 +47,7 @@ def sed(model_params, changed):
         model_variables = np.array([sed.info[name]
                                     for name in gbl.analysed_variables])
     redshift = sed.info['redshift']
-    info = sed.info.values()
+    info = list(sed.info.values()) # Prevents from returning a view
 
     return model_fluxes, model_variables, redshift, info
 
@@ -156,7 +156,7 @@ def analysis(obs):
     return (analysed_averages,
             analysed_std,
             np.array(model_fluxes[best_index, :]),  # do NOT remove np.array()
-            list(gbl.model_info[w][best_index]),
+            list(gbl.model_info[w[0][best_index]]),
             norm_facts[best_index],
             chi2_[best_index],
             chi2_red[best_index])
