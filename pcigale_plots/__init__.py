@@ -104,19 +104,22 @@ def _sed_worker(obs, mod, filters):
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
         mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
 
+        xmin = PLOT_L_MIN * (1. + obs['redshift'])
+        xmax = PLOT_L_MAX * (1. + obs['redshift'])
+        wsed = np.where((sed['wavelength'] > xmin)&(sed['wavelength'] < xmax))
+
         figure = plt.figure()
         ax = figure.add_subplot(111)
-        ax.loglog(sed['wavelength'], sed['F_nu'], label="Model spectrum",
-                  color='k')
+        ax.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
+                  label="Model spectrum",color='k')
         ax.scatter(filters_wl, obs_fluxes, marker='o', color='r',
                    label="Model fluxes")
         ax.scatter(filters_wl, mod_fluxes, marker='o', color='b',
                    label="Observed fluxed")
-        ax.set_xlim(PLOT_L_MIN * (1. + obs['redshift']),
-                    PLOT_L_MAX * (1. + obs['redshift']))
+        ax.set_xlim(xmin, xmax)
         ax.set_xlabel("Wavelength [nm]")
         ax.set_ylabel("Flux [mJy]")
-        ax.legend(loc=0)
+        ax.legend(loc='lower right')
         figure.suptitle("Best model for {}. Reduced $\chi^2$={}".format(
                         obs['id'],
                         np.round(mod['reduced_chi_square'], decimals=2)))
