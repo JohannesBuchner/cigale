@@ -8,6 +8,7 @@
 import numpy as np
 from .utils import save_best_sed, save_pdf, save_chi2
 import pcigale.analysis_modules.myglobals as gbl
+import time
 
 
 # Probability threshold: models with a lower probability are excluded from
@@ -48,6 +49,17 @@ def sed(model_params, changed):
                                     for name in gbl.analysed_variables])
     redshift = sed.info['redshift']
     info = list(sed.info.values()) # Prevents from returning a view
+
+    with gbl.n_computed.get_lock():
+        gbl.n_computed.value += 1
+        n_computed = gbl.n_computed.value
+    if n_computed % 100 == 0 or n_computed == gbl.n_models:
+        t_elapsed = time.time() - gbl.t_begin
+        print("{}/{} models computed in {} seconds ({} models/s)".
+              format(gbl.n_computed.value, gbl.n_models,
+                     np.around(t_elapsed, decimals=1),
+                     np.around(n_computed/t_elapsed, decimals=1)),
+              end="\r")
 
     return model_fluxes, model_variables, redshift, info
 
@@ -152,6 +164,17 @@ def analysis(obs):
     if gbl.save_pdf:
         save_pdf(obs['id'], gbl.analysed_variables, model_variables,
                  likelihood)
+
+    with gbl.n_computed.get_lock():
+        gbl.n_computed.value += 1
+        n_computed = gbl.n_computed.value
+    if n_computed % 100 == 0 or n_computed == gbl.n_obs:
+        t_elapsed = time.time() - gbl.t_begin
+        print("{}/{} objects analysed in {} seconds ({} objects/s)".
+              format(gbl.n_computed.value, gbl.n_obs,
+                     np.around(t_elapsed, decimals=1),
+                     np.around(n_computed/t_elapsed, decimals=1)),
+              end="\r")
 
     return (analysed_averages,
             analysed_std,

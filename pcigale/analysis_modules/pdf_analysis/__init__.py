@@ -36,6 +36,7 @@ from .workers import sed as worker_sed
 from .workers import analysis as worker_analysis
 from ..utils import find_changed_parameters
 import pcigale.analysis_modules.myglobals as gbl
+import time
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
@@ -121,6 +122,7 @@ class PdfAnalysis(AnalysisModule):
         gbl.save_best_sed = parameters["save_best_sed"].lower() == "true"
         gbl.save_chi2 = parameters["save_chi2"].lower() == "true"
         gbl.save_pdf = parameters["save_pdf"].lower() == "true"
+        gbl.n_models = len(creation_modules_params)
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -135,6 +137,7 @@ class PdfAnalysis(AnalysisModule):
         # none is provided and by adding the systematic deviation.
         obs_table = complete_obs_table(read_table(data_file), column_list,
                                        gbl.filters, TOLERANCE)
+        gbl.n_obs = len(obs_table)
 
         print("Computing the models fluxes...")
 
@@ -170,6 +173,8 @@ class PdfAnalysis(AnalysisModule):
         changed_pars = find_changed_parameters(creation_modules_params)
 
         # Compute the SED fluxes and ancillary data in parallel
+        gbl.n_computed = mp.Value('i', 0)
+        gbl.t_begin = time.time()
         with mp.Pool(processes=cores) as pool:
             items = pool.starmap(worker_sed, zip(creation_modules_params,
                                                  changed_pars))
@@ -194,7 +199,7 @@ class PdfAnalysis(AnalysisModule):
             gbl.model_redshifts[idx_item] = item[2]
             gbl.model_info[idx_item] = item[3]
 
-        print('Analysing models...')
+        print('\nAnalysing models...')
 
         # Mask the invalid fluxes
         gbl.model_fluxes = np.ma.masked_less(gbl.model_fluxes, -90)
@@ -211,6 +216,8 @@ class PdfAnalysis(AnalysisModule):
         # Analysis of each object in parallel. All the model data are
         # transmitted through a shared module to avoid memory copies that would
         # grind pcigale to a halt.
+        gbl.n_computed = mp.Value('i', 0)
+        gbl.t_begin = time.time()
         with mp.Pool(processes=cores) as pool:
             items = pool.starmap(worker_analysis, zip(obs_table))
 
@@ -232,7 +239,7 @@ class PdfAnalysis(AnalysisModule):
             best_chi2[item_idx] = item[5]
             best_chi2_red[item_idx] = item[6]
 
-        print("Saving results...")
+        print("\nSaving results...")
 
         save_table_analysis(obs_table['id'], gbl.analysed_variables,
                             analysed_averages, analysed_std)

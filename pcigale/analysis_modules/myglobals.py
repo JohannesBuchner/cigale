@@ -11,6 +11,8 @@ save_best_sed = []
 save_chi2 = []
 save_pdf = []
 filters = []
+n_models = 0
+n_obs = 0
 
 # Variables that need to be initilised after having computed the models
 model_fluxes = []
@@ -24,3 +26,9 @@ info_keys = []
 
 redshifts = []
 w_redshifts = []
+
+# Misc
+t_begin = 0.
+
+# Variables modified by forked processes
+n_computed = []
