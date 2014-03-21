@@ -131,7 +131,7 @@ def igm_transmission_meiksin(wavelength, redshift):
             tau_n[n, :] = (tau_n[9, :] * 720. /
                            (float(n) * (float(n*n - 1.))))
 
-    w = np.where(z_n > redshift)
+    w = np.where(z_n[2:n_transitions_max, :] > redshift)
     tau_n[w] = 0.
     z_l = wavelength / lambda_limit - 1.
     tau_l_igm = np.zeros_like(wavelength)
