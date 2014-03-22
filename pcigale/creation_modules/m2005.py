@@ -42,8 +42,8 @@ class M2005(CreationModule):
 
     parameter_list = OrderedDict([
         ('imf', (
-            'string',
-            "Initial mass function, salp (Salpeter) or krou (Krupa)",
+            'int',
+            "Initial mass function: 0 (Salpeter) or 1 (Chabrier)",
             None
         )),
         ('metallicity', (
@@ -102,7 +102,10 @@ class M2005(CreationModule):
 
     def _init_code(self):
         """Read the SSP from the database."""
-        imf = self.parameters["imf"]
+        if self.parameters["imf"] == 0:
+            imf = 'salp'
+        elif self.parameters["imf"] == 1:
+            imf = 'chab'
         metallicity = float(self.parameters["metallicity"])
         with Database() as database:
             self.ssp = database.get_m2005(imf, metallicity)
