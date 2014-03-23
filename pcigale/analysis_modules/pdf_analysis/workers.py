@@ -5,24 +5,89 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly & Médéric Boquien
 
-import numpy as np
-from .utils import save_best_sed, save_pdf, save_chi2
-import pcigale.analysis_modules.myglobals as gbl
 import time
 
+import numpy as np
+
+from .utils import save_best_sed, save_pdf, save_chi2
+import pcigale.analysis_modules.myglobals as gbl
 
 # Probability threshold: models with a lower probability are excluded from
 # the moments computation.
 MIN_PROBABILITY = 1e-20
 
 
-def sed(model_params, changed):
+def init_sed(redshifts, fluxes, variables, n_computed, t_begin):
+    """Initializer of the pool of processes. It is mostly used to convert
+    RawArrays into numpy arrays. The latter are defined as global variables to
+    be accessible from the workers.
+
+    Parameters
+    ----------
+    redshifts: RawArray and tuple containing the shape
+        Redshifts of individual models. Shared among workers.
+    fluxes: RawArray and tuple containing the shape
+        Fluxes of individual models. Shared among workers.
+    variables: RawArray and tuple containing the shape
+        Values of the analysed variables. Shared among workers.
+    n_computed: Value
+        Number of computed models. Shared among workers.
+    t_begin: float
+        Time of the beginning of the computation.
+
+    """
+    global gbl_model_redshifts, gbl_model_fluxes, gbl_model_variables
+    global gbl_n_computed, gbl_t_begin
+
+    gbl_model_redshifts = np.ctypeslib.as_array(redshifts[0])
+
+    gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
+    gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
+
+    gbl_model_variables = np.ctypeslib.as_array(variables[0])
+    gbl_model_variables = gbl_model_variables.reshape(variables[1])
+
+    gbl_n_computed = n_computed
+    gbl_t_begin = t_begin
+
+
+def init_analysis(redshifts, fluxes, variables, n_computed, t_begin):
+    """Initializer of the pool of processes. It is mostly used to convert
+    RawArrays into numpy arrays. The latter are defined as global variables to
+    be accessible from the workers.
+
+    Parameters
+    ----------
+    redshifts: RawArray and tuple containing the shape
+        Redshifts of individual models. Shared among workers.
+    fluxes: RawArray
+        Fluxes of individual models. Shared among workers.
+    variables: RawArray and tuple containing the shape
+        Values of the analysed variables. Shared among workers.
+    n_computed: Value
+        Number of computed models. Shared among workers.
+    t_begin: float
+        Time of the beginning of the computation
+
+    """
+    init_sed(redshifts, fluxes, variables, n_computed, t_begin)
+    global gbl_redshifts, gbl_w_redshifts
+
+    gbl_redshifts = np.unique(gbl_model_redshifts)
+    gbl_w_redshifts = {redshift: gbl_model_redshifts == redshift
+                       for redshift in gbl_redshifts}
+
+
+def sed(changed, idx):
     """Worker process to retrieve a SED and return the relevant data
 
     Parameters
     ----------
-    model_params: list
-        Parameters of the creation modules
+    changed: array
+        Index of the module whose parameter has changed. This is necessary for
+        cache cleaning
+    idx: int
+        Index of the model to retrieve its parameters from the global variable
 
     Returns
     -------
@@ -35,7 +100,8 @@ def sed(model_params, changed):
     the list returned by starmap anyway.
 
     """
-    sed = gbl.warehouse.get_sed(gbl.creation_modules, model_params)
+    sed = gbl.warehouse.get_sed(gbl.creation_modules,
+                                gbl.creation_modules_params[idx])
     gbl.warehouse.partial_clear_cache(changed)
 
     if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
@@ -47,21 +113,21 @@ def sed(model_params, changed):
                                  for filter_ in gbl.filters.values()])
         model_variables = np.array([sed.info[name]
                                     for name in gbl.analysed_variables])
-    redshift = sed.info['redshift']
-    info = list(sed.info.values()) # Prevents from returning a view
 
-    with gbl.n_computed.get_lock():
-        gbl.n_computed.value += 1
-        n_computed = gbl.n_computed.value
+    gbl_model_redshifts[idx] = sed.info['redshift']
+    gbl_model_fluxes[idx, :] = model_fluxes
+    gbl_model_variables[idx, :] = model_variables
+
+    with gbl_n_computed.get_lock():
+        gbl_n_computed.value += 1
+        n_computed = gbl_n_computed.value
     if n_computed % 100 == 0 or n_computed == gbl.n_models:
-        t_elapsed = time.time() - gbl.t_begin
+        t_elapsed = time.time() - gbl_t_begin
         print("{}/{} models computed in {} seconds ({} models/s)".
-              format(gbl.n_computed.value, gbl.n_models,
+              format(n_computed, gbl.n_models,
                      np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
-
-    return model_fluxes, model_variables, redshift, info
 
 
 def analysis(obs):
@@ -78,11 +144,11 @@ def analysis(obs):
     normalisation factor, info of the best SED, fluxes of the best SED
     """
 
-    w = np.where(gbl.w_redshifts[gbl.redshifts[np.abs(obs['redshift'] -
-                                               gbl.redshifts).argmin()]])
+    w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
+                                               gbl_redshifts).argmin()]])
 
-    model_fluxes = gbl.model_fluxes[w[0], :]
-    model_variables = gbl.model_variables[w[0], :]
+    model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
+    model_variables = gbl_model_variables[w[0], :]
 
     obs_fluxes = np.array([obs[name] for name in gbl.filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl.filters])
@@ -108,13 +174,8 @@ def analysis(obs):
         np.square((obs_fluxes - norm_model_fluxes) / obs_errors),
         axis=1)
 
-    # We define the reduced χ² as the χ² divided by the number of
-    # fluxes used for the fitting.
-    chi2_red = chi2_ / obs_fluxes.count()
-
     # We use the exponential probability associated with the χ² as
     # likelihood function.
-    # WARNING: shouldn't this be chi2_red rather?
     likelihood = np.exp(-chi2_/2)
     # For the analysis, we consider that the computed models explain
     # each observation. We normalise the likelihood function to have a
@@ -155,31 +216,33 @@ def analysis(obs):
     # with the least χ².
     best_index = chi2_.argmin()
 
+    # We compute once again the best sed to obtain its info
+    sed = gbl.warehouse.get_sed(gbl.creation_modules,
+                                gbl.creation_modules_params[w[0][best_index]])
+
     if gbl.save_best_sed:
-        save_best_sed(obs['id'], gbl.creation_modules,
-                      gbl.creation_modules_params[w[0][best_index]],
-                      norm_facts[best_index])
+        save_best_sed(obs['id'], sed, norm_facts[best_index])
     if gbl.save_chi2:
-        save_chi2(obs['id'], gbl.analysed_variables, model_variables, chi2_red)
+        save_chi2(obs['id'], gbl.analysed_variables, model_variables, chi2_ /
+                  obs_fluxes.count())
     if gbl.save_pdf:
         save_pdf(obs['id'], gbl.analysed_variables, model_variables,
                  likelihood)
 
-    with gbl.n_computed.get_lock():
-        gbl.n_computed.value += 1
-        n_computed = gbl.n_computed.value
+    with gbl_n_computed.get_lock():
+        gbl_n_computed.value += 1
+        n_computed = gbl_n_computed.value
     if n_computed % 100 == 0 or n_computed == gbl.n_obs:
-        t_elapsed = time.time() - gbl.t_begin
+        t_elapsed = time.time() - gbl_t_begin
         print("{}/{} objects analysed in {} seconds ({} objects/s)".
-              format(gbl.n_computed.value, gbl.n_obs,
-                     np.around(t_elapsed, decimals=1),
+              format(n_computed, gbl.n_obs, np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
 
     return (analysed_averages,
             analysed_std,
-            np.array(model_fluxes[best_index, :]),  # do NOT remove np.array()
-            list(gbl.model_info[w[0][best_index]]),
+            np.array(model_fluxes[best_index, :], copy=True),
+            np.array(list(sed.info.values()), copy=True),
             norm_facts[best_index],
             chi2_[best_index],
-            chi2_red[best_index])
+            chi2_[best_index] / obs_fluxes.count())

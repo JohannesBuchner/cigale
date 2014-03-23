@@ -78,24 +78,20 @@ def gen_pdf(values, probabilities, grid):
     return result
 
 
-def save_best_sed(obsid, creation_modules, params, norm):
+def save_best_sed(obsid, sed, norm):
     """Save the best SED to a VO table.
 
     Parameters
     ----------
     obsid: string
         Name of the object. Used to prepend the output file name
-    creation_modules: list
-        List of modules used to generate the SED
-    params: list
-        List of parameters to generate the SED
+    sed: SED object
+        Best SED
     norm: float
         Normalisation factor to scale the scale to the observations
 
     """
-    with SedWarehouse(cache_type="memory") as sed_warehouse:
-        sed = sed_warehouse.get_sed(creation_modules, params)
-        sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
+    sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
 
 
 def save_pdf(obsid, analysed_variables, model_variables, likelihood):

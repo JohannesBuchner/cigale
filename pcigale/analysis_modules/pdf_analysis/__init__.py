@@ -24,19 +24,25 @@ reduced χ²) is given for each observation.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import ctypes
 import multiprocessing as mp
+from multiprocessing.sharedctypes import RawArray
+import time
+
+import numpy as np
+
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
 from .utils import save_table_analysis, save_table_best, backup_dir
 from ...warehouse import SedWarehouse
 from ...data import Database
 from .workers import sed as worker_sed
+from .workers import init_sed as init_worker_sed
+from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
 from ..utils import find_changed_parameters
 import pcigale.analysis_modules.myglobals as gbl
-import time
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
@@ -123,6 +129,7 @@ class PdfAnalysis(AnalysisModule):
         gbl.save_chi2 = parameters["save_chi2"].lower() == "true"
         gbl.save_pdf = parameters["save_pdf"].lower() == "true"
         gbl.n_models = len(creation_modules_params)
+        gbl.n_variables = len(gbl.analysed_variables)
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -132,6 +139,7 @@ class PdfAnalysis(AnalysisModule):
             gbl.filters = OrderedDict([(name, base.get_filter(name))
                                        for name in column_list
                                        if not name.endswith('_err')])
+        gbl.n_filters = len(gbl.filters)
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
@@ -147,25 +155,30 @@ class PdfAnalysis(AnalysisModule):
 
         # The SED warehouse is used to retrieve SED corresponding to some
         # modules and parameters.
-
         gbl.warehouse = SedWarehouse(cache_type=parameters["storage_type"])
 
         sed = gbl.warehouse.get_sed(gbl.creation_modules,
-                                    gbl.creation_modules_params[0])
+                                    creation_modules_params[0])
         gbl.info_keys = list(sed.info.keys())
+        gbl.n_keys = len(gbl.info_keys)
         gbl.mass_proportional_info = sed.mass_proportional_info
         gbl.has_sfh = sed.sfh is not None
 
-        # Then, for all possible theoretical models (one for each paremeter set
-        # in creation_module_parameters), we compute 1) the fluxes in all the
-        # filters, 2) the values of the model variables, 3) the redshift of the
-        # models (this is important for the analysis to easily identify which
-        # models correspond to a given redshift), and 4) the sed.info values
-        # (without the keys to save space ; this is possible because we are
-        # using an OrderedDict so it is easy to retrieve the value for a known
-        # key using gbl.info_keys). Note that we could compute the last two
-        # elements in the main process but we would lose time doing so. Not
-        # necessarily much though. TODO: benchmark this.
+        # Arrays where we store the data related to the models. For memory
+        # efficiency reasons, we use RawArrays that will be passed in argument
+        # to the pool. Each worker will fill a part of the RawArrays. It is
+        # important that there is no conflict and that two different workers do
+        # not write on the same section.
+        # We put the shape in a tuple along with the RawArray because workers
+        # need to know the shape to create the numpy array from the RawArray.
+        model_redshifts = (RawArray(ctypes.c_double, gbl.n_models),
+                           (gbl.n_models))
+        model_fluxes = (RawArray(ctypes.c_double,
+                                 gbl.n_models * gbl.n_filters),
+                        (gbl.n_models, gbl.n_filters))
+        model_variables = (RawArray(ctypes.c_double,
+                                    gbl.n_models * gbl.n_variables),
+                           (gbl.n_models, gbl.n_variables))
 
         # In order not to clog the warehouse memory with SEDs that will not be
         # used again during the SED generation, we identify which parameter has
@@ -173,60 +186,28 @@ class PdfAnalysis(AnalysisModule):
         changed_pars = find_changed_parameters(creation_modules_params)
 
         # Compute the SED fluxes and ancillary data in parallel
-        gbl.n_computed = mp.Value('i', 0)
-        gbl.t_begin = time.time()
-        with mp.Pool(processes=cores) as pool:
-            items = pool.starmap(worker_sed, zip(creation_modules_params,
-                                                 changed_pars))
-
-        # We create the arrays to store the model fluxes and ancillary data.
-        # They are stored in a shared module so they are easily accessible by
-        # the processes that will carry out the analysis, without requiring any
-        # data transfer that will grind pcigale to a halt. We use a numpy
-        # masked array to mask the fluxes of models that would be older than
-        # the age of the Universe at the considered redshift.
-        gbl.model_fluxes = np.ma.empty((len(creation_modules_params),
-                                        len(gbl.filters)))
-        gbl.model_variables = np.ma.empty((len(creation_modules_params),
-                                           len(gbl.analysed_variables)))
-        gbl.model_redshifts = np.empty(len(creation_modules_params))
-        gbl.model_info = [None] * len(creation_modules_params)
-
-        # Unpack the computed data into their respective arrays.
-        for idx_item, item in enumerate(items):
-            gbl.model_fluxes[idx_item, :] = item[0]
-            gbl.model_variables[idx_item, :] = item[1]
-            gbl.model_redshifts[idx_item] = item[2]
-            gbl.model_info[idx_item] = item[3]
+        initargs = (model_redshifts, model_fluxes, model_variables,
+                    mp.Value('i', 0), time.time())
+        with mp.Pool(processes=cores, initializer=init_worker_sed,
+                     initargs=initargs) as pool:
+            pool.starmap(worker_sed, zip(changed_pars,
+                                         range(gbl.n_models)))
 
         print('\nAnalysing models...')
 
-        # Mask the invalid fluxes
-        gbl.model_fluxes = np.ma.masked_less(gbl.model_fluxes, -90)
-
-        # To make it easy to subprocesses to identify which parts of the
-        # various arrays correspond to a given redshift we 1) make a list of
-        # model redshifts, and 2) a dictionary indicatin the indices
-        # corresponding to a given redshift. These two objects are assigned to
-        # the shared module.
-        gbl.redshifts = np.unique(gbl.model_redshifts)
-        gbl.w_redshifts = {redshift: gbl.model_redshifts == redshift
-                           for redshift in gbl.redshifts}
-
-        # Analysis of each object in parallel. All the model data are
-        # transmitted through a shared module to avoid memory copies that would
-        # grind pcigale to a halt.
-        gbl.n_computed = mp.Value('i', 0)
-        gbl.t_begin = time.time()
-        with mp.Pool(processes=cores) as pool:
+        # Analysis of each object in parallel.
+        initargs = (model_redshifts, model_fluxes, model_variables,
+                    mp.Value('i', 0), time.time())
+        with mp.Pool(processes=cores, initializer=init_worker_analysis,
+                     initargs=initargs) as pool:
             items = pool.starmap(worker_analysis, zip(obs_table))
 
         # Local arrays where to unpack the results of the analysis
-        analysed_averages = np.empty((len(items), len(gbl.analysed_variables)))
+        analysed_averages = np.empty((gbl.n_obs, gbl.n_variables))
         analysed_std = np.empty_like(analysed_averages)
-        best_fluxes = np.empty((len(items), len(gbl.filters)))
-        best_parameters = [None] * len(items)
-        best_normalisation_factors = np.empty(len(obs_table))
+        best_fluxes = np.empty((gbl.n_obs, gbl.n_filters))
+        best_parameters = [None] * gbl.n_obs
+        best_normalisation_factors = np.empty(gbl.n_obs)
         best_chi2 = np.empty_like(best_normalisation_factors)
         best_chi2_red = np.empty_like(best_normalisation_factors)
 

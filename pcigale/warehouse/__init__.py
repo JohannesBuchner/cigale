@@ -67,32 +67,29 @@ class SedWarehouse(object):
 
         return module
 
-    def partial_clear_cache(self, flagged_param):
+    def partial_clear_cache(self, n_modules_max):
         """Clear the cache of SEDs that are not relevant anymore
 
         To do partial clearing of the cache, we go through the entire cache and
-        delete the SEDs that correspond to a given parameter key/value.
+        delete the SEDs that have more than a given number of modules. This is
+        done by computing the index of the module that has a changed parameter.
+        This means that SEDs with this number of modules or more are not needed
+        anymore to compute new models and we can discard them. Passing 0 as an
+        argument empties the cache completely.
 
         Parameters
         ----------
-        flagged_param: tuple
-            Tuple of 2 elements containing the parameter name and its value
+        n_modules_max: int
+            Maximum number of modules. All SED with at least this number of
+            modules have to be discarded
 
         """
-        if flagged_param is not None:
+        if n_modules_max > -1:
             decoder = JSONDecoder()
-            # Going through all SEDs
             for k in list(self.storage.dictionary.keys()):
-                list_params = decoder.decode(k)[1]
-                # Going through all parameters of a given SED. We start with
-                # the last module because it is more likely that the parameter
-                # we look for belongs to one of the last modules.
-                list_params.reverse()
-                for params in list_params:
-                    if (flagged_param[0] in params.keys() and
-                       params[flagged_param[0]] == flagged_param[1]):
-                        self.storage.delete(k)
-                        break
+                list_modules = decoder.decode(k)[0]
+                if len(list_modules) > n_modules_max:
+                    self.storage.delete(k)
 
     def get_sed(self, module_list, parameter_list):
         """Get the SED corresponding to the module and parameter lists

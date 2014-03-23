@@ -7,6 +7,8 @@
 Various utility functions for pcigale analysis modules
 """
 
+import numpy as np
+
 
 def find_changed_parameters(list_parameters):
     """
@@ -27,20 +29,24 @@ def find_changed_parameters(list_parameters):
 
     Return
     ------
-    A list a tuples with the same size as the input list. Each tuple contains
-    the parameter that has changed and its value. When several parameters have
-    changed, it selects only the one that would discard the most models.
+    An array of integers containing the index of the module that has to be
+    discarded. When several parameters have changed we return the lowest index.
+    The cache cleaning routine can then just discard all SED with at least as
+    many modules. This will keep the cache small if used consistently.
+
     """
     changed = [None] * len(list_parameters)
     for i in range(len(list_parameters)-1):
-        for par, par_next in zip(list_parameters[i], list_parameters[i+1]):
+        for idx, (par, par_next) in enumerate(zip(list_parameters[i],
+                                                  list_parameters[i+1])):
             for k in par.keys():
                 if par[k] != par_next[k]:
                     if changed[i] is not None:
                         print('Warning! It went wrong in the cache cleaning')
-                    changed[i] = (k, par[k])
+                    changed[i] = idx
                     break
             if changed[i] is not None:
                 break
-    # TODO: handle the special case of the last element
-    return changed
+    changed[-1] = 0
+
+    return np.array(changed, dtype=np.int)
