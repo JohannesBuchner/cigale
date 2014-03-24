@@ -46,9 +46,10 @@ def _chi2_worker(obj_name, var_name):
                                                              var_name))
         figure = plt.figure()
         ax = figure.add_subplot(111)
-        ax.scatter(chi2[var_name], chi2['chi2'], color='k')
+        ax.scatter(chi2[var_name], chi2['chi2'], color='k', s=.1)
         ax.set_xlabel(var_name)
         ax.set_ylabel("Reduced $\chi^2$")
+        ax.set_ylim(0., )
         ax.minorticks_on()
         figure.suptitle("Reduced $\chi^2$ distribution of {} values for {}."
                         .format(obj_name, var_name))
