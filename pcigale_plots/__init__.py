@@ -51,8 +51,8 @@ def _chi2_worker(obj_name, var_name):
         ax.set_ylabel("Reduced $\chi^2$")
         ax.set_ylim(0., )
         ax.minorticks_on()
-        figure.suptitle("Reduced $\chi^2$ distribution of {} values for {}."
-                        .format(obj_name, var_name))
+        figure.suptitle("Reduced $\chi^2$ distribution of {} for {}."
+                        .format(var_name, obj_name))
         figure.savefig(OUT_DIR + "{}_{}_chi2.pdf".format(obj_name, var_name))
         plt.close(figure)
     else:
@@ -78,6 +78,8 @@ def _pdf_worker(obj_name, var_name):
         ax.set_xlabel(var_name)
         ax.set_ylabel("Probability density")
         ax.minorticks_on()
+        figure.suptitle("Probability distribution function of {} for {}"
+                        .format(var_name, obj_name))
         figure.savefig(OUT_DIR + "{}_{}_pdf.pdf".format(obj_name, var_name))
         plt.close(figure)
     else:
