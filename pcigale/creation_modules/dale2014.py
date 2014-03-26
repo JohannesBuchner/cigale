@@ -76,6 +76,8 @@ class Dale2014(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         frac_agn = self.parameters["fracAGN"]
+        
+        L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
 
         sed.add_module(self.name, self.parameters)
         sed.add_info("agn.fracAGN", self.parameters["fracAGN"])
@@ -84,7 +86,7 @@ class Dale2014(CreationModule):
         sed.add_contribution('dust', self.model_sb.wave,
                              luminosity * self.model_sb.lumin)
         sed.add_contribution('agn', self.model_quasar.wave,
-                             frac_agn * luminosity * self.model_quasar.lumin)
+                             L_AGN * self.model_quasar.lumin)
 
 # CreationModule to be returned by get_module
 Module = Dale2014

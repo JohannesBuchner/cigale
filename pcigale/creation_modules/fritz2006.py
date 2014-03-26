@@ -112,7 +112,7 @@ class Fritz2006(CreationModule):
         sed.add_info('fracAGN', self.parameters["fracAGN"])
 
         # Compute the AGN luminosity
-        L_AGN = fracAGN * (luminosity + 1)
+        L_AGN = luminosity * (1./(1.-fracAGN) - 1.)
 
         sed.add_contribution('agn_fritz2006_therm', self.fritz2006.wave,
                              L_AGN * self.fritz2006.lumin_therm)
