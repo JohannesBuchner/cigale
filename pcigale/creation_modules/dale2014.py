@@ -38,14 +38,6 @@ class Dale2014(CreationModule):
             'float',
             "Alpha slope",
             None
-        )),
-        ('attenuation_value_keys', (
-            'string',
-            "Keys of the SED information dictionary where the module will "
-            "look for the attenuation (in W) to re-emit. You can give several "
-            "keys separated with a & (don't use commas), a re-emission "
-            "contribution will be added for each key.",
-            "attenuation"
         ))
     ])
 
