@@ -188,19 +188,30 @@ class PdfAnalysis(AnalysisModule):
         # Compute the SED fluxes and ancillary data in parallel
         initargs = (model_redshifts, model_fluxes, model_variables,
                     mp.Value('i', 0), time.time())
-        with mp.Pool(processes=cores, initializer=init_worker_sed,
-                     initargs=initargs) as pool:
-            pool.starmap(worker_sed, zip(changed_pars,
-                                         range(gbl.n_models)))
+        if cores == 1:  # Do not create a new process
+            init_worker_sed(*initargs)
+            for changed_par, idx in zip(changed_pars, range(gbl.n_models)):
+                worker_sed(changed_par, idx)
+        else:
+            with mp.Pool(processes=cores, initializer=init_worker_sed,
+                         initargs=initargs) as pool:
+                pool.starmap(worker_sed, zip(changed_pars,
+                                             range(gbl.n_models)))
 
         print('\nAnalysing models...')
 
         # Analysis of each object in parallel.
         initargs = (model_redshifts, model_fluxes, model_variables,
                     mp.Value('i', 0), time.time())
-        with mp.Pool(processes=cores, initializer=init_worker_analysis,
-                     initargs=initargs) as pool:
-            items = pool.starmap(worker_analysis, zip(obs_table))
+        if cores == 1:  # Do not create a new process
+            init_worker_analysis(*initargs)
+            items = []
+            for obs in obs_table:
+                items.append(worker_analysis(obs))
+        else:
+            with mp.Pool(processes=cores, initializer=init_worker_analysis,
+                         initargs=initargs) as pool:
+                items = pool.starmap(worker_analysis, zip(obs_table))
 
         # Local arrays where to unpack the results of the analysis
         analysed_averages = np.empty((gbl.n_obs, gbl.n_variables))
