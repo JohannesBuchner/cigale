@@ -67,8 +67,8 @@ class Dale2014(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
+        sed: pcigale.sed.SED object
+        parameters: dictionary containing the parameters
 
         """
         if 'dust.luminosity' not in sed.info.keys():

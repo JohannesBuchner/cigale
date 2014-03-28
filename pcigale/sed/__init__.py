@@ -52,7 +52,7 @@ class SED(object):
 
         Parameters
         ----------
-        sfh : (numpy.array, numpy.array)
+        sfh: (numpy.array, numpy.array)
             Star Formation History: tuple of two numpy array, the first is the
             time in Myr and the second is the Star Formation Rate in Msun/yr.
             If no SFH is given, it's set to None.
@@ -153,14 +153,14 @@ class SED(object):
 
         Parameters
         ----------
-        key : any immutable
+        key: any immutable
            The key used to retrieve the information.
-        value : anything
+        value: anything
            The information.
-        mass_proportional : boolean
+        mass_proportional: boolean
            If True, the added variable is set as proportional to the
            mass.
-        force : boolean
+        force: boolean
            If false (default), adding a key that already exists in the info
            dictionary will raise an error. If true, doing this will update
            the associated value.
@@ -179,10 +179,10 @@ class SED(object):
 
         Parameters
         ----------
-        module_name : string
+        module_name: string
             Name of the module. This name can be suffixed with anything
             using a dot.
-        module_conf : dictionary
+        module_conf: dictionary
             Dictionary containing the module parameters.
 
         TODO: Complete the parameter dictionary with the default values from
@@ -205,15 +205,15 @@ class SED(object):
 
         Parameters
         ----------
-        contribution_name : string
+        contribution_name: string
             Name of the contribution added. This name is used to retrieve the
             luminosity contribution and allows one module to add more than
             one contribution.
 
-        results_wavelengths : array of floats
+        results_wavelengths: array of floats
             The vector of the wavelengths of the module results (in nm).
 
-        results_lumin : array of floats
+        results_lumin: array of floats
             The vector of the Lλ luminosities (in W/nm) of the module results.
 
         """
@@ -261,12 +261,12 @@ class SED(object):
 
         Parameters
         ----------
-        name : string
+        name: string
             Name of the contribution
 
         Returns
         -------
-        luminosities : array of floats
+        luminosities: array of floats
             Vector of the luminosity density contribution based on the SED
             wavelength grid.
 
@@ -301,16 +301,16 @@ class SED(object):
 
         Parameters
         ----------
-        transmission : 2D array of floats
+        transmission: 2D array of floats
             A numpy 2D array containing the filter response profile
             wavelength[nm] vs transmission).
 
-        lambda_eff : float
+        lambda_eff: float
             Effective wavelength of the filter in nm.
 
         Return
         ------
-        fnu : float
+        fnu: float
             The integrated Fν density in mJy.
         """
 
@@ -372,9 +372,9 @@ class SED(object):
 
         Parameters
         ----------
-        filename : string
+        filename: string
             Name of the VO-table file
-        mass : float
+        mass: float
             Galaxy mass in solar mass. When need, the saved data will be
             multiplied by this mass.
 

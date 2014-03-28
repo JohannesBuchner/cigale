@@ -245,7 +245,7 @@ class Database(object):
 
         Parameters
         ----------
-        writable : boolean
+        writable: boolean
             If True the user will be able to write new data in the database
             (but he/she must have a writable access to the sqlite file). By
             default, False.
@@ -281,7 +281,7 @@ class Database(object):
 
         Parameters
         ----------
-        ssp : pcigale.base.M2005
+        ssp: pcigale.base.M2005
 
         """
         if self.is_writable:
@@ -302,19 +302,19 @@ class Database(object):
 
         Parameters
         ----------
-        imf : string
+        imf: string
             Initial mass function (ss for Salpeter, kr for Kroupa)
-        metallicity : float
+        metallicity: float
             [Z/H] = Log10(Z/Zsun) - Log10(H/Hsun)
 
         Returns
         -------
-        ssp : pcigale.base.M2005
+        ssp: pcigale.base.M2005
             The M2005 object.
 
         Raises
         ------
-        DatabaseLookupError : if the requested SSP is not in the database.
+        DatabaseLookupError: if the requested SSP is not in the database.
 
         """
         result = self.session.query(_M2005)\
@@ -346,7 +346,7 @@ class Database(object):
 
         Parameters
         ----------
-        ssp : pcigale.data.SspBC03
+        ssp: pcigale.data.SspBC03
 
         """
         if self.is_writable:
@@ -367,18 +367,18 @@ class Database(object):
 
         Parameters
         ----------
-        imf : string
+        imf: string
             Initial mass function (salp for Salpeter, chab for Chabrier)
-        metallicity : float
+        metallicity: float
             0.02 for Solar metallicity
         Returns
         -------
-        ssp : pcigale.data.BC03
+        ssp: pcigale.data.BC03
             The BC03 object.
 
         Raises
         ------
-        DatabaseLookupError : if the requested SSP is not in the database.
+        DatabaseLookupError: if the requested SSP is not in the database.
 
         """
         result = self.session.query(_BC03)\
@@ -410,7 +410,7 @@ class Database(object):
 
         Parameters
         ----------
-        data : array
+        data: array
             Array containing the templates data.
 
         """
@@ -442,12 +442,12 @@ class Database(object):
 
         Returns
         -------
-        template : pcigale.base.DH2002
+        template: pcigale.base.DH2002
             The Dale and Helou (2002) infrared templates.
 
         Raises
         ------
-        DatabaseLookupError : if the templates are not in the database.
+        DatabaseLookupError: if the templates are not in the database.
 
         """
         result = (self.session.query(_DH2002).
@@ -505,12 +505,12 @@ class Database(object):
 
         Returns
         -------
-        model : pcigale.data.DL2007
+        model: pcigale.data.DL2007
             The Draine and Li (2007) model.
 
         Raises
         ------
-        DatabaseLookupError : if the requested model is not in the database.
+        DatabaseLookupError: if the requested model is not in the database.
 
         """
         result = (self.session.query(_DL2007).
@@ -542,7 +542,7 @@ class Database(object):
 
         Parameters
         ----------
-        iragn : pcigale.data.Dale2014
+        iragn: pcigale.data.Dale2014
 
         """
 
@@ -573,12 +573,12 @@ class Database(object):
 
         Returns
         -------
-        template : pcigale.data.Dale2014
+        template: pcigale.data.Dale2014
             The Dale et al. (2014) IR template.
 
         Raises
         ------
-        DatabaseLookupError : if the requested template is not in the database.
+        DatabaseLookupError: if the requested template is not in the database.
 
         """
         result = (self.session.query(_Dale2014).
@@ -609,7 +609,7 @@ class Database(object):
 
         Parameters
         ----------
-        agn : pcigale.data.Fritz2006
+        agn: pcigale.data.Fritz2006
 
         """
         if self.is_writable:
@@ -629,37 +629,37 @@ class Database(object):
 
         Parameters
         ----------
-        r_ratio : float
+        r_ratio: float
             Ratio of the maximum and minimum radii of the dust torus.
-        tau : float
+        tau: float
             Tau at 9.7µm
-        beta : float
+        beta: float
             Beta
-        gamma : float
+        gamma: float
             Gamma
-        opening_angle : float
+        opening_angle: float
             Opening angle of the dust torus.
-        psy : float
+        psy: float
             Angle between AGN axis and line of sight.
-        wave : array of float
+        wave: array of float
             Wavelength grid in nm.
-        lumin_therm : array of float
+        lumin_therm: array of float
             Luminosity density of the dust torus at each wavelength in W/nm.
-        lumin_scatt : array of float
+        lumin_scatt: array of float
             Luminosity density of the scattered emission at each wavelength
             in W/nm.
-        lumin_agn : array of float
+        lumin_agn: array of float
             Luminosity density of the central AGN at each wavelength in W/nm.
 
 
         Returns
         -------
-        agn : pcigale.data.Fritz2006
+        agn: pcigale.data.Fritz2006
             The AGN model.
 
         Raises
         ------
-        DatabaseLookupError : if the requested template is not in the database.
+        DatabaseLookupError: if the requested template is not in the database.
 
         """
         result = (self.session.query(_Fritz2006).
@@ -799,7 +799,7 @@ class Database(object):
 
         Parameters
         ----------
-        pcigale_filter : pcigale.data.Filter
+        pcigale_filter: pcigale.data.Filter
         """
         if self.is_writable:
             self.session.add(_Filter(pcigale_filter))
@@ -817,17 +817,17 @@ class Database(object):
 
         Parameters
         ----------
-        name : string
+        name: string
             Name of the filter
 
         Returns
         -------
-        filter : pcigale.base.Filter
+        filter: pcigale.base.Filter
             The Filter object.
 
         Raises
         ------
-        DatabaseLookupError : if the requested filter is not in the database.
+        DatabaseLookupError: if the requested filter is not in the database.
 
         """
         result = (self.session.query(_Filter).
@@ -846,7 +846,7 @@ class Database(object):
 
         Returns
         -------
-        names, lambda_eff : array, dictionary
+        names, lambda_eff: array, dictionary
             names is the list of the filter names and lambda_eff is a
             dictionary associating the effective wavelength (in nm) to the
             filter name

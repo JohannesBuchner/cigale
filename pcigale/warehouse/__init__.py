@@ -20,7 +20,7 @@ class SedWarehouse(object):
 
         Parameters
         ----------
-        cache_type : string
+        cache_type: string
             Type of cache used. For now, only in memory caching.
         """
         if cache_type == "memory":
@@ -44,7 +44,7 @@ class SedWarehouse(object):
 
         Parameters
         ----------
-        name : string
+        name: string
             Module name.
 
         The other keyword parameters are the module parameters.
@@ -100,16 +100,16 @@ class SedWarehouse(object):
 
         Parameters
         ----------
-        module_list : iterable
+        module_list: iterable
             List of module names in the order they have to be used to
             create the SED.
-        parameter_list : iterable
+        parameter_list: iterable
             List of the parameter dictionaries corresponding to each
             module of the module_list list.
 
         Returns
         -------
-        sed : pcigale.sed
+        sed: pcigale.sed
             The SED made from the given modules with the given parameters.
 
         """

@@ -40,18 +40,18 @@ class AnalysisModule(object):
 
         Parameters
         ----------
-        data_file : string
+        data_file: string
             Name of the file containing the observations to be fitted.
-        column_list : array of strings
+        column_list: array of strings
             Names of the columns from the data file to use in the analysis.
-        creation_modules : array of strings
+        creation_modules: array of strings
             Names (in the right order) of the modules to use to build the SED.
-        creation_modules_params : array of array of dictionaries
+        creation_modules_params: array of array of dictionaries
             Array containing all the possible combinations of configurations
             for the creation_modules. Each 'inner' array has the same length as
             the creation_modules array and contains the configuration
             dictionary for the corresponding module.
-        parameters : dictionary
+        parameters: dictionary
             Configuration for the module.
 
         Returns
@@ -72,18 +72,18 @@ class AnalysisModule(object):
 
         Parameters
         ----------
-        data_file : string
+        data_file: string
             Name of the file containing the observations to be fitted.
-        column_list : array of strings
+        column_list: array of strings
             Names of the columns from the data file to use in the analysis.
-        creation_modules : array of strings
+        creation_modules: array of strings
             Names (in the right order) of the modules to use to build the SED.
-        creation_modules_params : array of array of dictionaries
+        creation_modules_params: array of array of dictionaries
             Array containing all the possible combinations of configurations
             for the creation_modules. Each 'inner' array has the same length as
             the creation_modules array and contains the configuration
             dictionary for the corresponding module.
-        parameters : dictionary
+        parameters: dictionary
             Configuration for the module.
 
         Returns
@@ -92,7 +92,7 @@ class AnalysisModule(object):
 
         Raises
         ------
-        KeyError : when not all the needed parameters are given.
+        KeyError: when not all the needed parameters are given.
 
         """
         # For parameters that are present on the parameter_list with a default
@@ -133,12 +133,12 @@ def get_module(module_name):
 
     Parameters
     ----------
-    module_name : string
+    module_name: string
         The name of the module we want to get the class.
 
     Returns
     -------
-    module_class : class
+    module_class: class
     """
 
     try:
@@ -159,21 +159,21 @@ def adjust_errors(flux, error, tolerance, default_error=0.1,
 
     Parameters
     ----------
-    flux : array of floats
+    flux: array of floats
         Fluxes.
-    error : array of floats
+    error: array of floats
         Observational error in the same unit as the fluxes.
-    tolerance : float
+    tolerance: float
         Tolerance threshold under flux error is considered as 0.
-    default_error : float
+    default_error: float
         Default error factor used when the provided error in under the
         tolerance threshold.
-    systematic_deviation : float
+    systematic_deviation: float
         Systematic deviation added to the error.
 
     Returns
     -------
-    error : array of floats
+    error: array of floats
         The corrected errors.
 
     """
@@ -207,18 +207,18 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
 
     Parameters
     ----------
-    obs_table : astropy.table.Table
+    obs_table: astropy.table.Table
         The observation table.
-    used_columns : list of strings
+    used_columns: list of strings
         The list of columns to use in the observation table.
-    filter_list : list of strings
+    filter_list: list of strings
         The list of filters used in the analysis.
-    tolerance : float
+    tolerance: float
         Tolerance threshold under flux error is considered as 0.
-    default_error : float
+    default_error: float
         Default error factor used when the provided error in under the
         tolerance threshold.
-    systematic_deviation : float
+    systematic_deviation: float
         Systematic deviation added to the error.
 
     Returns
@@ -228,7 +228,7 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
 
     Raises
     ------
-    StandardError : When a filter is not present in the observation table.
+    StandardError: When a filter is not present in the observation table.
 
     """
     # TODO Print or log a warning when an error column is in the used column
@@ -266,17 +266,17 @@ def bin_evenly(values, max_bins):
 
     Parameters
     ----------
-    values : list of floats
+    values: list of floats
         List of values to be binned.
-    max_bins : integer
+    max_bins: integer
         Maximum number of bins. If there are less distinct value, every value
         is in it's own bin.
 
     Returns
     -------
-    boundaries : array of floats
+    boundaries: array of floats
         The value of the boundaries of the bins.
-    bins_digits : numpy array of integers
+    bins_digits: numpy array of integers
         Array of the same length as the value list giving for each value the
         bin number (between 1 and nb_of_bins) it belongs to.
 

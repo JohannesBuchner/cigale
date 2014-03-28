@@ -18,16 +18,16 @@ class Filter(object):
 
         Parameters
         ----------
-        name : string
+        name: string
             Name of the filter
-        description : string
+        description: string
             Description of the filter
-        trans_type : string
+        trans_type: string
             Type of transmission table ('energy' or 'photon')
-        trans_table : array
+        trans_table: array
             trans_table[0] is the wavelength in nm,
             trans_table[1] is the transmission)
-        effective_wavelength : float
+        effective_wavelength: float
             Effective wavelength of the filter
         """
 

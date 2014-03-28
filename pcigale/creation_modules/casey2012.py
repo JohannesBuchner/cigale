@@ -92,7 +92,7 @@ class Casey2012(CreationModule):
 
         Parameters
         ----------
-        sed : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         if 'dust.luminosity' not in sed.info.keys():

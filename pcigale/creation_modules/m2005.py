@@ -27,7 +27,7 @@ class M2005(CreationModule):
     Information added to the SED:
         - imf, metallicity, galaxy_age
         - mass_total, mass_alive, mass_white_dwarf,mass_neutrino,
-          mass_black_hole, mass_turn_off : stellar masses in solar mass.
+          mass_black_hole, mass_turn_off: stellar masses in solar mass.
         - age: age of the oldest stars in the galaxy.
         - old_young_separation_age: age (in Myr) separating the young and the
               old star populations (if 0, there is only one population)
@@ -115,7 +115,7 @@ class M2005(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED
+        sed: pcigale.sed.SED
             SED object.
 
         """

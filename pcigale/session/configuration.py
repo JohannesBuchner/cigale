@@ -24,12 +24,12 @@ def list_modules(package_name):
 
     Parameters
     ----------
-    package_name : string
+    package_name: string
         Name of the package (e.g. pcigale.creation_modules).
 
     Returns
     -------
-    module_name : array of strings
+    module_name: array of strings
         List of the available modules.
 
     """
@@ -56,12 +56,12 @@ def evaluate_description(description):
 
     Parameters
     ----------
-    description : string or list
+    description: string or list
         The description to be evaluated.
 
     Returns
     -------
-     results : list
+     results: list
         The evaluated list of values.
 
     """
@@ -100,7 +100,7 @@ class Configuration(object):
 
         Parameters
         ----------
-        filename : string
+        filename: string
             Name of the configuration file (pcigale.conf by default).
 
         """
@@ -126,7 +126,7 @@ class Configuration(object):
 
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules : "
+            "Order of the modules use for SED creation. Available modules: "
             + ', '.join(list_modules('pcigale.creation_modules')) + ".")
 
         self.config['analysis_method'] = ""
@@ -216,19 +216,19 @@ class Configuration(object):
 
         Returns
         -------
-        configuration['data_file'] : string
+        configuration['data_file']: string
             File containing the observations to fit.
-        configuration['column_list'] : list of strings
+        configuration['column_list']: list of strings
             List of the columns of data_file to use in the fitting.
-        configuration['creation_modules'] : list of strings
+        configuration['creation_modules']: list of strings
             List of the modules (in the right order) used to create the SEDs.
-        configuration['creation_modules_params'] : list of dictionaries
+        configuration['creation_modules_params']: list of dictionaries
             Configuration parameters for each module. To each parameter, the
             dictionary associates a list of possible values (possibly only
             one).
-        configuration['analysis_method'] : string
+        configuration['analysis_method']: string
             Statistical analysis module used to fit the data.
-        configuration['analysis_method_params'] : dictionary
+        configuration['analysis_method_params']: dictionary
             Parameters for the statistical analysis module. To each parameter
             is associated a list of possible values.
         """
@@ -265,7 +265,7 @@ class Configuration(object):
 
         Returns
         -------
-        result : array of arrays of dictionaries
+        result: array of arrays of dictionaries
             The inner arrays contains the various parameter dictionaries
             for the modules listed in configuration['creation_modules'].
 

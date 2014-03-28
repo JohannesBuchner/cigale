@@ -12,11 +12,11 @@ def save_sed_to_vo(sed, filename, norm=1.):
 
     Parameters
     ----------
-    sed : a pcigale.sed.SED object
+    sed: a pcigale.sed.SED object
         The SED to save.
-    filename : string
+    filename: string
         Name of the file to save the SED to.
-    norm : float
+    norm: float
         Normalisation factor of the SED
 
     """

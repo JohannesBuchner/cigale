@@ -13,12 +13,12 @@ def param_dict_combine(dictionary):
 
     Parameters
     ----------
-    dictionary : dict
+    dictionary: dict
         Dictionary associating an array to its (or some of its) keys.
 
     Returns
     -------
-    combination_list : list of dictionaries
+    combination_list: list of dictionaries
         List of dictionaries with the same keys but associating one element
         to each.
 

@@ -18,7 +18,7 @@ class SedStore(object):
 
         Parameters
         ----------
-        key : any immutable
+        key: any immutable
 
         Returns
         -------
@@ -33,8 +33,8 @@ class SedStore(object):
 
         Parameters
         ----------
-        key : any immutable
-        value : object
+        key: any immutable
+        value: object
 
         """
         # We store a copy not to modify the stored object.

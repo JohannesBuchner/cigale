@@ -28,7 +28,7 @@ def k_calzetti2000(wavelength):
 
     Parameters
     ----------
-    wavelength : array of floats
+    wavelength: array of floats
         Wavelength grid in nm.
 
     Returns
@@ -62,7 +62,7 @@ def k_leitherer2002(wavelength):
 
     Parameters
     ----------
-    wavelength : array of floats
+    wavelength: array of floats
         Wavelength grid in nm.
 
     Returns
@@ -83,13 +83,13 @@ def uv_bump(wavelength, central_wave, gamma, ebump):
 
     Parameters
     ----------
-    wavelength : array of floats
+    wavelength: array of floats
         Wavelength grid in nm.
-    central_wave : float
+    central_wave: float
         Central wavelength of the bump in nm.
-    gamma : float
+    gamma: float
         Width (FWHM) of the bump in nm.
-    ebump : float
+    ebump: float
         Amplitude of the bump.
 
     Returns
@@ -107,9 +107,9 @@ def power_law(wavelength, delta):
 
     Parameters
     ----------
-    wavelength : array of floats
+    wavelength: array of floats
         The wavelength grid in nm.
-    delta : float
+    delta: float
         The slope of the power law.
 
     Returns
@@ -131,20 +131,20 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
 
     Parameters
     ----------
-    wavelength : array of floats
+    wavelength: array of floats
         The wavelength grid (in nm) to compute the attenuation curve on.
-    bump_wave : float
+    bump_wave: float
         Central wavelength (in nm) of the UV bump.
-    bump_width : float
+    bump_width: float
         Width (FWHM, in nm) of the UV bump.
-    bump_ampl : float
+    bump_ampl: float
         Amplitude of the UV bump.
-    power_slope : float
+    power_slope: float
         Slope of the power law.
 
     Returns
     -------
-    attenuation : array of floats
+    attenuation: array of floats
         The A(λ)/E(B-V)* attenuation at each wavelength of the grid.
 
     """
@@ -249,7 +249,7 @@ class CalzLeit(CreationModule):
 
         Parameters
         ----------
-        sed : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         ebvs = {}

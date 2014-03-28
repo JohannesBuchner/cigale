@@ -57,7 +57,7 @@ class Redshifting(CreationModule):
 
         Parameters
         ----------
-        sed : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         # If the SED is already redshifted, raise an error.

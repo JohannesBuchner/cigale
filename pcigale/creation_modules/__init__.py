@@ -22,14 +22,14 @@ def complete_parameters(given_parameters, parameter_list):
 
     Parameters
     ----------
-    given_parameters : dictionary
+    given_parameters: dictionary
         Parameter dictionary used to configure the module.
-    parameter_list : OrderedDict
+    parameter_list: OrderedDict
         Parameter list from the module.
 
     Returns
     -------
-    parameters : OrderedDict
+    parameters: OrderedDict
         Ordered dictionary combining the given parameters with the default
         values for the missing ones.
 
@@ -107,9 +107,9 @@ class CreationModule(object):
 
         Parameters
         ----------
-        name : string
+        name: string
             Name of the module.
-        blank : boolean
+        blank: boolean
             If true, return a non-parametrised module that will be used only
             to query the module parameter list.
 
@@ -117,7 +117,7 @@ class CreationModule(object):
 
         Raises
         ------
-        KeyError : when not all the needed parameters are given or when an
+        KeyError: when not all the needed parameters are given or when an
                    unexpected parameter is given.
 
         """
@@ -153,7 +153,7 @@ class CreationModule(object):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         raise NotImplementedError()
@@ -164,7 +164,7 @@ def get_module(name, **kwargs):
 
     Parameters
     ----------
-    module_name : string
+    module_name: string
         The name of the module we want to get the class. This name can be
         prefixed by anything using a dot, then the part before the dot is
         used to determine the module to load (e.g. 'dh2002.1' will return

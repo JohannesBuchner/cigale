@@ -18,17 +18,17 @@ class Fritz2006(object):
 
         Parameters
         ----------
-        r_ratio : float
+        r_ratio: float
             Ratio of the maximum and minimum radii of the dust torus.
-        tau : float
+        tau: float
             Tau at 9.7µm
-        beta : float
+        beta: float
             Beta
-        gamma : float
+        gamma: float
             Gamma
-        opening_angle : float
+        opening_angle: float
             Opening angle of the dust torus.
-        psy : float
+        psy: float
             Angle between AGN axis and line of sight.
         """
 

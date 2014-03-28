@@ -46,7 +46,7 @@ class LoadSpecFile(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         filename = self.parameters['filename']

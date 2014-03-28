@@ -91,8 +91,8 @@ class Fritz2006(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
+        sed: pcigale.sed.SED object
+        parameters: dictionary containing the parameters
 
         """
 

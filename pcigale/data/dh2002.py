@@ -20,11 +20,11 @@ class DH2002(object):
 
         Parameters
         ----------
-        alpha_grid : array
+        alpha_grid: array
             Vector of the various values for the α slope in the templates.
-        wavelength_grid : array
+        wavelength_grid: array
             Vector of the λ grid used in the templates [nm]
-        templates : array
+        templates: array
             Template data in a 2D array containing the luminosity density
             (normalised over the full spectrum) with α in the first axis and
             λ in the second.
@@ -44,12 +44,12 @@ class DH2002(object):
 
         Parameters
         ----------
-        alpha : float
+        alpha: float
             α slope of the IR.
 
         Returns
         -------
-        luminosity : array
+        luminosity: array
             The luminosity density vector base on the template set λ grid.
 
         """

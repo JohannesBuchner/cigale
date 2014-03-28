@@ -78,7 +78,7 @@ class BC03(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED
+        sed: pcigale.sed.SED
             SED object.
 
         """

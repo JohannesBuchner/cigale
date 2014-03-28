@@ -130,8 +130,8 @@ class NebularEmission(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
-        parameters : dictionary containing the parameters
+        sed: pcigale.sed.SED object
+        parameters: dictionary containing the parameters
 
         """
         f_esc = self.parameters['f_esc']

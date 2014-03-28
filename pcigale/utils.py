@@ -19,7 +19,7 @@ def read_table(file_):
 
     Parameters
     ----------
-    file_ : string
+    file_: string
         Name of the file to read.
 
     Return

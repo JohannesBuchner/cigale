@@ -22,15 +22,15 @@ class BC03(object):
 
         Parameters
         ----------
-        imf : string
+        imf: string
             Initial mass function (IMF): either 'salp' for Salpeter (1955) or
             'chab' for Chabrier (2003).
-        metallicity : float
+        metallicity: float
             The metallicity. Possible values are 0.0001, 0.0004, 0.004, 0.008,
             0.02 (solar metallicity) and 0.05.
-        time_grid : array of floats
+        time_grid: array of floats
             The time [Myr] grid used in the colors_table and the lumin_table.
-        wavelength_grid : array of floats
+        wavelength_grid: array of floats
             The wavelength [nm] grid used in the lumin_table.
         color_table: 2 axis array of floats
             Array containing information from some of the *.?color tables from
@@ -45,7 +45,7 @@ class BC03(object):
                 * color_table[5]: Amplitude of 4000 Å break (Stoughton
                                    et al. 2002)
                 * color_table[6]: Amplitude of Lyman discontinuity
-        lumin_table : 2 axis array of floats
+        lumin_table: 2 axis array of floats
             Luminosity density in W/nm. The first axis is the wavelength and
             the second the time (index bases on the wavelength and time grids).
         """
@@ -73,7 +73,7 @@ class BC03(object):
 
         Parameters
         ----------
-        sfh_time : array of floats
+        sfh_time: array of floats
             Time grid [Myr] of the star formation history. It must be
             increasing and not run beyond 20 Gyr. The SFH will be regrided to
             the SSP time.
@@ -84,9 +84,9 @@ class BC03(object):
 
         Returns
         -------
-        wavelength : array of floats
+        wavelength: array of floats
             Wavelength grid [nm] for the spectrum
-        luminosity : array of floats
+        luminosity: array of floats
             Luminosity density [W/nm] at each wavelength.
         bc03_info: dictionary
             Dictionary containing various information from the *.?color tables:
@@ -96,7 +96,7 @@ class BC03(object):
             - "n_ly": rate of H-ionizing photons (s-1)
             - "b_4000": Amplitude of 4000 Å break (Bruzual 2003)
             - "b4_vn": Amplitude of 4000 Å narrow break (Balogh et al. 1999)
-            - "b4_sdss" : Amplitude of 4000 Å break (Stoughton et al. 2002)
+            - "b4_sdss": Amplitude of 4000 Å break (Stoughton et al. 2002)
             - "b_912": Amplitude of Lyman discontinuity
 
         """
@@ -126,8 +126,8 @@ class BC03(object):
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        color_table = self.color_table[:, :idx + 1]
-        lumin_table = self.lumin_table[:, :idx + 1]
+        color_table = self.color_table[:,:idx + 1]
+        lumin_table = self.lumin_table[:,:idx + 1]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         color_info = 1.e6 * step * np.dot(color_table, sfh_sfr[::-1])

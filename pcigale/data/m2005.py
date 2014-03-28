@@ -32,17 +32,17 @@ class M2005(object):
 
         Parameters
         ----------
-        imf : string
+        imf: string
             Initial mass function (IMF): either 'salp' for single Salpeter
             (1955) or 'krou' for Kroupa (2001).
-        metallicity : float
+        metallicity: float
             The metallicity. Possible values are 0.001, 0.01, 0.02 (solar
             metallicity) and 0.04.
-        time_grid : array of floats
+        time_grid: array of floats
             The time [Myr] grid used in the mass_table and the spec_table.
-        wavelength_grid : array of floats
+        wavelength_grid: array of floats
             The wavelength [nm] grid used in the spec_table.
-        mass_table : (6, n) array of floats
+        mass_table: (6, n) array of floats
             The 2D table giving the various stellar masses at a given age. The
             first axis is the king of mass, the second is the age based on the
             time_grid.
@@ -52,7 +52,7 @@ class M2005(object):
                 * mass_table[3]: neutrino star mass
                 * mass_table[4]: black hole star mass
                 * mass_table[5]: mass in the turn off
-        spec_table : (2, n) array of floats
+        spec_table: (2, n) array of floats
             The 2D table giving the luminosity density [W/nm] at various time.
             The first axis is the age, base on the time_grid, the second is the
             wavelength, base on the wavelength_grid.
@@ -82,7 +82,7 @@ class M2005(object):
 
         Parameters
         ----------
-        sfh_time : array of floats
+        sfh_time: array of floats
             Time grid [Myr)] of the star formation history. It must be
             increasing and not run beyond 13.7 Gyr. As the SFH will be
             regrided to the SSP time grid, it is better to have a SFH age grid
@@ -94,18 +94,18 @@ class M2005(object):
 
         Returns
         -------
-        masses, spectra : array of floats, array of floats
+        masses, spectra: array of floats, array of floats
             masses is an array of floats or and array of arrays of floats (the
             second axe is then the age):
-                 - masses[0] : total stellar mass(es)
-                 - masses[1] : alive star mass(es)
-                 - masses[2] : white dwarf mass(es)
-                 - masses[3] : neutrino star mass(es)
-                 - masses[4] : black hole mass(es)
-                 - masses[5] : mass(es) in the turn-off
+                 - masses[0]: total stellar mass(es)
+                 - masses[1]: alive star mass(es)
+                 - masses[2]: white dwarf mass(es)
+                 - masses[3]: neutrino star mass(es)
+                 - masses[4]: black hole mass(es)
+                 - masses[5]: mass(es) in the turn-off
             spectra holds:
-                - spectra[0] : wavelengths in nm
-                - spectra[1] : luminosity in W/nm
+                - spectra[0]: wavelengths in nm
+                - spectra[1]: luminosity in W/nm
 
         """
         # We work on a copy of SFH (as we change it)
@@ -132,8 +132,8 @@ class M2005(object):
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:, :nb_steps]
-        spec_table = self.spec_table[:, :nb_steps]
+        mass_table = self.mass_table[:,:nb_steps]
+        spec_table = self.spec_table[:,:nb_steps]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         masses = 1.e6 * step * np.dot(mass_table, sfh_sfr[::-1])

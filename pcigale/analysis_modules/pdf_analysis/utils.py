@@ -37,11 +37,11 @@ def gen_pdf(values, probabilities, grid):
 
     Parameters
     ----------
-    values : array like of floats
+    values: array like of floats
         The values of the variable.
-    probabilities : array like of floats
+    probabilities: array like of floats
         The probability associated with each value
-    grid : array like of float
+    grid: array like of float
         The list of values to which the probability will be evaluated.
 
     Returns

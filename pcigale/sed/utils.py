@@ -12,12 +12,12 @@ def lambda_to_nu(wavelength):
 
     Parameters
     ----------
-    wavelength : float or array of floats
+    wavelength: float or array of floats
         The wavelength(s) in nm.
 
     Returns
     -------
-    nu : float or array of floats
+    nu: float or array of floats
         The frequency(ies) in Hz.
 
     """
@@ -29,12 +29,12 @@ def nu_to_lambda(frequency):
 
     Parameters
     ----------
-    frequency : float or numpy.array of floats
+    frequency: float or numpy.array of floats
         The frequency(ies) in Hz.
 
     Returns
     -------
-    wavelength : float or numpy.array of floats
+    wavelength: float or numpy.array of floats
         The wavelength(s) in nm.
 
     """
@@ -51,12 +51,12 @@ def best_grid(wavelengths1, wavelengths2):
 
     Parameters
     ----------
-    wavelengths1, wavelengths2 : array of floats
+    wavelengths1, wavelengths2: array of floats
         The wavelength grids to be 'regrided'.
 
     Returns
     -------
-    new_grid : array of floats
+    new_grid: array of floats
         Array containing all the wavelengths found in the input arrays.
 
     """
@@ -82,7 +82,7 @@ def luminosity_to_flux(luminosity, dist):
 
     Returns
     -------
-    flux : float or array of floats
+    flux: float or array of floats
         The flux (typically in W/m²) of flux density (W/m²/nm or W/m²/Hz).
 
     """
@@ -98,14 +98,14 @@ def lambda_flambda_to_fnu(wavelength, flambda):
 
     Parameters
     ----------
-    wavelength : list-like of floats
+    wavelength: list-like of floats
         The wavelengths in nm.
-    flambda : list-like of floats
+    flambda: list-like of floats
         Fλ flux density in W/m²/nm (or Lλ luminosity density in W/nm).
 
     Returns
     -------
-    fnu : array of floats
+    fnu: array of floats
         The Fν flux density in mJy (or the Lν luminosity density in
         1.e-29 W/Hz).
 
@@ -127,15 +127,15 @@ def lambda_fnu_to_flambda(wavelength, fnu):
 
     Parameters
     ----------
-    wavelength : list-like of floats
+    wavelength: list-like of floats
         The wavelengths in nm.
-    fnu : list-like of floats
+    fnu: list-like of floats
         The Fν flux density in mJy (of the  Lν luminosity density in
         1.e-29 W/Hz).
 
     Returns
     -------
-    flambda : array of floats
+    flambda: array of floats
         Fλ flux density in W/m²/nm (or Lλ luminosity density in W/nm).
 
     """
@@ -154,20 +154,20 @@ def redshift_spectrum(wavelength, flux, redshift, is_fnu=False):
 
     Parameters
     ----------
-    wavelength : array like of floats
+    wavelength: array like of floats
         The wavelength in nm.
-    flux : array like of floats
+    flux: array like of floats
         The flux or luminosity density.
-    redshift : float
+    redshift: float
         The redshift.
-    is_fnu : boolean
+    is_fnu: boolean
         If false (default) the flux is a Fλ density in W/m²/nm (or a Lλ
         luminosity density in W/nm). If true, the flux is a Fν density in mJy
         (or a Lν luminosity density in 1.e-29 W/Hz).
 
     Results
     -------
-    wavelength, flux : tuple of numpy arrays of floats
+    wavelength, flux: tuple of numpy arrays of floats
         The redshifted spectrum with the same kind of flux (or luminosity)
         density as the input.
 

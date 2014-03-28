@@ -73,7 +73,7 @@ class Sfh2Exp(CreationModule):
 
         Parameters
         ----------
-        sed : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         tau_main = float(self.parameters["tau_main"])

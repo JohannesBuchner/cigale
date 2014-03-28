@@ -48,7 +48,7 @@ class DH2002(CreationModule):
 
         Parameters
         ----------
-        sed  : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         alpha = float(self.parameters["alpha"])

@@ -27,7 +27,7 @@ def genconf(config):
 
 def check(config):
     "Check the configuration."
-    # TODO : Check if all the parameters that don't have default values are
+    # TODO: Check if all the parameters that don't have default values are
     # given for each module.
     print("With this configuration, pcigale must compute {} "
           "SEDs.".format(len(config.creation_modules_conf_array)))

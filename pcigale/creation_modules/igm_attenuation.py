@@ -39,7 +39,7 @@ class IgmAttenuation(CreationModule):
 
         Parameters
         ----------
-        sed : pcigale.sed.SED object
+        sed: pcigale.sed.SED object
 
         """
         redshift = sed.info['redshift']
@@ -67,14 +67,14 @@ def igm_transmission_meiksin(wavelength, redshift):
 
     Parameters
     ----------
-    wavelength : array like of floats
+    wavelength: array like of floats
         The wavelength(s) in nm.
-    redshift : float
+    redshift: float
         The redshift. Must be strictly positive.
 
     Returns
     -------
-    igm_transmission : numpy array of floats
+    igm_transmission: numpy array of floats
         The intergalactic transmission at each input wavelength.
 
     """
