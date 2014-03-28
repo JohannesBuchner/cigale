@@ -28,16 +28,11 @@ def param_dict_combine(dictionary):
 
     # First, we must ensure that all values are lists; when a value is a
     # single element, we put it in a list.
-    # We must take a special care of strings, because they are iterable. We
-    # define our own string_type to work both with Python 2 and Python 3.
-    try:
-        string_type = basestring
-    except NameError:
-        string_type = str
+    # We must take a special care of strings, because they are iterable.
 
     for key, value in dictionary.items():
         if ((not isinstance(value, collections.Iterable)) or
-                isinstance(value, string_type)):
+                isinstance(value, str)):
             dictionary[key] = [value]
 
     # We use itertools.product to make all the possible combinations from the
