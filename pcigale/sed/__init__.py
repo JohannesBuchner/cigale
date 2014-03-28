@@ -23,12 +23,6 @@ Such SED is characterised by:
   the contribution (in the contribution_names list) and the index of the
   second axis corresponds to the wavelength in the wavelength grid.
 
-- lines: a dictionary containing the emission lines associated with the SED.
-  A dictionary is used to allow the storage of various sets of lines. The
-  lines are stored in a three axis numpy array: axis 0 is the central
-  wavelength [nm], axis 1 is the line luminosity [W] and axis 2 is the line
-  width [km.s-1].
-
 - info: a dictionary containing various information about the SED.
 
 - mass_proportional_info: the list of keys in the info dictionary whose value
@@ -69,7 +63,6 @@ class SED(object):
         self.wavelength_grid = None
         self.contribution_names = []
         self.luminosities = None
-        self.lines = {}
         self.info = OrderedDict()
         self.mass_proportional_info = []
 
@@ -260,32 +253,6 @@ class SED(object):
                 self.luminosities = np.vstack((self.luminosities,
                                                results_lumin))
 
-    def add_lines(self, set_name, wavelengths, luminosities, widths):
-        """Add a set of spectral lines to the SED.
-
-        Parameters
-        ----------
-        set_name : string
-            Name of the set of lines.
-        wavelengths : list-like of floats
-            The central wavelengths of the lines in nm.
-        luminosities : list-like of floats
-            The total luminosity in the spectral lines in W.
-        widths : list-like of floats
-            The widths of the lines in km.s-1.
-
-        """
-        wavelengths = np.array(wavelengths, dtype=float)
-        luminosities = np.array(luminosities, dtype=float)
-        widths = np.array(widths, dtype=float)
-
-        if set_name in self.lines:
-            raise KeyError("The line set {} is all ready present in the "
-                           "SED.".format(set_name))
-        else:
-            self.lines[set_name] = np.vstack(
-                (wavelengths, luminosities, widths))
-
     def get_lumin_contribution(self, name):
         """Get the luminosity vector of a given contribution
 
@@ -309,8 +276,7 @@ class SED(object):
                - self.contribution_names[::-1].index(name))
         return self.luminosities[idx]
 
-    def compute_fnu(self, transmission, lambda_eff,
-                    add_line_fluxes=True):
+    def compute_fnu(self, transmission, lambda_eff):
         """
         Compute the Fν flux density corresponding the filter which
         transmission is given.
@@ -341,10 +307,6 @@ class SED(object):
 
         lambda_eff : float
             Effective wavelength of the filter in nm.
-
-        add_line_flux : boolean
-            If true (default), the flux coming from the spectral lines will be
-            taken into account.
 
         Return
         ------
@@ -395,9 +357,6 @@ class SED(object):
                  np.trapz(transmission_r, wavelength_r)),
                 dist
             )
-
-            # Add the Fλ fluxes from the spectral lines.
-            # TODO write the code
 
             # Fν in W/m²/Hz. The 1.e-9 factor is because λ is in nm.
             f_nu = lambda_eff * f_lambda * lambda_eff * 1.e-9 / c
