@@ -48,11 +48,11 @@ class M2005(CreationModule):
         )),
         ('metallicity', (
             'float',
-            "Metallicity Z.",
+            "Metallicity. Possible values are: 0.001, 0.01, 0.02, 0.04.",
             None
         )),
         ('separation_age', (
-            'integer',
+            'int',
             "Age [Myr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (10 Myr). Set to "
             "0 not to differentiate ages (only an old population).",

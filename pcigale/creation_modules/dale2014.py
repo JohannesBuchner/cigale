@@ -31,12 +31,12 @@ class Dale2014(CreationModule):
     parameter_list = OrderedDict([
         ('fracAGN', (
             'float',
-            "Contribution of the AGN",
+            "AGN fraction.",
             None
         )),
         ('alpha', (
             'float',
-            "Alpha slope",
+            "Alpha slope. Possible values between 0.0625 and 4.000.",
             None
         ))
     ])

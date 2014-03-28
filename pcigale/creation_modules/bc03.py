@@ -29,12 +29,13 @@ class BC03(CreationModule):
     parameter_list = OrderedDict([
         ("imf", (
             "int",
-            "Initial mass function: 0 (Salpeter) or 1 (Chabrier)",
+            "Initial mass function: 0 (Salpeter) or 1 (Chabrier).",
             None
         )),
         ("metallicity", (
             "float",
-            "Mettalicity, 0.02 for Solar metallicity.",
+            "Metalicity. Possible values are: 0.0001, 0.0004, 0.004, 0.008, "
+            "0.02, 0.05.",
             None
         )),
         ("separation_age", (

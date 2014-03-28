@@ -28,42 +28,42 @@ class Fritz2006(CreationModule):
     parameter_list = OrderedDict([
         ('r_ratio', (
             'float',
-            "Ratio of the maximum and minimum radii of the dust torus. "
-            "Possible values are: 10, 30, 60, 100, 150",
+            "Ratio of the maximum to minimum radii of the dust torus. "
+            "Possible values are: 10, 30, 60, 100, 150.",
             None
         )),
         ('tau', (
             'float',
-            "Tau at 9.7microns. "
-            "Possible values are: 0.1, 0.3, 0.6, 1.0, 2.0, 3.0, 6.0, 10.0",
+            "Optical depth at 9.7 microns. "
+            "Possible values are: 0.1, 0.3, 0.6, 1.0, 2.0, 3.0, 6.0, 10.0.",
             None
         )),
         ('beta', (
             'float',
-            "Beta. Possible values are:-1.00, -0.75, -0.50, -0.25, 0.00",
+            "Beta. Possible values are:-1.00, -0.75, -0.50, -0.25, 0.00.",
             None
         )),
         ('gamma', (
             'float',
-            "Gamma. Possible values are: 0.0, 2.0, 4.0, 6.0",
+            "Gamma. Possible values are: 0.0, 2.0, 4.0, 6.0.",
             None
         )),
         ('opening_angle', (
             'float',
-            "Opening angle of the dust torus. Possible values are: 20, 40, 60",
+            "Opening angle of the dust torus. Possible values are: 20, 40, "
+            "60.",
             None
         )),
         ('psy', (
             'float',
             "Angle between AGN axis and line of sight. Possible values are: "
-            "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100,"
-            "80.100, 89.990",
+            "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100, "
+            "80.100, 89.990.",
             None
         )),
         ('fracAGN', (
             'float',
-            "Contribution of the AGN"
-            "",
+            "AGN fraction.",
             None
         ))
     ])

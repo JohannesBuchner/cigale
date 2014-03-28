@@ -31,7 +31,7 @@ class DH2002(CreationModule):
     parameter_list = OrderedDict([
         ('alpha', (
             'float',
-            "Alpha slope.",
+            "Alpha slope. Possible values between 0.0625 and 4.000.",
             None
         ))
     ])
