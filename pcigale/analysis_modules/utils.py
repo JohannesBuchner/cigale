@@ -17,6 +17,7 @@ import numpy as np
 # Directory where the output files are stored
 OUT_DIR = "out/"
 
+
 class ParametersHandler(object):
     """Class to handle the parameters to generate a parameter list on-the-fly.
     """
@@ -123,12 +124,12 @@ class ParametersHandler(object):
         return len(self.shape)
 
 
-def backup_dir(directory):
+def backup_dir(directory=OUT_DIR):
     if os.path.exists(directory):
         new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + directory
         os.rename(directory, new_name)
         print("The existing {} directory was renamed to {}".format(
-            OUT_DIR,
+            directory,
             new_name
         ))
-    os.mkdir(OUT_DIR)
+    os.mkdir(directory)

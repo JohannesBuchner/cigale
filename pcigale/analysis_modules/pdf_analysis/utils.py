@@ -10,6 +10,8 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.linalg import LinAlgError
 
+from ..utils import OUT_DIR
+
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
 # Name of the file containing the analysis results

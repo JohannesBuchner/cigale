@@ -47,8 +47,6 @@ from ..utils import ParametersHandler, backup_dir
 TOLERANCE = 1e-12
 # Limit the redshift to this number of decimals
 REDSHIFT_DECIMALS = 2
-# Directory where the output files are stored
-OUT_DIR = "out/"
 
 
 class PdfAnalysis(AnalysisModule):
@@ -116,7 +114,7 @@ class PdfAnalysis(AnalysisModule):
         print("Initialising the analysis module... ")
 
         # Rename the output directory if it exists
-        backup_dir(OUT_DIR)
+        backup_dir()
 
         # Initalise variables from input arguments.
         analysed_variables = config["analysed_variables"]
