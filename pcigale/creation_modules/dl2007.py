@@ -34,7 +34,7 @@ class DL2007(CreationModule):
         ('qpah', (
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
-            "2.50, 3.19, 3.90, 4.58."
+            "2.50, 3.19, 3.90, 4.58.",
             None
         )),
         ('umin', (
@@ -52,8 +52,8 @@ class DL2007(CreationModule):
         )),
         ('gamma', (
             'float',
-            "Fraction illuminated from Umin to Umax. Possible values between ",
-            "0 and 1."
+            "Fraction illuminated from Umin to Umax. Possible values between "
+            "0 and 1.",
             None
         ))
     ])
