@@ -62,7 +62,7 @@ def best_grid(wavelengths1, wavelengths2):
 
     """
     wl = np.concatenate((wavelengths1, wavelengths2))
-    wl.sort()
+    wl.sort(kind='mergesort')
     flag = np.ones(len(wl), dtype=bool)
     np.not_equal(wl[1:], wl[:-1], out=flag[1:])
 
