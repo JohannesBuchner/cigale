@@ -47,12 +47,13 @@ def best_grid(wavelengths1, wavelengths2):
 
     Considering the two wavelength grids passed in parameters, this function
     compute the best new grid that will be used to regrid the two spectra
-    before combining them.
+    before combining them. We do not use np.unique as it is much slowe than
+    finding the unique elements by hand.
 
     Parameters
     ----------
     wavelengths1, wavelengths2: array of floats
-        The wavelength grids to be 'regrided'.
+        The wavelength grids to be 'regridded'.
 
     Returns
     -------
@@ -60,11 +61,12 @@ def best_grid(wavelengths1, wavelengths2):
         Array containing all the wavelengths found in the input arrays.
 
     """
-    new_grid = np.hstack((wavelengths1, wavelengths2))
-    new_grid.sort()
-    new_grid = np.unique(new_grid)
+    wl = np.concatenate((wavelengths1, wavelengths2))
+    wl.sort()
+    flag = np.ones(len(wl), dtype=bool)
+    np.not_equal(wl[1:], wl[:-1], out=flag[1:])
 
-    return new_grid
+    return wl[flag]
 
 
 def luminosity_to_flux(luminosity, dist):
