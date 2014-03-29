@@ -330,16 +330,10 @@ class SED(object):
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low
             # density one. Also, we limit the work wavelength domain to the
-            # filter one, taking care the presence of λmin and λman in the
-            # used wavelength grid.
-            wavelength_r = utils.best_grid(wavelength, transmission[0])
-            if lambda_min not in wavelength_r:
-                wavelength_r.append(lambda_min)
-            if lambda_max not in wavelength_r:
-                wavelength_r.append(lambda_max)
-            wavelength_r.sort()
-            wavelength_r = wavelength_r[wavelength_r <= lambda_max]
-            wavelength_r = wavelength_r[wavelength_r >= lambda_min]
+            # filter one.
+
+            w = np.where((wavelength >= lambda_min)&(wavelength <= lambda_max))
+            wavelength_r = utils.best_grid(wavelength[w], transmission[0])
 
             l_lambda_r = np.interp(wavelength_r, wavelength, l_lambda)
             transmission_r = np.interp(wavelength_r, transmission[0],
@@ -350,19 +344,15 @@ class SED(object):
             else:
                 dist = 10. * parsec
 
-            # TODO: Can we avoid to normalise as the filter transmission is
-            # already normalised?
             f_lambda = utils.luminosity_to_flux(
-                (np.trapz(transmission_r * l_lambda_r, wavelength_r) /
-                 np.trapz(transmission_r, wavelength_r)),
-                dist
-            )
+                np.trapz(transmission_r * l_lambda_r, wavelength_r),
+                dist)
 
-            # Fν in W/m²/Hz. The 1.e-9 factor is because λ is in nm.
-            f_nu = lambda_eff * f_lambda * lambda_eff * 1.e-9 / c
+            # Fν in W/m²/Hz. The 1e-9 factor is because λ is in nm.
+            f_nu = lambda_eff * f_lambda * lambda_eff * 1e-9 / c
 
             # Conversion from W/m²/Hz to mJy
-            f_nu *= 1.e+29
+            f_nu *= 1e+29
 
         return f_nu
 
