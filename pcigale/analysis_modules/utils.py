@@ -13,6 +13,7 @@ import itertools
 import os
 
 import numpy as np
+from astropy.table import Table, Column
 
 # Directory where the output files are stored
 OUT_DIR = "out/"
@@ -133,3 +134,37 @@ def backup_dir(directory=OUT_DIR):
             new_name
         ))
     os.mkdir(directory)
+
+
+def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
+                directory=OUT_DIR, out_format='ascii'):
+    """Save fluxes and associated parameters into a table.
+
+    Parameters
+    ----------
+    model_fluxes: RawArray
+        Contains the fluxes of each model.
+    model_parameters: RawArray
+        Contains the parameters associated to each model.
+    filters: OrderedDict
+        Contains the filters.
+    names: List
+        Contains the parameters names.
+    filename: str
+        Name under which the file should be saved.
+    directory: str
+        Directory under which the file should be saved.
+    out_format: str
+        Format of the output file
+
+    """
+    out_fluxes = np.ctypeslib.as_array(model_fluxes[0])
+    out_fluxes = out_fluxes.reshape(model_fluxes[1])
+
+    out_params = np.ctypeslib.as_array(model_parameters[0])
+    out_params = out_params.reshape(model_parameters[1])
+
+    out_table = Table(np.hstack((out_fluxes, out_params)),
+                      names=list(filters.keys()) + list(names))
+
+    out_table.write("{}/{}".format(directory, filename), format=out_format)

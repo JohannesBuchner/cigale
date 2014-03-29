@@ -14,55 +14,21 @@ parameters.
 The data file is used only to get the list of fluxes to be computed.
 
 """
-
-import multiprocessing as mp
-import os
-from itertools import product, repeat
 from collections import OrderedDict
+import ctypes
 from datetime import datetime
-from astropy.table import Table
+from itertools import product, repeat
+import os
+import multiprocessing as mp
+from multiprocessing.sharedctypes import RawArray
+import time
+
 from . import AnalysisModule
-from ..warehouse import SedWarehouse
 from ..data import Database
-from .utils import find_changed_parameters
-
-def _worker_sed(warehouse, filters, modules, parameters, changed):
-    """Internal function to parallelize the computation of fluxes.
-
-    Parameters
-    ----------
-    warehouse: SedWarehouse object
-        SedWarehosue instance that is used to generate models. This has to be
-        passed in argument to benefit from the cache in a multiprocessing
-        context. Because processes are forked, there is no issue with cache
-        consistency.
-    filters: list
-        List of filters
-    modules: list
-        List of modules
-    parameters: list of dictionaries
-        List of parameters for each module
-
-    """
-    sed = warehouse.get_sed(modules, parameters)
-    warehouse.partial_clear_cache(changed)
-
-    row = []
-
-    # Add the parameter values to the row. Some parameters are array
-    # so we must join their content.
-    for module_param in parameters:
-        for value in module_param.values():
-            if type(value) == list:
-                value = ".".join(value)
-            row.append(value)
-
-    # Add the flux in each filter to the row
-    row += [sed.compute_fnu(filter_.trans_table,
-                            filter_.effective_wavelength)
-            for filter_ in filters]
-
-    return row
+from .utils import ParametersHandler, backup_dir, save_fluxes
+from ..warehouse import SedWarehouse
+from .workers import init_fluxes as init_worker_fluxes
+from .workers import fluxes as worker_fluxes
 
 
 class SaveFluxes(AnalysisModule):
@@ -118,47 +84,58 @@ class SaveFluxes(AnalysisModule):
 
         """
 
+        # Rename the output directory if it exists
+        backup_dir()
+
         out_file = parameters["output_file"]
         out_format = parameters["output_format"]
 
-        # If the output file already exists make a copy.
-        if os.path.isfile(out_file):
-            new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + out_file
-            os.rename(out_file, new_name)
-            print("The existing {} file was renamed to {}".format(
-                out_file,
-                new_name
-            ))
+        # The parameters handler allows us to retrieve the models parameters
+        # from a 1D index. This is useful in that we do not have to create
+        # a list of parameters as they are computed on-the-fly. It also has
+        # nice goodies such as finding the index of the first parameter to
+        # have changed between two indices or the number of models.
+        params = ParametersHandler(creation_modules, creation_modules_params)
+        n_params = params.size
 
-        # Get the filters in the database
-        filter_names = [name for name in column_list
-                        if not name.endswith('_err')]
+        # Get the needed filters in the pcigale database. We use an ordered
+        # dictionary because we need the keys to always be returned in the
+        # same order. We also put the filters in the shared modules as they
+        # are needed to compute the fluxes during the models generation.
         with Database() as base:
-            filter_list = [base.get_filter(name) for name in filter_names]
+            filters = OrderedDict([(name, base.get_filter(name))
+                                   for name in column_list
+                                   if not name.endswith('_err')])
+        n_filters = len(filters)
 
-        # Columns of the output table
-        out_columns = []
-        for module_param_list in zip(creation_modules,
-                                     creation_modules_params[0]):
-            for module_param in product([module_param_list[0]],
-                                        module_param_list[1].keys()):
-                out_columns.append(".".join(module_param))
-        out_columns += filter_names
+        # Retrieve an arbitrary SED to obtain the list of output parameters
+        warehouse = SedWarehouse(cache_type=parameters["storage_type"])
+        sed = warehouse.get_sed(creation_modules, params.from_index(0))
+        info = sed.info
+        n_info = len(sed.info)
+        del warehouse, sed
 
-        # Parallel computation of the fluxes
-        with SedWarehouse(cache_type=parameters["storage_type"]) as warehouse,\
-                mp.Pool(processes=cores) as pool:
-            changed_pars = find_changed_parameters(creation_modules_params)
-            out_rows = pool.starmap(_worker_sed,
-                                    zip(repeat(warehouse),
-                                        repeat(filter_list),
-                                        repeat(creation_modules),
-                                        creation_modules_params,
-                                        changed_pars))
 
-        # The zip call is to convert the list of rows to a list of columns.
-        out_table = Table(list(zip(*out_rows)), names=out_columns)
-        out_table.write(out_file, format=out_format)
+        model_fluxes = (RawArray(ctypes.c_double,
+                                 n_params * n_filters),
+                        (n_params, n_filters))
+        model_parameters = (RawArray(ctypes.c_double,
+                                     n_params * n_info),
+                        (n_params, n_info))
+
+        initargs = (params, filters,  model_fluxes, model_parameters,
+                    time.time(), mp.Value('i', 0))
+        if cores == 1:  # Do not create a new process
+            init_worker_fluxes(*initargs)
+            for idx in range(n_params):
+                worker_fluxes(idx)
+        else:  # Analyse observations in parallel
+            with mp.Pool(processes=cores, initializer=init_worker_fluxes,
+                         initargs=initargs) as pool:
+                pool.map(worker_fluxes, range(n_params))
+
+        save_fluxes(model_fluxes, model_parameters, filters, info, out_file,
+                    out_format=out_format)
 
 # AnalysisModule to be returned by get_module
 Module = SaveFluxes
