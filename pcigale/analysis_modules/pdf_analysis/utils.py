@@ -5,15 +5,11 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly & Médéric Boquien
 
-from datetime import datetime
-import os
 from astropy.table import Table, Column
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.linalg import LinAlgError
 
-# Directory where the output files are stored
-OUT_DIR = "out/"
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
 # Name of the file containing the analysis results
@@ -234,14 +230,3 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
         best_model_table.add_column(column)
 
     best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
-
-
-def backup_dir(directory):
-    if os.path.exists(directory):
-        new_name = datetime.now().strftime("%Y%m%d%H%M") + "_" + directory
-        os.rename(directory, new_name)
-        print("The existing {} directory was renamed to {}".format(
-            OUT_DIR,
-            new_name
-        ))
-    os.mkdir(OUT_DIR)

@@ -34,14 +34,14 @@ import numpy as np
 
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
-from .utils import save_table_analysis, save_table_best, backup_dir
+from .utils import save_table_analysis, save_table_best
 from ...warehouse import SedWarehouse
 from ...data import Database
 from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
 from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
-from ..utils import ParametersHandler
+from ..utils import ParametersHandler, backup_dir
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
