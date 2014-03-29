@@ -162,56 +162,75 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
         Names of the objects
     analysed_variables: list
         Analysed variable names
-    analysed_averages: array
+    analysed_averages: RawArray
         Analysed variables values estimates
-    analysed_std: array
+    analysed_std: RawArray
         Analysed variables errors estimates
 
     """
+    np_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
+    np_analysed_averages = np_analysed_averages.reshape(analysed_averages[1])
+
+    np_analysed_std = np.ctypeslib.as_array(analysed_std[0])
+    np_analysed_std = np_analysed_std.reshape(analysed_std[1])
+
     result_table = Table()
     result_table.add_column(Column(obsid.data, name="observation_id"))
     for index, variable in enumerate(analysed_variables):
         result_table.add_column(Column(
-            analysed_averages[:, index],
+            np_analysed_averages[:, index],
             name=variable
         ))
         result_table.add_column(Column(
-            analysed_std[:, index],
+            np_analysed_std[:, index],
             name=variable+"_err"
         ))
     result_table.write(OUT_DIR + RESULT_FILE)
 
 
-def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters, info_keys):
+def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
+                    info_keys):
     """Save the values corresponding to the best fit
 
     Parameters
     ----------
     obsid: table column
         Names of the objects
-    chi2: array
-        Best Ç² for each object
-    chi2_red: array
-        Best reduced Ç² for each object
-    variables: list
+    chi2: RawArray
+        Best χ² for each object
+    chi2_red: RawArray
+        Best reduced χ² for each object
+    variables: RawArray
         All variables corresponding to a SED
-    fluxes: 2D array
+    fluxes: RawArray
         Fluxes in all bands for each object
-    filters: list
+    filters: OrderedDict
         Filters used to compute the fluxes
+    info_keys: list
+        Parameters names
 
     """
+    np_fluxes = np.ctypeslib.as_array(fluxes[0])
+    np_fluxes = np_fluxes.reshape(fluxes[1])
+
+    np_variables = np.ctypeslib.as_array(variables[0])
+    np_variables = np_variables.reshape(variables[1])
+
+    np_chi2 = np.ctypeslib.as_array(chi2[0])
+
+    np_chi2_red = np.ctypeslib.as_array(chi2_red[0])
+
     best_model_table = Table()
     best_model_table.add_column(Column(obsid.data, name="observation_id"))
-    best_model_table.add_column(Column(chi2, name="chi_square"))
-    best_model_table.add_column(Column(chi2_red, name="reduced_chi_square"))
+    best_model_table.add_column(Column(np_chi2, name="chi_square"))
+    best_model_table.add_column(Column(np_chi2_red, name="reduced_chi_square"))
 
     for index, name in enumerate(info_keys):
-        column = Column([variable[index] for variable in variables], name=name)
+        column = Column(np_variables[:, index], name=name)
         best_model_table.add_column(column)
 
     for index, name in enumerate(filters):
-        column = Column(fluxes[:, index], name=name, unit='mJy')
+        column = Column(np_fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
     best_model_table.write(OUT_DIR + BEST_MODEL_FILE)

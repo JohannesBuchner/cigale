@@ -68,7 +68,9 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     gbl_warehouse = SedWarehouse(cache_type="memory")
 
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
-                  t_begin, n_computed, save, n_obs):
+                  t_begin, n_computed, analysed_averages, analysed_std,
+                  best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
+                  n_obs):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -91,6 +93,18 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         Time of the beginning of the computation.
     n_computed: Value
         Number of computed models. Shared among workers.
+    analysed_averages: RawArray
+        Analysed values for each observation.
+    analysed_std: RawArray
+        Standard devriation values for each observation.
+    best_fluxes: RawArray
+        Best fluxes for each observation.
+    best_parameters: RawArray
+        Best parameters for each observation.
+    best_chi2: RawArray
+        Best χ² for each observation.
+    best_chi2_red: RawArray
+        Best reduced χ² for each observation.
     save: dictionary
         Contains booleans indicating whether we need to save some data related
         to given models.
@@ -100,7 +114,25 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     """
     init_sed(params, filters, analysed, redshifts, fluxes, variables,
              t_begin, n_computed)
-    global gbl_redshifts, gbl_w_redshifts, gbl_save, gbl_n_obs
+    global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
+    global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
+    global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
+
+    gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
+    gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
+
+    gbl_analysed_std = np.ctypeslib.as_array(analysed_std[0])
+    gbl_analysed_std = gbl_analysed_std.reshape(analysed_std[1])
+
+    gbl_best_fluxes = np.ctypeslib.as_array(best_fluxes[0])
+    gbl_best_fluxes = gbl_best_fluxes.reshape(best_fluxes[1])
+
+    gbl_best_parameters = np.ctypeslib.as_array(best_parameters[0])
+    gbl_best_parameters = gbl_best_parameters.reshape(best_parameters[1])
+
+    gbl_best_chi2 = np.ctypeslib.as_array(best_chi2[0])
+
+    gbl_best_chi2_red = np.ctypeslib.as_array(best_chi2_red[0])
 
     gbl_redshifts = np.unique(gbl_model_redshifts)
     gbl_w_redshifts = {redshift: gbl_model_redshifts == redshift
@@ -154,18 +186,17 @@ def sed(idx):
               end="\r")
 
 
-def analysis(obs):
+def analysis(idx, obs):
     """Worker process to analyse the PDF and estimate parameters values
 
     Parameters
     ----------
+    idx: int
+        Index of the observation. This is necessary to put the computed values
+        at the right location in RawArrays
     obs: row
         Input data for an individual object
 
-    Returns
-    -------
-    The analysed parameters (values+errors), best raw and reduced χ², best
-    normalisation factor, info of the best SED, fluxes of the best SED
     """
 
     w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
@@ -251,6 +282,15 @@ def analysis(obs):
         (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
         weights=weights))
 
+    # TODO Merge with above computation after checking it is fine with a MA.
+    gbl_analysed_averages[idx, :] = analysed_averages
+    gbl_analysed_std[idx, :] = analysed_std
+
+    gbl_best_fluxes[idx, :] = norm_model_fluxes[best_index, :]
+    gbl_best_parameters[idx, :] = list(sed.info.values())
+    gbl_best_chi2[idx] = chi2_[best_index]
+    gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.count()
+
     if gbl_save['best_sed']:
         save_best_sed(obs['id'], sed, norm_facts[best_index])
     if gbl_save['chi2']:
@@ -269,10 +309,3 @@ def analysis(obs):
               format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
-
-    return (analysed_averages,
-            analysed_std,
-            np.array(norm_model_fluxes[best_index, :], copy=True),
-            np.array(list(sed.info.values()), copy=True),
-            chi2_[best_index],
-            chi2_[best_index] / obs_fluxes.count())

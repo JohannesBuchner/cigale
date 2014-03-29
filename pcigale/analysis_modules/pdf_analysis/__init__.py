@@ -147,6 +147,13 @@ class PdfAnalysis(AnalysisModule):
                                        filters, TOLERANCE)
         n_obs = len(obs_table)
 
+        # Retrieve an arbitrary SED to obtain the list of output parameters
+        warehouse = SedWarehouse(cache_type=config["storage_type"])
+        sed = warehouse.get_sed(creation_modules, params.from_index(0))
+        info = sed.info
+        n_info = len(sed.info)
+        del warehouse, sed
+
         print("Computing the models fluxes...")
 
         # Arrays where we store the data related to the models. For memory
@@ -179,45 +186,38 @@ class PdfAnalysis(AnalysisModule):
 
         print('\nAnalysing models...')
 
+        # We use RawArrays for the same reason as previously
+        analysed_averages = (RawArray(ctypes.c_double, n_obs * n_variables),
+                           (n_obs, n_variables))
+        analysed_std = (RawArray(ctypes.c_double, n_obs * n_variables),
+                           (n_obs, n_variables))
+        best_fluxes = (RawArray(ctypes.c_double, n_obs * n_filters),
+                           (n_obs, n_filters))
+        best_parameters = (RawArray(ctypes.c_double, n_obs * n_info),
+                           (n_obs, n_info))
+        best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
+        best_chi2_red = (RawArray(ctypes.c_double, n_obs), (n_obs))
+
         initargs = (params, filters, analysed_variables, model_redshifts,
                     model_fluxes, model_variables, time.time(),
-                    mp.Value('i', 0), save, n_obs)
+                    mp.Value('i', 0), analysed_averages, analysed_std,
+                    best_fluxes, best_parameters, best_chi2, best_chi2_red,
+                    save, n_obs)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
-            items = []
-            for obs in obs_table:
-                items.append(worker_analysis(obs))
+            for idx, obs in enumerate(obs_table):
+                worker_analysis(idx, obs)
         else:  # Analyse observations in parallel
             with mp.Pool(processes=cores, initializer=init_worker_analysis,
                          initargs=initargs) as pool:
-                items = pool.starmap(worker_analysis, zip(obs_table))
-
-        # Local arrays where to unpack the results of the analysis
-        analysed_averages = np.empty((n_obs, n_variables))
-        analysed_std = np.empty_like(analysed_averages)
-        best_fluxes = np.empty((n_obs, n_filters))
-        best_parameters = [None] * n_obs
-        best_chi2 = np.empty(n_obs)
-        best_chi2_red = np.empty_like(best_chi2)
-
-        for item_idx, item in enumerate(items):
-            analysed_averages[item_idx, :] = item[0]
-            analysed_std[item_idx, :] = item[1]
-            best_fluxes[item_idx, :] = item[2]
-            best_parameters[item_idx] = item[3]
-            best_chi2[item_idx] = item[4]
-            best_chi2_red[item_idx] = item[5]
+                pool.starmap(worker_analysis, enumerate(obs_table))
 
         print("\nSaving results...")
 
         save_table_analysis(obs_table['id'], analysed_variables,
                             analysed_averages, analysed_std)
-
-        # Retrieve an arbitrary SED to obtain the list of output parameters
-        warehouse = SedWarehouse(cache_type=config["storage_type"])
-        sed = warehouse.get_sed(creation_modules, params.from_index(0))
         save_table_best(obs_table['id'], best_chi2, best_chi2_red,
-                        best_parameters, best_fluxes, filters, sed.info)
+                        best_parameters, best_fluxes, filters, info)
 
         print("Run completed!")
 
