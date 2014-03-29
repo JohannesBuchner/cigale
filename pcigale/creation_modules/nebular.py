@@ -101,7 +101,7 @@ class NebularEmission(CreationModule):
                                                                  + 3. *
                                                                  width,
                                                                  19)))
-            new_wave = np.sort(new_wave)
+            new_wave.sort()
             new_flux = np.zeros_like(new_wave)
             for line_flux, line_wave in zip(lines.ratio, lines.wave):
                 width = line_wave * lines_width / cst.c
