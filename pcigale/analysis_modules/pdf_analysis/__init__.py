@@ -119,8 +119,9 @@ class PdfAnalysis(AnalysisModule):
         # Initalise variables from input arguments.
         analysed_variables = config["analysed_variables"]
         n_variables = len(analysed_variables)
-        save = {key:"save_{}".format(key).lower() == "true"
+        save = {key:config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
+
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create
         # a list of parameters as they are computed on-the-fly. It also has
