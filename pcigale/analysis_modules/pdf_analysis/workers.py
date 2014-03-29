@@ -233,6 +233,9 @@ def analysis(obs):
     # We correct the mass-dependent parameters
     for key in sed.mass_proportional_info:
         sed.info[key] *= norm_facts[best_index]
+    for index, variable in enumerate(gbl_analysed_variables):
+        if variable in sed.mass_proportional_info:
+            model_variables[:, index] *= norm_facts
 
     # We compute the weighted average and standard deviation using the
     # likelihood as weight. We first build the weight array by
@@ -247,12 +250,6 @@ def analysis(obs):
     analysed_std = np.ma.sqrt(np.ma.average(
         (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
         weights=weights))
-
-    # We correct the mass-dependent parameters
-    for index, variable in enumerate(gbl_analysed_variables):
-        if variable in sed.mass_proportional_info:
-            analysed_averages[index] *= norm_facts[best_index]
-            analysed_std[index] *= norm_facts[best_index]
 
     if gbl_save['best_sed']:
         save_best_sed(obs['id'], sed, norm_facts[best_index])
