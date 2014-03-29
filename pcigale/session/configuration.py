@@ -7,12 +7,10 @@ import configobj
 import pkg_resources
 import pkgutil
 import collections
-import itertools
 import multiprocessing as mp
 import numpy as np
 from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
-from .tools import param_dict_combine
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules
@@ -253,31 +251,3 @@ class Configuration(object):
             self.config['analysis_configuration']
 
         return configuration
-
-    @property
-    def creation_modules_conf_array(self):
-        """Return the array of all the possible parameter sets from the
-        SED creation modules.
-
-        TODO: Maybe it would be more optimal to create an iterator that would
-              iterate over the whole parameter combinations instead of
-              creating the array.
-
-        Returns
-        -------
-        result: array of arrays of dictionaries
-            The inner arrays contains the various parameter dictionaries
-            for the modules listed in configuration['creation_modules'].
-
-        """
-
-        # First, for each module, we transform the dictionary containing all
-        # the possible value for each parameter in a list of dictionaries
-        # containing one value for each parameter. We put this list in a list
-        # corresponding to the SED modules one.
-        tmp_list = [param_dict_combine(dictionary) for dictionary in
-                    self.configuration['creation_modules_params']]
-
-        # The we use itertools to create an array of all possible
-        # combinations.
-        return [x for x in itertools.product(*tmp_list)]

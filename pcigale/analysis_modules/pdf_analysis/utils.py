@@ -11,8 +11,6 @@ from astropy.table import Table, Column
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.linalg import LinAlgError
-from ...warehouse import SedWarehouse
-import pcigale.analysis_modules.myglobals as gbl
 
 # Directory where the output files are stored
 OUT_DIR = "out/"
@@ -132,7 +130,7 @@ def save_pdf(obsid, analysed_variables, model_variables, likelihood):
 
 
 def save_chi2(obsid, analysed_variables, model_variables, reduced_chi2):
-    """Save the best reduced χ² versus the analysed variables
+    """Save the best reduced Ç² versus the analysed variables
 
     Parameters
     ----------
@@ -143,7 +141,7 @@ def save_chi2(obsid, analysed_variables, model_variables, reduced_chi2):
     model_variables: 2D array
         Analysed variables values for all models
     reduced_chi2:
-        Reduced χ²
+        Reduced Ç²
 
     """
     for var_index, var_name in enumerate(analysed_variables):
@@ -184,7 +182,7 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
     result_table.write(OUT_DIR + RESULT_FILE)
 
 
-def save_table_best(obsid, chi2, chi2_red, norm, variables, fluxes, filters):
+def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters, info_keys):
     """Save the values corresponding to the best fit
 
     Parameters
@@ -192,11 +190,9 @@ def save_table_best(obsid, chi2, chi2_red, norm, variables, fluxes, filters):
     obsid: table column
         Names of the objects
     chi2: array
-        Best χ² for each object
+        Best Ç² for each object
     chi2_red: array
-        Best reduced χ² for each object
-    norm: array
-        Normalisation factor for each object
+        Best reduced Ç² for each object
     variables: list
         All variables corresponding to a SED
     fluxes: 2D array
@@ -210,14 +206,12 @@ def save_table_best(obsid, chi2, chi2_red, norm, variables, fluxes, filters):
     best_model_table.add_column(Column(chi2, name="chi_square"))
     best_model_table.add_column(Column(chi2_red, name="reduced_chi_square"))
 
-    for index, name in enumerate(gbl.info_keys):
+    for index, name in enumerate(info_keys):
         column = Column([variable[index] for variable in variables], name=name)
-        if name in gbl.mass_proportional_info:
-            column *= norm
         best_model_table.add_column(column)
 
     for index, name in enumerate(filters):
-        column = Column(fluxes[:, index] * norm, name=name, unit='mJy')
+        column = Column(fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
     best_model_table.write(OUT_DIR + BEST_MODEL_FILE)

@@ -41,8 +41,7 @@ from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
 from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
-from ..utils import find_changed_parameters
-import pcigale.analysis_modules.myglobals as gbl
+from ..utils import ParametersHandler
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
@@ -87,7 +86,7 @@ class PdfAnalysis(AnalysisModule):
     ])
 
     def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, parameters, cores):
+                creation_modules_params, config, cores):
         """Process with the psum analysis.
 
         The analysis is done in two steps which can both run on multiple
@@ -107,8 +106,8 @@ class PdfAnalysis(AnalysisModule):
             the SEDs.
         creation_modules_params: list of dictionaries
             List of the parameter dictionaries for each module.
-        parameters: dictionary
-            Dictionary containing the parameters.
+        config: dictionary
+            Dictionary containing the configuration.
         core: integer
             Number of cores to run the analysis on
 
@@ -119,50 +118,36 @@ class PdfAnalysis(AnalysisModule):
         # Rename the output directory if it exists
         backup_dir(OUT_DIR)
 
-        # Get the parameters. They are stored in a shared module so that this
-        # can be accessed by subprocesses during the model generation and
-        # analysis. This avoids transmitting the exact same data all over again
-        gbl.analysed_variables = parameters["analysed_variables"]
-        gbl.creation_modules = creation_modules
-        gbl.creation_modules_params = creation_modules_params
-        gbl.save_best_sed = parameters["save_best_sed"].lower() == "true"
-        gbl.save_chi2 = parameters["save_chi2"].lower() == "true"
-        gbl.save_pdf = parameters["save_pdf"].lower() == "true"
-        gbl.n_models = len(creation_modules_params)
-        gbl.n_variables = len(gbl.analysed_variables)
+        # Initalise variables from input arguments.
+        analysed_variables = config["analysed_variables"]
+        n_variables = len(analysed_variables)
+        save = {key:"save_{}".format(key).lower() == "true"
+                for key in ["best_sed", "chi2", "pdf"]}
+        # The parameters handler allows us to retrieve the models parameters
+        # from a 1D index. This is useful in that we do not have to create
+        # a list of parameters as they are computed on-the-fly. It also has
+        # nice goodies such as finding the index of the first parameter to
+        # have changed between two indices or the number of models.
+        params = ParametersHandler(creation_modules, creation_modules_params)
+        n_params = params.size
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
         # same order. We also put the filters in the shared modules as they
         # are needed to compute the fluxes during the models generation.
         with Database() as base:
-            gbl.filters = OrderedDict([(name, base.get_filter(name))
-                                       for name in column_list
-                                       if not name.endswith('_err')])
-        gbl.n_filters = len(gbl.filters)
+            filters = OrderedDict([(name, base.get_filter(name))
+                                   for name in column_list
+                                   if not name.endswith('_err')])
+        n_filters = len(filters)
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
         obs_table = complete_obs_table(read_table(data_file), column_list,
-                                       gbl.filters, TOLERANCE)
-        gbl.n_obs = len(obs_table)
+                                       filters, TOLERANCE)
+        n_obs = len(obs_table)
 
         print("Computing the models fluxes...")
-
-        # First we get a dummy sed to obtain some information on the
-        # parameters, such as which ones are dependent on the normalisation
-        # factor of the fit.
-
-        # The SED warehouse is used to retrieve SED corresponding to some
-        # modules and parameters.
-        gbl.warehouse = SedWarehouse(cache_type=parameters["storage_type"])
-
-        sed = gbl.warehouse.get_sed(gbl.creation_modules,
-                                    creation_modules_params[0])
-        gbl.info_keys = list(sed.info.keys())
-        gbl.n_keys = len(gbl.info_keys)
-        gbl.mass_proportional_info = sed.mass_proportional_info
-        gbl.has_sfh = sed.sfh is not None
 
         # Arrays where we store the data related to the models. For memory
         # efficiency reasons, we use RawArrays that will be passed in argument
@@ -171,73 +156,68 @@ class PdfAnalysis(AnalysisModule):
         # not write on the same section.
         # We put the shape in a tuple along with the RawArray because workers
         # need to know the shape to create the numpy array from the RawArray.
-        model_redshifts = (RawArray(ctypes.c_double, gbl.n_models),
-                           (gbl.n_models))
+        model_redshifts = (RawArray(ctypes.c_double, n_params),
+                           (n_params))
         model_fluxes = (RawArray(ctypes.c_double,
-                                 gbl.n_models * gbl.n_filters),
-                        (gbl.n_models, gbl.n_filters))
+                                 n_params * n_filters),
+                        (n_params, n_filters))
         model_variables = (RawArray(ctypes.c_double,
-                                    gbl.n_models * gbl.n_variables),
-                           (gbl.n_models, gbl.n_variables))
+                                    n_params * n_variables),
+                           (n_params, n_variables))
 
-        # In order not to clog the warehouse memory with SEDs that will not be
-        # used again during the SED generation, we identify which parameter has
-        # changed, invalidating  models with this parameter
-        changed_pars = find_changed_parameters(creation_modules_params)
-
-        # Compute the SED fluxes and ancillary data in parallel
-        initargs = (model_redshifts, model_fluxes, model_variables,
-                    mp.Value('i', 0), time.time())
+        initargs = (params, filters, analysed_variables, model_redshifts,
+                    model_fluxes, model_variables, time.time(),
+                    mp.Value('i', 0))
         if cores == 1:  # Do not create a new process
             init_worker_sed(*initargs)
-            for changed_par, idx in zip(changed_pars, range(gbl.n_models)):
-                worker_sed(changed_par, idx)
-        else:
+            for idx in range(n_params):
+                worker_sed(idx)
+        else:  # Analyse observations in parallel
             with mp.Pool(processes=cores, initializer=init_worker_sed,
                          initargs=initargs) as pool:
-                pool.starmap(worker_sed, zip(changed_pars,
-                                             range(gbl.n_models)))
+                pool.map(worker_sed, range(n_params))
 
         print('\nAnalysing models...')
 
-        # Analysis of each object in parallel.
-        initargs = (model_redshifts, model_fluxes, model_variables,
-                    mp.Value('i', 0), time.time())
+        initargs = (params, filters, analysed_variables, model_redshifts,
+                    model_fluxes, model_variables, time.time(),
+                    mp.Value('i', 0), save, n_obs)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             items = []
             for obs in obs_table:
                 items.append(worker_analysis(obs))
-        else:
+        else:  # Analyse observations in parallel
             with mp.Pool(processes=cores, initializer=init_worker_analysis,
                          initargs=initargs) as pool:
                 items = pool.starmap(worker_analysis, zip(obs_table))
 
         # Local arrays where to unpack the results of the analysis
-        analysed_averages = np.empty((gbl.n_obs, gbl.n_variables))
+        analysed_averages = np.empty((n_obs, n_variables))
         analysed_std = np.empty_like(analysed_averages)
-        best_fluxes = np.empty((gbl.n_obs, gbl.n_filters))
-        best_parameters = [None] * gbl.n_obs
-        best_normalisation_factors = np.empty(gbl.n_obs)
-        best_chi2 = np.empty_like(best_normalisation_factors)
-        best_chi2_red = np.empty_like(best_normalisation_factors)
+        best_fluxes = np.empty((n_obs, n_filters))
+        best_parameters = [None] * n_obs
+        best_chi2 = np.empty(n_obs)
+        best_chi2_red = np.empty_like(best_chi2)
 
         for item_idx, item in enumerate(items):
             analysed_averages[item_idx, :] = item[0]
             analysed_std[item_idx, :] = item[1]
             best_fluxes[item_idx, :] = item[2]
             best_parameters[item_idx] = item[3]
-            best_normalisation_factors[item_idx] = item[4]
-            best_chi2[item_idx] = item[5]
-            best_chi2_red[item_idx] = item[6]
+            best_chi2[item_idx] = item[4]
+            best_chi2_red[item_idx] = item[5]
 
         print("\nSaving results...")
 
-        save_table_analysis(obs_table['id'], gbl.analysed_variables,
+        save_table_analysis(obs_table['id'], analysed_variables,
                             analysed_averages, analysed_std)
+
+        # Retrieve an arbitrary SED to obtain the list of output parameters
+        warehouse = SedWarehouse(cache_type=config["storage_type"])
+        sed = warehouse.get_sed(creation_modules, params.from_index(0))
         save_table_best(obs_table['id'], best_chi2, best_chi2_red,
-                        best_normalisation_factors, best_parameters,
-                        best_fluxes, gbl.filters)
+                        best_parameters, best_fluxes, filters, sed.info)
 
         print("Run completed!")
 

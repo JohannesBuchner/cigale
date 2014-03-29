@@ -10,20 +10,27 @@ import time
 import numpy as np
 
 from .utils import save_best_sed, save_pdf, save_chi2
-import pcigale.analysis_modules.myglobals as gbl
+from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability are excluded from
 # the moments computation.
 MIN_PROBABILITY = 1e-20
 
 
-def init_sed(redshifts, fluxes, variables, n_computed, t_begin):
+def init_sed(params, filters, analysed, redshifts, fluxes, variables,
+             t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
 
     Parameters
     ----------
+    params: ParametersHandler
+        Handles the parameters from a 1D index.
+    filters: OrderedDict
+        Contains filters to compute the fluxes.
+    analysed: list
+        Variable names to be analysed.
     redshifts: RawArray and tuple containing the shape
         Redshifts of individual models. Shared among workers.
     fluxes: RawArray and tuple containing the shape
@@ -37,7 +44,8 @@ def init_sed(redshifts, fluxes, variables, n_computed, t_begin):
 
     """
     global gbl_model_redshifts, gbl_model_fluxes, gbl_model_variables
-    global gbl_n_computed, gbl_t_begin
+    global gbl_n_computed, gbl_t_begin, gbl_params, gbl_previous_idx
+    global gbl_filters, gbl_analysed_variables, gbl_warehouse
 
     gbl_model_redshifts = np.ctypeslib.as_array(redshifts[0])
 
@@ -50,69 +58,85 @@ def init_sed(redshifts, fluxes, variables, n_computed, t_begin):
     gbl_n_computed = n_computed
     gbl_t_begin = t_begin
 
+    gbl_params = params
 
-def init_analysis(redshifts, fluxes, variables, n_computed, t_begin):
+    gbl_previous_idx = -1
+
+    gbl_filters = filters
+    gbl_analysed_variables = analysed
+
+    gbl_warehouse = SedWarehouse(cache_type="memory")
+
+def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
+                  t_begin, n_computed, save, n_obs):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
 
     Parameters
     ----------
-    redshifts: RawArray and tuple containing the shape
+    params: ParametersHandler
+        Handles the parameters from a 1D index.
+    filters: OrderedDict
+        Contains filters to compute the fluxes.
+    analysed: list
+        Variable names to be analysed
+    redshifts: RawArray and tuple containing the shape.
         Redshifts of individual models. Shared among workers.
     fluxes: RawArray
         Fluxes of individual models. Shared among workers.
     variables: RawArray and tuple containing the shape
         Values of the analysed variables. Shared among workers.
+    t_begin: float
+        Time of the beginning of the computation.
     n_computed: Value
         Number of computed models. Shared among workers.
-    t_begin: float
-        Time of the beginning of the computation
+    save: dictionary
+        Contains booleans indicating whether we need to save some data related
+        to given models.
+    n_obs: int
+        Number of observations.
 
     """
-    init_sed(redshifts, fluxes, variables, n_computed, t_begin)
-    global gbl_redshifts, gbl_w_redshifts
+    init_sed(params, filters, analysed, redshifts, fluxes, variables,
+             t_begin, n_computed)
+    global gbl_redshifts, gbl_w_redshifts, gbl_save, gbl_n_obs
 
     gbl_redshifts = np.unique(gbl_model_redshifts)
     gbl_w_redshifts = {redshift: gbl_model_redshifts == redshift
                        for redshift in gbl_redshifts}
 
+    gbl_save = save
+    gbl_n_obs = n_obs
 
-def sed(changed, idx):
-    """Worker process to retrieve a SED and return the relevant data
+def sed(idx):
+    """Worker process to retrieve a SED and affect the relevant data to shared
+    RawArrays.
 
     Parameters
     ----------
-    changed: array
-        Index of the module whose parameter has changed. This is necessary for
-        cache cleaning
     idx: int
         Index of the model to retrieve its parameters from the global variable
 
-    Returns
-    -------
-    The model fluxes in each band, the values of the analysed variables, the
-    redshift and all the related information. Note, we could retrieve the
-    values of the analysed variables afterwards but this would be done in the
-    main process. We should benchmark this to see whether it makes any
-    significant difference as returning onlt the sed.info would make things
-    cleaner here and no more dirty on the caller's side (as we have to unpack
-    the list returned by starmap anyway.
-
     """
-    sed = gbl.warehouse.get_sed(gbl.creation_modules,
-                                gbl.creation_modules_params[idx])
-    gbl.warehouse.partial_clear_cache(changed)
+    global gbl_previous_idx
+    if gbl_previous_idx > -1:
+        gbl_warehouse.partial_clear_cache(
+            gbl_params.index_module_changed(gbl_previous_idx, idx))
+    gbl_previous_idx = idx
+
+    sed = gbl_warehouse.get_sed(gbl_params.modules,
+                                gbl_params.from_index(idx))
 
     if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
-        model_fluxes = -99. * np.ones(len(gbl.filters))
-        model_variables = -99. * np.ones(len(gbl.analysed_variables))
+        model_fluxes = -99. * np.ones(len(gbl_filters))
+        model_variables = -99. * np.ones(len(gbl_analysed_variables))
     else:
         model_fluxes = np.array([sed.compute_fnu(filter_.trans_table,
                                                  filter_.effective_wavelength)
-                                 for filter_ in gbl.filters.values()])
+                                 for filter_ in gbl_filters.values()])
         model_variables = np.array([sed.info[name]
-                                    for name in gbl.analysed_variables])
+                                    for name in gbl_analysed_variables])
 
     gbl_model_redshifts[idx] = sed.info['redshift']
     gbl_model_fluxes[idx, :] = model_fluxes
@@ -121,10 +145,10 @@ def sed(changed, idx):
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
-    if n_computed % 100 == 0 or n_computed == gbl.n_models:
+    if n_computed % 100 == 0 or n_computed == gbl_params.size:
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} models computed in {} seconds ({} models/s)".
-              format(n_computed, gbl.n_models,
+              format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
@@ -150,8 +174,8 @@ def analysis(obs):
     model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
     model_variables = gbl_model_variables[w[0], :]
 
-    obs_fluxes = np.array([obs[name] for name in gbl.filters])
-    obs_errors = np.array([obs[name + "_err"] for name in gbl.filters])
+    obs_fluxes = np.array([obs[name] for name in gbl_filters])
+    obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
 
     # Some observations may not have flux value in some filters, in
     # that case the user is asked to put -9999 as value. We mask these
@@ -187,62 +211,71 @@ def analysis(obs):
     # We re-normalise the likelihood.
     likelihood /= np.sum(likelihood)
 
-    # We take the mass-dependent variable list from the last computed
-    # sed.
-    for index, variable in enumerate(gbl.analysed_variables):
-        if variable in gbl.mass_proportional_info:
-            model_variables[:, index] *= norm_facts
-
     ##################################################################
     # Variable analysis                                              #
     ##################################################################
-
-    # We compute the weighted average and standard deviation using the
-    # likelihood as weight. We first build the weight array by
-    # expanding the likelihood along a new axis corresponding to the
-    # analysed variable.
-    weights = likelihood[:, np.newaxis].repeat(len(gbl.analysed_variables),
-                                               axis=1)
-
-    # Analysed variables average and standard deviation arrays.
-    analysed_averages = np.ma.average(model_variables, axis=0,
-                                      weights=weights)
-
-    analysed_std = np.ma.sqrt(np.ma.average(
-        (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
-        weights=weights))
 
     # We define the best fitting model for each observation as the one
     # with the least χ².
     best_index = chi2_.argmin()
 
     # We compute once again the best sed to obtain its info
-    sed = gbl.warehouse.get_sed(gbl.creation_modules,
-                                gbl.creation_modules_params[w[0][best_index]])
+    global gbl_previous_idx
+    if gbl_previous_idx > -1:
+        gbl_warehouse.partial_clear_cache(
+            gbl_params.index_module_changed(gbl_previous_idx,
+                                            w[0][best_index]))
+    gbl_previous_idx = w[0][best_index]
 
-    if gbl.save_best_sed:
+    sed = gbl_warehouse.get_sed(gbl_params.modules,
+                                gbl_params.from_index([w[0][best_index]]))
+
+    # We correct the mass-dependent parameters
+    for key in sed.mass_proportional_info:
+        sed.info[key] *= norm_facts[best_index]
+
+    # We compute the weighted average and standard deviation using the
+    # likelihood as weight. We first build the weight array by
+    # expanding the likelihood along a new axis corresponding to the
+    # analysed variable.
+    weights = likelihood[:, np.newaxis].repeat(len(gbl_analysed_variables),
+                                               axis=1)
+
+    # Analysed variables average and standard deviation arrays.
+    analysed_averages = np.ma.average(model_variables, axis=0,
+                                      weights=weights)
+    analysed_std = np.ma.sqrt(np.ma.average(
+        (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
+        weights=weights))
+
+    # We correct the mass-dependent parameters
+    for index, variable in enumerate(gbl_analysed_variables):
+        if variable in sed.mass_proportional_info:
+            analysed_averages[index] *= norm_facts[best_index]
+            analysed_std[index] *= norm_facts[best_index]
+
+    if gbl_save['best_sed']:
         save_best_sed(obs['id'], sed, norm_facts[best_index])
-    if gbl.save_chi2:
-        save_chi2(obs['id'], gbl.analysed_variables, model_variables, chi2_ /
+    if gbl_save['chi2']:
+        save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
                   obs_fluxes.count())
-    if gbl.save_pdf:
-        save_pdf(obs['id'], gbl.analysed_variables, model_variables,
+    if gbl_save['pdf']:
+        save_pdf(obs['id'], gbl_analysed_variables, model_variables,
                  likelihood)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
-    if n_computed % 100 == 0 or n_computed == gbl.n_obs:
+    if n_computed % 100 == 0 or n_computed == gbl_n_obs:
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} objects analysed in {} seconds ({} objects/s)".
-              format(n_computed, gbl.n_obs, np.around(t_elapsed, decimals=1),
+              format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
 
     return (analysed_averages,
             analysed_std,
-            np.array(model_fluxes[best_index, :], copy=True),
+            np.array(norm_model_fluxes[best_index, :], copy=True),
             np.array(list(sed.info.values()), copy=True),
-            norm_facts[best_index],
             chi2_[best_index],
             chi2_[best_index] / obs_fluxes.count())
