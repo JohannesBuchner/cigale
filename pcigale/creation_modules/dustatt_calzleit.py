@@ -267,8 +267,7 @@ class CalzLeit(CreationModule):
         for filter_name, filter_ in filters.items():
             flux_noatt[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength,
-                add_line_fluxes=False)
+                filter_.effective_wavelength)
 
         # Compute attenuation curve
         sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
@@ -301,8 +300,7 @@ class CalzLeit(CreationModule):
         for filter_name, filter_ in filters.items():
             flux_att[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength,
-                add_line_fluxes=False)
+                filter_.effective_wavelength)
 
         # Attenuation in each filter
         for filter_name in filters:

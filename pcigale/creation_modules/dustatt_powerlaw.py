@@ -192,8 +192,7 @@ class PowerLawAtt(CreationModule):
         for filter_name, filter_ in filters.items():
             flux_noatt[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength,
-                add_line_fluxes=False)
+                filter_.effective_wavelength)
 
         # Compute attenuation curve
         sel_attenuation = alambda_av(wavelength, powerlaw_slope,
@@ -226,8 +225,7 @@ class PowerLawAtt(CreationModule):
         for filter_name, filter_ in filters.items():
             flux_att[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
-                filter_.effective_wavelength,
-                add_line_fluxes=False)
+                filter_.effective_wavelength)
 
         # Attenuation in each filter
         for filter_name in filters:
