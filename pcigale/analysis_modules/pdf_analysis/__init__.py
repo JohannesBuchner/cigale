@@ -122,14 +122,6 @@ class PdfAnalysis(AnalysisModule):
         save = {key:config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
 
-        # The parameters handler allows us to retrieve the models parameters
-        # from a 1D index. This is useful in that we do not have to create
-        # a list of parameters as they are computed on-the-fly. It also has
-        # nice goodies such as finding the index of the first parameter to
-        # have changed between two indices or the number of models.
-        params = ParametersHandler(creation_modules, creation_modules_params)
-        n_params = params.size
-
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
         # same order. We also put the filters in the shared modules as they
@@ -145,6 +137,21 @@ class PdfAnalysis(AnalysisModule):
         obs_table = complete_obs_table(read_table(data_file), column_list,
                                        filters, TOLERANCE)
         n_obs = len(obs_table)
+
+        w_redshifting = creation_modules.index('redshifting')
+        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+            z = np.unique(np.around(obs_table['redshift'],
+                                    decimals=REDSHIFT_DECIMALS))
+            creation_modules_params[w_redshifting]['redshift'] = z
+            del z
+
+        # The parameters handler allows us to retrieve the models parameters
+        # from a 1D index. This is useful in that we do not have to create
+        # a list of parameters as they are computed on-the-fly. It also has
+        # nice goodies such as finding the index of the first parameter to
+        # have changed between two indices or the number of models.
+        params = ParametersHandler(creation_modules, creation_modules_params)
+        n_params = params.size
 
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse(cache_type=config["storage_type"])

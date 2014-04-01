@@ -23,12 +23,18 @@ import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
 import time
 
+import numpy as np
+
 from . import AnalysisModule
 from ..data import Database
 from .utils import ParametersHandler, backup_dir, save_fluxes
+from ..utils import read_table
 from ..warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
+
+# Limit the redshift to this number of decimals
+REDSHIFT_DECIMALS = 2
 
 
 class SaveFluxes(AnalysisModule):
@@ -90,13 +96,6 @@ class SaveFluxes(AnalysisModule):
         out_file = parameters["output_file"]
         out_format = parameters["output_format"]
 
-        # The parameters handler allows us to retrieve the models parameters
-        # from a 1D index. This is useful in that we do not have to create
-        # a list of parameters as they are computed on-the-fly. It also has
-        # nice goodies such as finding the index of the first parameter to
-        # have changed between two indices or the number of models.
-        params = ParametersHandler(creation_modules, creation_modules_params)
-        n_params = params.size
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -108,13 +107,28 @@ class SaveFluxes(AnalysisModule):
                                    if not name.endswith('_err')])
         n_filters = len(filters)
 
+        w_redshifting = creation_modules.index('redshifting')
+        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+            obs_table = read_table(data_file)
+            z = np.unique(np.around(obs_table['redshift'],
+                                    decimals=REDSHIFT_DECIMALS))
+            creation_modules_params[w_redshifting]['redshift'] = z
+            del obs_table, z
+
+        # The parameters handler allows us to retrieve the models parameters
+        # from a 1D index. This is useful in that we do not have to create
+        # a list of parameters as they are computed on-the-fly. It also has
+        # nice goodies such as finding the index of the first parameter to
+        # have changed between two indices or the number of models.
+        params = ParametersHandler(creation_modules, creation_modules_params)
+        n_params = params.size
+
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse(cache_type=parameters["storage_type"])
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
         info = sed.info
         n_info = len(sed.info)
         del warehouse, sed
-
 
         model_fluxes = (RawArray(ctypes.c_double,
                                  n_params * n_filters),
