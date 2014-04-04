@@ -27,6 +27,7 @@ from .bc03 import BC03
 from .dh2002 import DH2002
 from .dale2014 import Dale2014
 from .dl2007 import DL2007
+from .dl2014 import DL2014
 from .fritz2006 import Fritz2006
 from .nebular_continuum import NebularContinuum
 from .nebular_lines import NebularLines
@@ -169,6 +170,27 @@ class _DL2007(BASE):
         self.qpah = model.qpah
         self.umin = model.umin
         self.umax = model.umax
+        self.wave = model.wave
+        self.lumin = model.lumin
+
+
+class _DL2014(BASE):
+    """Storage for the updated Draine and Li (2007) IR models
+    """
+
+    __tablename__ = 'DL2014_models'
+    qpah = Column(Float, primary_key=True)
+    umin = Column(Float, primary_key=True)
+    umax = Column(Float, primary_key=True)
+    alpha = Column(Float, primary_key=True)
+    wave = Column(PickleType)
+    lumin = Column(PickleType)
+
+    def __init__(self, model):
+        self.qpah = model.qpah
+        self.umin = model.umin
+        self.umax = model.umax
+        self.alpha = model.alpha
         self.wave = model.wave
         self.lumin = model.lumin
 
@@ -535,6 +557,77 @@ class Database(object):
             dictionary of parameters and their values
         """
         return self._get_parameters(_DL2007)
+
+    def add_dl2014(self, model):
+        """
+        Add an updated Draine and Li (2007) model to the database.
+
+        Parameters
+        ----------
+        model: pcigale.data.DL2014
+
+        """
+        if self.is_writable:
+            self.session.add(_DL2014(model))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError(
+                    'The updated DL07 model is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def get_dl2014(self, qpah, umin, umax, alpha):
+        """
+        Get the Draine and Li (2007) model corresponding to the given set of
+        parameters.
+
+        Parameters
+        ----------
+        qpah: float
+            Mass fraction of PAH
+        umin: float
+            Minimum radiation field
+        umin: float
+            Maximum radiation field
+        alpha: float
+            Powerlaw slope dU/dM∝U¯ᵅ
+
+        Returns
+        -------
+        model: pcigale.data.DL2014
+            The updated Draine and Li (2007) model.
+
+        Raises
+        ------
+        DatabaseLookupError: if the requested model is not in the database.
+
+        """
+        result = (self.session.query(_DL2014).
+                  filter(_DL2014.qpah == qpah).
+                  filter(_DL2014.umin == umin).
+                  filter(_DL2014.umax == umax).
+                  filter(_DL2014.alpha == alpha).
+                  first())
+        if result:
+            return DL2014(result.qpah, result.umin, result.umax, result.alpha,
+                          result.wave, result.lumin)
+        else:
+            raise DatabaseLookupError(
+                "The DL2014 model for qpah <{0}>, umin <{1}>, umax <{2}>, and "
+                "alpha <{2}> is not in the database."
+                .format(qpah, umin, umax, alpha))
+
+    def get_dl2014_parameters(self):
+        """Get parameters for the DL2014 models.
+
+        Returns
+        -------
+        paramaters: dictionary
+            dictionary of parameters and their values
+        """
+        return self._get_parameters(_DL2014)
 
     def add_dale2014(self, iragn):
         """

@@ -20,7 +20,8 @@ import numpy as np
 from scipy import interpolate
 import scipy.constants as cst
 from pcigale.data import (Database, Filter, M2005, BC03, Fritz2006,
-                          Dale2014, DL2007, NebularLines, NebularContinuum)
+                          Dale2014, DL2007, DL2014, NebularLines,
+                          NebularContinuum)
 
 
 def read_bc03_ssp(filename):
@@ -458,6 +459,70 @@ def build_dl2007(base):
                 base.add_dl2007(DL2007(qpah[model], umin, umax, wave, lumin))
 
 
+def build_dl2014(base):
+    dl2014_dir = os.path.join(os.path.dirname(__file__), 'dl2014/')
+
+    qpah = {"000":0., "010":1., "020":2., "030":3., "040":4., "050":5.,
+            "060":6., "070":7., "080":8., "090":9., "100":10.}
+
+    uminimum = ["0.100", "0.120", "0.150", "0.170", "0.200", "0.250", "0.300",
+                "0.350", "0.400", "0.500", "0.600", "0.700", "0.800", "1.000",
+                "1.200", "1.500", "1.700", "2.000", "2.500", "3.000", "3.500",
+                "4.000", "5.000", "6.000", "7.000", "8.000", "10.00", "12.00",
+                "15.00", "17.00", "20.00", "25.00", "30.00", "35.00", "40.00",
+                "50.00"]
+    alpha = ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8",
+             "1.9", "2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
+             "2.8", "2.9", "3.0"]
+
+    # Here we obtain the wavelength beforehand to avoid reading it each time.
+    datafile = open(dl2014_dir + "U{}_{}_MW3.1_{}/spec_1.0.dat"
+                    .format(uminimum[0], uminimum[0], "000"))
+
+    data = "".join(datafile.readlines()[-1001:])
+    datafile.close()
+
+    wave = np.genfromtxt(io.BytesIO(data.encode()), usecols=(0))
+    # For some reason wavelengths are decreasing in the model files
+    wave = wave[::-1]
+    # We convert wavelengths from μm to nm
+    wave *= 1000.
+
+    # The models are in Jy cm² sr¯¹ H¯¹. We convert this to W/nm.
+    conv = 4. * np.pi * 1e-30 / cst.m_p * cst.c / (wave * wave) * 1e9
+
+    for model in sorted(qpah.keys()):
+        for umin in uminimum:
+            filename = (dl2014_dir + "U{}_{}_MW3.1_{}/spec_1.0.dat"
+                        .format(umin, umin, model))
+            print("Importing {}...".format(filename))
+            with open(filename) as datafile:
+                data = "".join(datafile.readlines()[-1001:])
+            lumin = np.genfromtxt(io.BytesIO(data.encode()), usecols=(2))
+            # For some reason fluxes are decreasing in the model files
+            lumin = lumin[::-1]
+
+            # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
+            lumin *= conv
+
+            base.add_dl2014(DL2014(qpah[model], umin, umin, 1.0, wave, lumin))
+            for al in alpha:
+                filename = (dl2014_dir + "U{}_1e7_MW3.1_{}/spec_{}.dat"
+                            .format(umin, model, al))
+                print("Importing {}...".format(filename))
+                with open(filename) as datafile:
+                    data = "".join(datafile.readlines()[-1001:])
+                lumin = np.genfromtxt(io.BytesIO(data.encode()), usecols=(2))
+                # For some reason fluxes are decreasing in the model files
+                lumin = lumin[::-1]
+
+                # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
+                lumin *= conv
+
+                base.add_dl2014(DL2014(qpah[model], umin, 1e7, al, wave,
+                                       lumin))
+
+
 def build_fritz2006(base):
     fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
@@ -611,22 +676,27 @@ def build_base():
     print("\nDONE\n")
     print('#' * 78)
 
-    print("5- Importing Draine and Li (2007) templates\n")
+    print("5- Importing Draine and Li (2007) models\n")
     build_dl2007(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    print("6- Importing Fritz et al. (2006) models\n")
+    print("6- Importing the updated Draine and Li (2007 models)\n")
+    build_dl2014(base)
+    print("\nDONE\n")
+    print('#' * 78)
+
+    print("7- Importing Fritz et al. (2006) models\n")
     build_fritz2006(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    print("7- Importing Dale et al (2014) templates\n")
+    print("8- Importing Dale et al (2014) templates\n")
     build_dale2014(base)
     print("\nDONE\n")
     print('#' * 78)
     
-    print("8- Importing nebular lines and continuum\n")
+    print("9- Importing nebular lines and continuum\n")
     build_nebular(base)
     print("\nDONE\n")
     print('#' * 78)
