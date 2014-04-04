@@ -616,7 +616,7 @@ class Database(object):
         else:
             raise DatabaseLookupError(
                 "The DL2014 model for qpah <{0}>, umin <{1}>, umax <{2}>, and "
-                "alpha <{2}> is not in the database."
+                "alpha <{3}> is not in the database."
                 .format(qpah, umin, umax, alpha))
 
     def get_dl2014_parameters(self):
