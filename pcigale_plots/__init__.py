@@ -115,9 +115,9 @@ def _sed_worker(obs, mod, filters):
         ax = figure.add_subplot(111)
         ax.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
                   label="Model spectrum",color='k')
-        ax.scatter(filters_wl, obs_fluxes, marker='o', color='r',
+        ax.scatter(filters_wl, mod_fluxes, marker='o', color='r',
                    label="Model fluxes")
-        ax.scatter(filters_wl, mod_fluxes, marker='o', color='b',
+        ax.scatter(filters_wl, obs_fluxes, marker='o', color='b',
                    label="Observed fluxed")
         ax.set_xlim(xmin, xmax)
         ax.set_xlabel("Wavelength [nm]")
