@@ -67,7 +67,7 @@ class PdfAnalysis(AnalysisModule):
         ("save_chi2", (
             "boolean",
             "If true, for each observation and each analysed variable save "
-            "the reduced chi².",
+            "the reduced chi2.",
             False
         )),
         ("save_pdf", (
