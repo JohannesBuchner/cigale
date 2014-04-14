@@ -15,9 +15,9 @@ from ..utils import OUT_DIR
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
 # Name of the file containing the analysis results
-RESULT_FILE = "analysis_results.fits"
+RESULT_FILE = "analysis_results.txt"
 # Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.fits"
+BEST_MODEL_FILE = "best_models.txt"
 
 
 def gen_pdf(values, probabilities, grid):
@@ -183,7 +183,7 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
             np_analysed_std[:, index],
             name=variable+"_err"
         ))
-    result_table.write(OUT_DIR + RESULT_FILE)
+    result_table.write(OUT_DIR + RESULT_FILE, format='ascii')
 
 
 def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
@@ -231,4 +231,4 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
         column = Column(np_fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
-    best_model_table.write(OUT_DIR + BEST_MODEL_FILE)
+    best_model_table.write(OUT_DIR + BEST_MODEL_FILE, format='ascii')
