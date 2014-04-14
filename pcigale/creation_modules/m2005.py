@@ -44,12 +44,12 @@ class M2005(CreationModule):
         ('imf', (
             'int',
             "Initial mass function: 0 (Salpeter) or 1 (Kroupa)",
-            None
+            0
         )),
         ('metallicity', (
             'float',
             "Metallicity. Possible values are: 0.001, 0.01, 0.02, 0.04.",
-            None
+            0.02
         )),
         ('separation_age', (
             'int',

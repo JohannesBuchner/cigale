@@ -184,13 +184,13 @@ class CalzLeit(CreationModule):
             "float",
             "E(B-V)*, the colour excess of the stellar continuum light for "
             "the young population.",
-            None
+            0.3
         )),
         ("E_BVs_old_factor", (
             "float",
             "Reduction factor for the E(B-V)* of the old population compared "
             "to the young one (<1).",
-            None
+            0.44
         )),
         ("uv_bump_wavelength", (
             "float",
@@ -200,17 +200,17 @@ class CalzLeit(CreationModule):
         ("uv_bump_width", (
             "float",
             "Width (FWHM) of the UV bump in nm.",
-            None
+            35.
         )),
         ("uv_bump_amplitude", (
             "float",
             "Amplitude of the UV bump in nm.",
-            None
+            3.
         )),
         ("powerlaw_slope", (
             "float",
             "Slope delta of the power law modifying the attenuation curve.",
-            None
+            0.
         )),
         ("filters", (
             "string",

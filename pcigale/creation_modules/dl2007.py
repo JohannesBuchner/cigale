@@ -35,26 +35,26 @@ class DL2007(CreationModule):
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
             "2.50, 3.19, 3.90, 4.58.",
-            None
+            2.50
         )),
         ('umin', (
             'float',
             "Minimum radiation field. Possible values are: 0.10, 0.15, 0.20, "
             "0.30, 0.40, 0.50, 0.70, 0.80, 1.00, 1.20, 1.50, 2.00, 2.50, 3.00, "
             "4.00, 5.00, 7.00, 8.00, 10.0, 12.0, 15.0, 20.0, 25.0.",
-            None
+            1.0
         )),
         ('umax', (
             'float',
             "Maximum radiation field. Possible values are: 1e3, 1e4, 1e5, "
             "1e6.",
-            None
+            1e6
         )),
         ('gamma', (
             'float',
             "Fraction illuminated from Umin to Umax. Possible values between "
             "0 and 1.",
-            None
+            0.1
         ))
     ])
 

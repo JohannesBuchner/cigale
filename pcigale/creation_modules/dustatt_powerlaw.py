@@ -109,13 +109,13 @@ class PowerLawAtt(CreationModule):
         ("Av_young", (
             "float",
             "V-band attenuation of the young population.",
-            None
+            1.
         )),
         ("Av_old_factor", (
             "float",
             "Reduction factor for the V-band attenuation of the old "
             "population compared to the young one (<1).",
-            None
+            0.44
         )),
         ("uv_bump_wavelength", (
             "float",
@@ -125,12 +125,12 @@ class PowerLawAtt(CreationModule):
         ("uv_bump_width", (
             "float",
             "Width (FWHM) of the UV bump in nm.",
-            None
+            35.
         )),
         ("uv_bump_amplitude", (
             "float",
             "Amplitude of the UV bump in nm.",
-            None
+            3.
         )),
         ("powerlaw_slope", (
             "float",

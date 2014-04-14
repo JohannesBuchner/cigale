@@ -30,41 +30,41 @@ class Fritz2006(CreationModule):
             'float',
             "Ratio of the maximum to minimum radii of the dust torus. "
             "Possible values are: 10, 30, 60, 100, 150.",
-            None
+            60.
         )),
         ('tau', (
             'float',
             "Optical depth at 9.7 microns. "
             "Possible values are: 0.1, 0.3, 0.6, 1.0, 2.0, 3.0, 6.0, 10.0.",
-            None
+            1.0
         )),
         ('beta', (
             'float',
             "Beta. Possible values are:-1.00, -0.75, -0.50, -0.25, 0.00.",
-            None
+            -0.50
         )),
         ('gamma', (
             'float',
             "Gamma. Possible values are: 0.0, 2.0, 4.0, 6.0.",
-            None
+            4.0
         )),
         ('opening_angle', (
             'float',
             "Opening angle of the dust torus. Possible values are: 20, 40, "
             "60.",
-            None
+            40.
         )),
         ('psy', (
             'float',
             "Angle between AGN axis and line of sight. Possible values are: "
             "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100, "
             "80.100, 89.990.",
-            None
+            50.100
         )),
         ('fracAGN', (
             'float',
             "AGN fraction.",
-            None
+            0.1
         ))
     ])
 

@@ -31,17 +31,17 @@ class Casey2012(CreationModule):
         ("temperature", (
             "float",
             "Temperature of the dust in K.",
-            None
+            35
         )),
         ("beta", (
             "float",
             "Emissivity index of the dust.",
-            None
+            1.6
         )),
         ("alpha", (
             "float",
             "Mid-infrared powerlaw slope.",
-            None
+            2.
         ))
     ])
 

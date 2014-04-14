@@ -30,13 +30,13 @@ class BC03(CreationModule):
         ("imf", (
             "int",
             "Initial mass function: 0 (Salpeter) or 1 (Chabrier).",
-            None
+            0
         )),
         ("metallicity", (
             "float",
             "Metalicity. Possible values are: 0.0001, 0.0004, 0.004, 0.008, "
             "0.02, 0.05.",
-            None
+            0.02
         )),
         ("separation_age", (
             "int",

@@ -32,7 +32,7 @@ class DH2002(CreationModule):
         ('alpha', (
             'float',
             "Alpha slope. Possible values between 0.0625 and 4.000.",
-            None
+            2.
         ))
     ])
 

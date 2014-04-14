@@ -33,28 +33,28 @@ class Sfh2Exp(CreationModule):
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
-            None
+            6000.
         )),
         ("tau_burst", (
             "float",
             "e-folding time of the late starburst population model in Myr.",
-            None
+            50.
         )),
         ("f_burst", (
             "float",
             "Mass fraction of the late burst population.",
-            None
+            0.01
         )),
         ("age", (
             "integer",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
-            None
+            13000.
         )),
         ("burst_age", (
             "integer",
             "Age of the late burst in Myr. Precision is 1 Myr.",
-            None
+            20.
         ))
     ])
 
