@@ -11,6 +11,7 @@ from datetime import datetime
 import collections
 import itertools
 import os
+import shutil
 
 import numpy as np
 from astropy.table import Table, Column
@@ -134,6 +135,7 @@ def backup_dir(directory=OUT_DIR):
             new_name
         ))
     os.mkdir(directory)
+    shutil.copyfile('pcigale.ini', directory + 'pcigale.ini')
 
 
 def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
