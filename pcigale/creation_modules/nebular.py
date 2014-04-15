@@ -43,7 +43,7 @@ class NebularEmission(CreationModule):
         )),
         ('nebular_lines_width', (
             'float',
-            "Line width in km s¯¹",
+            "Line width in km/s",
             300.
         ))
     ])
