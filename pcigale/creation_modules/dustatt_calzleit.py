@@ -204,8 +204,8 @@ class CalzLeit(CreationModule):
         )),
         ("uv_bump_amplitude", (
             "float",
-            "Amplitude of the UV bump in nm.",
-            3.
+            "Amplitude of the UV bump. For the Milky Way: 3.",
+            0.
         )),
         ("powerlaw_slope", (
             "float",
