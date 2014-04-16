@@ -9,7 +9,7 @@ import time
 
 import numpy as np
 
-from ..warehouse import SedWarehouse
+from ...warehouse import SedWarehouse
 
 
 def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):

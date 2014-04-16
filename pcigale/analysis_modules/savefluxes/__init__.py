@@ -25,11 +25,11 @@ import time
 
 import numpy as np
 
-from . import AnalysisModule
-from ..data import Database
-from .utils import ParametersHandler, backup_dir, save_fluxes
-from ..utils import read_table
-from ..warehouse import SedWarehouse
+from .. import AnalysisModule
+from ...data import Database
+from ..utils import ParametersHandler, backup_dir, save_fluxes
+from ...utils import read_table
+from ...warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
 
