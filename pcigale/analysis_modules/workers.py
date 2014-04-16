@@ -49,7 +49,7 @@ def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):
 
     gbl_filters = filters
 
-    gbl_warehouse = SedWarehouse(cache_type="memory")
+    gbl_warehouse = SedWarehouse()
 
 
 def fluxes(idx):

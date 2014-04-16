@@ -56,11 +56,6 @@ class SaveFluxes(AnalysisModule):
             "Format of the output file. Any format supported by astropy.table "
             "e.g. votable or ascii.",
             "votable"
-        )),
-        ("storage_type", (
-            "string",
-            "Type of storage used to cache the generate SED.",
-            "memory"
         ))
     ])
 
@@ -124,7 +119,7 @@ class SaveFluxes(AnalysisModule):
         n_params = params.size
 
         # Retrieve an arbitrary SED to obtain the list of output parameters
-        warehouse = SedWarehouse(cache_type=parameters["storage_type"])
+        warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
         info = sed.info
         n_info = len(sed.info)

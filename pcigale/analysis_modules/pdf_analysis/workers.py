@@ -67,7 +67,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     gbl_filters = filters
     gbl_analysed_variables = analysed
 
-    gbl_warehouse = SedWarehouse(cache_type="memory")
+    gbl_warehouse = SedWarehouse()
 
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,

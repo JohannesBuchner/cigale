@@ -82,11 +82,6 @@ class PdfAnalysis(AnalysisModule):
             "If true, for each object check whether upper limits are present "
             "and analyse them.",
             False
-        )),
-        ("storage_type", (
-            "string",
-            "Type of storage used to cache the generate SED.",
-            "memory"
         ))
     ])
 
@@ -162,7 +157,7 @@ class PdfAnalysis(AnalysisModule):
         n_params = params.size
 
         # Retrieve an arbitrary SED to obtain the list of output parameters
-        warehouse = SedWarehouse(cache_type=config["storage_type"])
+        warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
         info = sed.info
         n_info = len(sed.info)
