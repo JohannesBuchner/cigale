@@ -123,9 +123,15 @@ class Configuration(object):
             "in mJy.")
 
         self.config['creation_modules'] = []
-        self.config.comments['creation_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules: "
-            + ', '.join(list_modules('pcigale.creation_modules')) + ".")
+        self.config.comments['creation_modules'] = wrap(
+            "Order of the modules use for SED creation. Available modules:"
+            "SFH: sfh2exp, sfhfromfile ; "
+            "SSP: bc03, m2005 ; "
+            "Nebular: nebular ; "
+            "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
+            "Dust model: casey2012, dh2002, dl2007 ; "
+            "AGN: dale2014, fritz2006 ; "
+            "redshift: redshifting (mandatory!)")
 
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
