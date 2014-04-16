@@ -49,13 +49,13 @@ class SaveFluxes(AnalysisModule):
         ("output_file", (
             "string",
             "Name of the output file.",
-            "computed_fluxes.xml"
+            "computed_fluxes.txt"
         )),
         ("output_format", (
             "string",
             "Format of the output file. Any format supported by astropy.table "
             "e.g. votable or ascii.",
-            "votable"
+            "ascii"
         ))
     ])
 
