@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Copyright (C) 2014 Laboratoire d'Astrophysique de Marseille, AMU
+# Copyright (C) 2012, 2014 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly
+# Author: Yannick Roehlly & Denis Burgarella
 
 from importlib import import_module
 from collections import OrderedDict
@@ -149,7 +150,7 @@ def get_module(module_name):
         raise
 
 
-def adjust_errors(flux, error, tolerance, default_error=0.1,
+def adjust_errors(flux, error, tolerance, lim_flag, default_error=0.1,
                   systematic_deviation=0.1):
     """Adjust the errors replacing the 0 values by the default error and
     adding the systematic deviation.
@@ -165,6 +166,8 @@ def adjust_errors(flux, error, tolerance, default_error=0.1,
         Observational error in the same unit as the fluxes.
     tolerance: float
         Tolerance threshold under flux error is considered as 0.
+    lim_flag: boolean
+        Do we process upper limits (True) or treat them as no-data (False)?
     default_error: float
         Default error factor used when the provided error in under the
         tolerance threshold.
@@ -177,7 +180,6 @@ def adjust_errors(flux, error, tolerance, default_error=0.1,
         The corrected errors.
 
     """
-
     # The arrays must have the same lengths.
     if len(flux) != len(error):
         raise ValueError("The flux and error arrays must have the same "
@@ -186,16 +188,34 @@ def adjust_errors(flux, error, tolerance, default_error=0.1,
     # We copy the error array not to modify the original one.
     error = np.copy(error)
 
+    # We define:
+    # 1) upper limit == (lim_flag==True) and
+    #                [(flux > tolerance) and (-9990. < error < tolerance)]
+    # 2) no data == (flux < -9990.) and (error < -9990.)
+    # Note that the upper-limit test must be performed before the no-data test
+    # because if lim_flag is False, we process upper limits as no-data.
+    #
     # Replace errors below tolerance by the default one.
-    error[error < tolerance] = (default_error * flux[error < tolerance])
+    mask_noerror = np.logical_and(flux>tolerance, error<-9990.)
+    error[mask_noerror] = (default_error * flux[mask_noerror])
+
+    mask_limflag = np.logical_and.reduce(
+                       (flux>tolerance, error>=-9990., error<tolerance))
+
+    # Replace upper limits by no data if lim_flag==False
+    if not lim_flag:
+        flux[mask_limflag] = -9999.
+        error[mask_limflag] = -9999.
+
+    mask_ok = np.logical_and(flux>tolerance, error>tolerance)
 
     # Add the systematic error.
-    error = np.sqrt(np.square(error) + np.square(flux * systematic_deviation))
-
+    error[mask_ok] = np.sqrt(np.square(error[mask_ok]) +
+                    np.square(flux[mask_ok] * systematic_deviation))
     return error
 
 
-def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
+def complete_obs_table(obs_table, used_columns, filter_list, tolerance, lim_flag,
                        default_error=0.1, systematic_deviation=0.1):
     """Complete the observation table
 
@@ -215,6 +235,8 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
         The list of filters used in the analysis.
     tolerance: float
         Tolerance threshold under flux error is considered as 0.
+    lim_flag: boolean
+        Do we process upper limits (True) or treat them as no-data (False)?
     default_error: float
         Default error factor used when the provided error in under the
         tolerance threshold.
@@ -252,6 +274,7 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
         obs_table[name_err] = adjust_errors(obs_table[name],
                                             obs_table[name_err],
                                             tolerance,
+                                            lim_flag,
                                             default_error,
                                             systematic_deviation)
     return obs_table

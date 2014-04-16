@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+# Copyright (C) 2014 Laboratoire d'Astrophysique de Marseille, AMU
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
 # Copyright (C) 2013-2014 Institute of Astronomy
 # Copyright (C) 2013-2014 Yannick Roehlly <yannick@iaora.eu>
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly & Médéric Boquien
+# Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
 """
 Probability Density Function analysis module
@@ -76,6 +77,12 @@ class PdfAnalysis(AnalysisModule):
             "the probability density function.",
             False
         )),
+        ("lim_flag", (
+            "boolean",
+            "If true, for each object check whether upper limits are present "
+            "and analyse them.",
+            False
+        )),
         ("storage_type", (
             "string",
             "Type of storage used to cache the generate SED.",
@@ -121,6 +128,7 @@ class PdfAnalysis(AnalysisModule):
         n_variables = len(analysed_variables)
         save = {key:config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
+        lim_flag = config["lim_flag"].lower() == "true"
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -135,7 +143,7 @@ class PdfAnalysis(AnalysisModule):
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
         obs_table = complete_obs_table(read_table(data_file), column_list,
-                                       filters, TOLERANCE)
+                                       filters, TOLERANCE, lim_flag)
         n_obs = len(obs_table)
 
         w_redshifting = creation_modules.index('redshifting')
@@ -208,7 +216,7 @@ class PdfAnalysis(AnalysisModule):
                     model_fluxes, model_variables, time.time(),
                     mp.Value('i', 0), analysed_averages, analysed_std,
                     best_fluxes, best_parameters, best_chi2, best_chi2_red,
-                    save, n_obs)
+                    save, lim_flag, n_obs)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             for idx, obs in enumerate(obs_table):

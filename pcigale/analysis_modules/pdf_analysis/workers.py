@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
 # Copyright (C) 2013-2014 Institute of Astronomy
+# Copyright (C) 2014 Laboratoire d'Astrophysique de Marseille, AMU
 # Copyright (C) 2014 Yannick Roehlly <yannick@iaora.eu>
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly & Médéric Boquien
+# Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
 import time
 
 import numpy as np
+from scipy import optimize
+from scipy.special import erf
 
 from .utils import save_best_sed, save_pdf, save_chi2
 from ...warehouse import SedWarehouse
 
-# Probability threshold: models with a lower probability are excluded from
-# the moments computation.
+# Probability threshold: models with a lower probability  are excluded from the
+# moments computation.
 MIN_PROBABILITY = 1e-20
-
 
 def init_sed(params, filters, analysed, redshifts, fluxes, variables,
              t_begin, n_computed):
@@ -70,7 +72,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
                   best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
-                  n_obs):
+                  lim_flag, n_obs):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -117,6 +119,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
     global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
     global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
+    global gbl_lim_flag
 
     gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
     gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
@@ -139,7 +142,10 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                        for redshift in gbl_redshifts}
 
     gbl_save = save
+    gbl_lim_flag = lim_flag
+
     gbl_n_obs = n_obs
+
 
 def sed(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
@@ -198,10 +204,17 @@ def analysis(idx, obs):
         Input data for an individual object
 
     """
+    # Tolerance threshold under which any flux or error is considered as 0.
+    tolerance = 1e-12
 
+    global gbl_mod_fluxes, gbl_obs_fluxes, gbl_obs_errors
+
+    # We pick up the closest redshift assuming we have limited the number of
+    # decimals (usually set to 2 decimals).
     w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                gbl_redshifts).argmin()]])
 
+    # We only keep model with fluxes >= -90. If not => no data
     model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
     model_variables = gbl_model_variables[w[0], :]
 
@@ -209,10 +222,26 @@ def analysis(idx, obs):
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
 
     # Some observations may not have flux value in some filters, in
-    # that case the user is asked to put -9999 as value. We mask these
-    # values. Note, we must mask obs_fluxes after obs_errors.
+    # that case the user is asked to put -9999. as value. We mask these
+    # values. Note, we must mask obs_fluxes AFTER obs_errors.
     obs_errors = np.ma.masked_where(obs_fluxes < -9990., obs_errors)
     obs_fluxes = np.ma.masked_less(obs_fluxes, -9990.)
+
+    # Some observations may not have flux values in some filter(s), but
+    # they can have upper limit(s). To process upper limits, the user
+    # is asked to put the upper limit as flux value and an error value with
+    # (obs_errors>=-9990. and obs_errors<0.).
+    # Next, the user has two options:
+    # 1) s/he puts True in the boolean lim_flag
+    # and the limits are processed as upper limits below.
+    # 2) s/he puts False in the boolean lim_flag
+    # and the limits are processed as no-data below.
+
+    lim_flag = gbl_lim_flag*np.logical_and(obs_errors >= -9990.,
+                                           obs_errors < tolerance)
+
+    gbl_obs_fluxes = obs_fluxes
+    gbl_obs_errors = obs_errors
 
     # Normalisation factor to be applied to a model fluxes to best fit
     # an observation fluxes. Normalised flux of the models. χ² and
@@ -222,12 +251,41 @@ def analysis(idx, obs):
         np.sum(model_fluxes * obs_fluxes / (obs_errors * obs_errors), axis=1) /
         np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
     )
+
+    if lim_flag.any() is True:
+        norm_init = norm_facts
+        for imod in range(len(model_fluxes)):
+            gbl_mod_fluxes = model_fluxes[imod, :]
+            norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
+                                               tol=1e-16)
     norm_model_fluxes = model_fluxes * norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
-    chi2_ = np.sum(
-        np.square((obs_fluxes - norm_model_fluxes) / obs_errors),
-        axis=1)
+    mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
+    if lim_flag.any() is True:
+        # This mask selects the filter(s) for which measured fluxes are given
+        # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
+        mask_data = (obs_errors >= tolerance)
+        # This mask selects the filter(s) for which upper limits are given
+        # i.e., when (obs_flux is >=0. (and obs_errors>=-9990., obs_errors<0.))
+        # and lim_flag=True
+        mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
+        chi2_data = np.sum(np.square(
+            (obs_fluxes[mask_data]-norm_model_fluxes[:, mask_data]) /
+            obs_errors[mask_data]), axis=1)
+
+        chi2_lim = -2. * np.sum(
+            np.log(
+                np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
+                    1.+erf(
+                        (obs_fluxes[mask_lim]-norm_model_fluxes[:, mask_lim]) /
+                        (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
+
+        chi2_ = chi2_data + chi2_lim
+    else:
+        chi2_ = np.sum(np.square(
+            (obs_fluxes[mask_data] - norm_model_fluxes[:, mask_data]) /
+            obs_errors[mask_data]), axis=1)
 
     # We use the exponential probability associated with the χ² as
     # likelihood function.
@@ -309,3 +367,70 @@ def analysis(idx, obs):
               format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
+
+def dchi2_over_ds2(s):
+
+    """Function used to estimate the normalization factor in the SED fitting
+    process when upper limits are included in the dataset to fit (from Eq. A11
+    in Sawicki M. 2012, PASA, 124, 1008).
+
+    Parameters
+    ----------
+    s: Float
+        Contains value onto which we perform minimization = normalization
+        factor
+    obs_fluxes: RawArray
+        Contains observed fluxes for each filter.
+    obs_errors: RawArray
+        Contains observed errors for each filter.
+    model_fluxes: RawArray
+        Contains modeled fluxes for each filter.
+    lim_flag: Boolean
+        Tell whether we use upper limits (True) or not (False).
+
+   Returns
+    -------
+    func: Float
+        Eq. A11 in Sawicki M. 2012, PASA, 124, 1008).
+
+    """
+    # We enter into this function if lim_flag = True.
+
+    # The mask "data" selects the filter(s) for which measured fluxes are given
+    # i.e., when obs_fluxes is >=0. and obs_errors >=0.
+    # The mask "lim" selects the filter(s) for which upper limits are given
+    # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
+
+    wlim = np.where((gbl_obs_errors >= -9990.)&(gbl_obs_errors < 0.))
+    wdata = np.where(gbl_obs_errors>=0.)
+
+    mod_fluxes_data = gbl_mod_fluxes[wdata]
+    mod_fluxes_lim = gbl_mod_fluxes[wlim]
+
+    obs_fluxes_data = gbl_obs_fluxes[wdata]
+    obs_fluxes_lim = gbl_obs_fluxes[wlim]
+
+    obs_errors_data = gbl_obs_errors[wdata]
+    obs_errors_lim = -gbl_obs_errors[wlim]
+
+    dchi2_over_ds_data = np.sum(
+        (obs_fluxes_data-s*mod_fluxes_data) *
+        mod_fluxes_data/(obs_errors_data*obs_errors_data))
+
+    dchi2_over_ds_lim = np.sqrt(2./np.pi)*np.sum(
+        mod_fluxes_lim*np.exp(
+            -np.square(
+                (obs_fluxes_lim-s*mod_fluxes_lim)/(np.sqrt(2)*obs_errors_lim)
+                      )
+                             )/(
+            obs_errors_lim*(
+                1.+erf(
+                   (obs_fluxes_lim-s*mod_fluxes_lim)/(np.sqrt(2)*obs_errors_lim)
+                      )
+                           )
+                               )
+                                                )
+
+    func = dchi2_over_ds_data - dchi2_over_ds_lim
+
+    return func
