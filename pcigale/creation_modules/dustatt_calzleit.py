@@ -243,6 +243,9 @@ class CalzLeit(CreationModule):
         with Database() as base:
             for filter_name in filter_list:
                 self.filters[filter_name] = base.get_filter(filter_name)
+        # We cannot compute the attenuation until we know the wavelengths. Yet,
+        # we reserve the object.
+        self.sel_attenuation = None
 
     def process(self, sed):
         """Add the CCM dust attenuation to the SED.
@@ -270,7 +273,8 @@ class CalzLeit(CreationModule):
                 filter_.effective_wavelength)
 
         # Compute attenuation curve
-        sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
+        if self.sel_attenuation is None:
+            self.sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
                                    uv_bump_width, uv_bump_amplitude,
                                    powerlaw_slope)
 
@@ -279,7 +283,7 @@ class CalzLeit(CreationModule):
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **
-                                    (ebvs[age] * sel_attenuation / -2.5))
+                                    (ebvs[age] * self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).

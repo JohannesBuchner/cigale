@@ -168,6 +168,9 @@ class PowerLawAtt(CreationModule):
         with Database() as base:
             for filter_name in filter_list:
                 self.filters[filter_name] = base.get_filter(filter_name)
+        # We cannot compute the attenuation until we know the wavelengths. Yet,
+        # we reserve the object.
+        self.sel_attenuation = None
 
     def process(self, sed):
         """Add the CCM dust attenuation to the SED.
@@ -195,7 +198,8 @@ class PowerLawAtt(CreationModule):
                 filter_.effective_wavelength)
 
         # Compute attenuation curve
-        sel_attenuation = alambda_av(wavelength, powerlaw_slope,
+        if self.sel_attenuation is None:
+            self.sel_attenuation = alambda_av(wavelength, powerlaw_slope,
                                      uv_bump_wavelength, uv_bump_width,
                                      uv_bump_amplitude)
 
@@ -204,7 +208,7 @@ class PowerLawAtt(CreationModule):
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **
-                                    (av[age] * sel_attenuation / -2.5))
+                                    (av[age] * self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
