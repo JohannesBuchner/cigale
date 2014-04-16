@@ -123,7 +123,7 @@ class Configuration(object):
             "in mJy.")
 
         self.config['creation_modules'] = []
-        self.config.comments['creation_modules'] = wrap(
+        self.config.comments['creation_modules'] = [""] + wrap(
             "Order of the modules use for SED creation. Available modules:"
             "SFH: sfh2exp, sfhfromfile ; "
             "SSP: bc03, m2005 ; "
