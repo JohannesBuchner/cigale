@@ -7,7 +7,7 @@
 Fritz et al. (2006) AGN dust torus emission module
 ==================================================
 
-TODO: Describe the module
+This module implements the Fritz et al. (2006) models.
 
 """
 
@@ -19,9 +19,22 @@ from . import CreationModule
 class Fritz2006(CreationModule):
     """Fritz et al. (2006) AGN dust torus emission
 
-    TODO: Describe de module actions.
+    The AGN emission is computed from the library of Fritz et al. (2006) from
+    which all of the models are available. They take into account two emission
+    components linked to the AGN. The first one is the isotropic emission of
+    the central source, which is assumed to be point-like. This emission is a
+    composition of power laws with variable indices, in the wavelength range of
+    0.001-20 microns. The second one is the thermal and scattering dust torus
+    emission. The conservation of the energy is always verified within 1% for
+    typical solutions, and up to 10% in the case of very high optical depth and
+    non-constant dust density. We refer the reader to Fritz et al. (2006) for
+    more information on the library.
 
-    Information added to the SED: fracAGN, L_AGN.
+    The relative normalization of these components is handled through a
+    parameter which is the fraction of the total IR luminosity due to the AGN
+    so that: L_AGN = fracAGN * L_IRTOT, where L_AGN is the AGN luminosity,
+    fracAGN is the contribution of the AGN to the total IR luminosity
+    (L_IRTOT), i.e. L_Starburst+L_AGN.
 
     """
 
