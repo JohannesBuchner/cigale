@@ -131,12 +131,12 @@ class Configuration(object):
             "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
             "Dust model: casey2012, dh2002, dl2007 ; "
             "AGN: dale2014, fritz2006 ; "
-            "redshift: redshifting (mandatory!)")
+            "redshift: redshifting (mandatory!).")
 
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
             "Method used for statistical analysis. Available methods: "
-            + ', '.join(list_modules('pcigale.analysis_modules')) + ".")
+            "pdf_analysis, savefluxes.")
 
         self.config['cores'] = ""
         self.config.comments['cores'] = [""] + wrap(
