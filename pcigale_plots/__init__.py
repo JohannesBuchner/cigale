@@ -22,7 +22,7 @@ from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
 
 # Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.fits"
+BEST_MODEL_FILE = "best_models.txt"
 # Directory where the output files are stored
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
@@ -164,7 +164,7 @@ def sed(config):
     """Plot the best SED with associated observed and modelled fluxes.
     """
     obs = read_table(config.configuration['data_file'])
-    mod = Table.read(OUT_DIR + BEST_MODEL_FILE)
+    mod = Table.read(OUT_DIR + BEST_MODEL_FILE, format='ascii')
     with Database() as base:
         filters = OrderedDict([(name, base.get_filter(name))
                                for name in config.configuration['column_list']
