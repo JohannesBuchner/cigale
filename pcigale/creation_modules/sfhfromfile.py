@@ -71,7 +71,6 @@ class SfhFromFile(CreationModule):
 
         # -1 because Python indexes start to 0.
         sfr_column_number = int(self.parameters['sfr_column']) - 1
-        sfr_column_name = table.colnames[sfr_column_number]
         sfr = table.columns[sfr_column_number].data
 
         age = int(self.parameters['age'])
@@ -87,7 +86,7 @@ class SfhFromFile(CreationModule):
 
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
-        sed.add_info("sfh.id", sfr_column_name)
+        sed.add_info("sfh.id", sfr_column_number+1)
 
 # CreationModule to be returned by get_module
 Module = SfhFromFile
