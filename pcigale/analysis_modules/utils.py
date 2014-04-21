@@ -139,7 +139,7 @@ def backup_dir(directory=OUT_DIR):
 
 
 def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
-                directory=OUT_DIR, out_format='ascii'):
+                directory=OUT_DIR, out_format='ascii.commented_header'):
     """Save fluxes and associated parameters into a table.
 
     Parameters

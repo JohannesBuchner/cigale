@@ -183,7 +183,7 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
             np_analysed_std[:, index],
             name=variable+"_err"
         ))
-    result_table.write(OUT_DIR + RESULT_FILE, format='ascii')
+    result_table.write(OUT_DIR + RESULT_FILE, format='ascii.commented_header')
 
 
 def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
@@ -231,4 +231,5 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
         column = Column(np_fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
-    best_model_table.write(OUT_DIR + BEST_MODEL_FILE, format='ascii')
+    best_model_table.write(OUT_DIR + BEST_MODEL_FILE,
+                           format='ascii.commented_header')
