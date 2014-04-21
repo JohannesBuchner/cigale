@@ -129,7 +129,7 @@ class Configuration(object):
             "SSP: bc03, m2005 ; "
             "Nebular: nebular ; "
             "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
-            "Dust model: casey2012, dh2002, dl2007 ; "
+            "Dust model: casey2012, dh2002, dl2007, dl2014 ; "
             "AGN: dale2014, fritz2006 ; "
             "redshift: redshifting (mandatory!).")
 
