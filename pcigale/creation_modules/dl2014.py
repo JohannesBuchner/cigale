@@ -33,8 +33,8 @@ class DL2014(CreationModule):
     parameter_list = OrderedDict([
         ('qpah', (
             'float',
-            "Mass fraction of PAH. Possible values are: 0, 1, 2, 3, 4, 5, 6, "
-            "7, 8, 9, 10.",
+            "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
+            "2.50, 3.19, 3.90, 4.58, 5.26, 5.95, 6.63, 7.32.",
             None
         )),
         ('umin', (
@@ -45,7 +45,6 @@ class DL2014(CreationModule):
             "3.500, 4.000, 5.000, 6.000, 7.000, 8.000, 10.00, 12.00, 15.00, "
             "17.00, 20.00, 25.00, 30.00, 35.00, 40.00, 50.00.",
             None
-            
         )),
         ('alpha', (
             'float',
