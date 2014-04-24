@@ -91,11 +91,8 @@ class Sfh2Exp(CreationModule):
 
         # Height of the late burst to have the desired produced mass fraction
         # (assuming that the main burst as a height of 1).
-        burst_height = (
-            f_burst * tau_main * (1 - np.exp(-age / tau_main))
-            / (
-                (1 - f_burst) * tau_burst * np.exp(-burst_age / tau_burst)
-            ))
+        burst_height = (f_burst/(1-f_burst) * tau_main/tau_burst *
+            (1-np.exp(-age/tau_main))/(1-np.exp(-burst_age/tau_burst)))
 
         # We add the age burst exponential for ages superior to age -
         # burst_age
