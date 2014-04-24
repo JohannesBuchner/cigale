@@ -239,7 +239,7 @@ class CalzLeit(CreationModule):
         """Get the filters from the database"""
         filter_list = [item.strip() for item in
                        self.parameters["filters"].split("&")]
-        self.filters = {}
+        self.filters = OrderedDict()
         with Database() as base:
             for filter_name in filter_list:
                 self.filters[filter_name] = base.get_filter(filter_name)

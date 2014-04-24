@@ -191,7 +191,7 @@ class PowerLawAtt(CreationModule):
         filters = self.filters
 
         # Fλ fluxes (only from continuum)) in each filter before attenuation.
-        flux_noatt = {}
+        flux_noatt = OrderedDict()
         for filter_name, filter_ in filters.items():
             flux_noatt[filter_name] = sed.compute_fnu(
                 filter_.trans_table,
