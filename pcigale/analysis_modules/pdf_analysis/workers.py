@@ -327,18 +327,12 @@ def analysis(idx, obs):
             model_variables[:, index] *= norm_facts
 
     # We compute the weighted average and standard deviation using the
-    # likelihood as weight. We first build the weight array by
-    # expanding the likelihood along a new axis corresponding to the
-    # analysed variable.
-    weights = likelihood[:, np.newaxis].repeat(len(gbl_analysed_variables),
-                                               axis=1)
-
-    # Analysed variables average and standard deviation arrays.
+    # likelihood as weight.
     analysed_averages = np.ma.average(model_variables, axis=0,
-                                      weights=weights)
+                                      weights=likelihood)
     analysed_std = np.ma.sqrt(np.ma.average(
         (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
-        weights=weights))
+        weights=likelihood))
 
     # TODO Merge with above computation after checking it is fine with a MA.
     gbl_analysed_averages[idx, :] = analysed_averages
