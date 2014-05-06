@@ -209,15 +209,15 @@ def analysis(idx, obs):
 
     global gbl_mod_fluxes, gbl_obs_fluxes, gbl_obs_errors
 
-    # We pick up the closest redshift assuming we have limited the number of
-    # decimals (usually set to 2 decimals).
+    # We pick up the models with closest redshift assuming we have limited 
+    # the number of decimals (usually set to 2 decimals).
     w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                gbl_redshifts).argmin()]])
 
     # We only keep model with fluxes >= -90. If not => no data
+    # Probably because age > age of the universe (see function sed(idx) above).
     model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
-    model_variables = np.ma.masked_where(np.ma.getmask(model_fluxes),
-                                         gbl_model_variables[w[0], :])
+    model_variables = np.ma.masked_less(gbl_model_variables[w[0], :], -90.)
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
@@ -342,17 +342,23 @@ def analysis(idx, obs):
 
     for i, val in enumerate(analysed_averages):
         pdf_binsize[i] = FDbinSize(model_variables[:, i])
-        if np.min(model_variables[:, i]) > 0.:
-            min_hist[i] = max(0., np.min(model_variables[:, i]) -
-                              pdf_binsize[i])
-            max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
-        elif np.max(model_variables[:, i]) < 0.:
-            min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
-            max_hist[i] = min(0., np.max(model_variables[:, i]) +
-                              pdf_binsize[i])
-        else:
-            min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
-            max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
+        if pdf_binsize[i]==0.:
+            # if only 1 bin, we cheat to have 1 point in the histogram
+            min_hist[i] = min(model_variables[:, i])
+            max_hist[i] = min_hist[i]
+            pdf_binsize[i] = 1.
+        else:    
+            if np.min(model_variables[:, i]) > 0.:
+                min_hist[i] = max(0., np.min(model_variables[:, i]) -
+                                  pdf_binsize[i])
+                max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
+            elif np.max(model_variables[:, i]) < 0.:
+                min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
+                max_hist[i] = min(0., np.max(model_variables[:, i]) +
+                                  pdf_binsize[i])
+            else:
+                min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
+                max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
 
     pdf_Npoints = np.around((max_hist - min_hist) / pdf_binsize) + 1
 
