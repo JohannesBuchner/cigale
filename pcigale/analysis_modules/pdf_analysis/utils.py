@@ -7,8 +7,7 @@
 
 from astropy.table import Table, Column
 import numpy as np
-from scipy.stats import gaussian_kde
-from scipy.linalg import LinAlgError
+from scipy.stats import scoreatpercentile
 
 from ..utils import OUT_DIR
 
@@ -18,60 +17,6 @@ PDF_NB_POINTS = 1000
 RESULT_FILE = "analysis_results.txt"
 # Name of the file containing the best models information
 BEST_MODEL_FILE = "best_models.txt"
-
-
-def gen_pdf(values, probabilities, grid):
-    """Generate a probability density function
-
-    For a list of values and associated probabilities, this function
-    generates a probability density using a weighted gaussian kernel
-    density estimation.
-
-    This part should definitely be improved as it is done in the simplest
-    way: each value is repeated (probability * 100) times and the standard
-    scipy gaussian KDE is used.
-
-    Parameters
-    ----------
-    values: array like of floats
-        The values of the variable.
-    probabilities: array like of floats
-        The probability associated with each value
-    grid: array like of float
-        The list of values to which the probability will be evaluated.
-
-    Returns
-    -------
-    The list of probabilities evaluated at each value of the grid. If there
-    is only one input value with a probability superior to 0, the scipy KDE
-    algorithm will fail and None is returned.
-
-    """
-
-    # We use masked arrays because in the analysis module the arrays are
-    # already masked and the mask is important.
-    values = np.ma.array(values, dtype=float)
-    probabilities = np.ma.array(probabilities, dtype=float)
-
-    probabilities = np.ma.array(np.around(100. * probabilities),
-                                dtype=int, copy=True)
-
-    combined_values = []
-
-    # We must convert the values masked array to list and test each value
-    # against None because 0. is a valid value. For the probabilities,
-    # we don't have this problem because if the probability is 0 we won't add
-    # the value.
-    for val_idx, val in enumerate(values.tolist()):
-        if val is not None and probabilities[val_idx]:
-            combined_values += [val] * probabilities[val_idx]
-
-    try:
-        result = gaussian_kde(combined_values)(grid)
-    except (LinAlgError, ValueError):
-        result = None
-
-    return result
 
 
 def save_best_sed(obsid, sed, norm):
@@ -106,15 +51,13 @@ def save_pdf(obsid, analysed_variables, model_variables, likelihood):
         Analysed variables names
     model_variables: 2D array
         Analysed variables values for all models
-    likelihood: array
+    likelihood: 2D array
         Likelihood for all models
 
     """
     for var_index, var_name in enumerate(analysed_variables):
-        values = model_variables[:, var_index]
-        pdf_grid = np.linspace(values.min(), values.max(), PDF_NB_POINTS)
-        pdf_prob = gen_pdf(values, likelihood, pdf_grid)
-
+        pdf_grid = model_variables[:, var_index]
+        pdf_prob = likelihood[:, var_index]
         if pdf_prob is None:
             # TODO: use logging
             print("Can not compute PDF for observation <{}> and "
@@ -233,3 +176,34 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
 
     best_model_table.write(OUT_DIR + BEST_MODEL_FILE,
                            format='ascii.commented_header')
+
+
+def FDbinSize(values):
+    """
+    To define the size of the bin (parameter x), we use the Freedman-Diaconis
+    rule : bin size = 2 * IQR(x) * N^(-1/3) where IQR is the InterQuartile
+    Range containing 50% of sample. We do not use it here but, for a normal
+    distribution IQR = 1.349 * sigma. Note that the actual rule, there is a
+    factor 2. and not 1 like here.
+
+    Parameters
+    ----------
+    values: array like of floats
+        The values of the variable.
+
+    Returns
+    -------
+    h:  float
+      The Freedman-Diaconis bin size
+
+    """
+    # First Calculate the interquartile range
+    values = np.sort(values)
+    upperQuartile = scoreatpercentile(values, 75.)
+    lowerQuartile = scoreatpercentile(values, 25.)
+    IQR = upperQuartile - lowerQuartile
+
+    # Find the Freedman-Diaconis bin size
+    h = 2. * IQR * len(values)**(-1./3.)
+
+    return h

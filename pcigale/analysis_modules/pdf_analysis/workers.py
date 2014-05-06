@@ -12,7 +12,7 @@ import numpy as np
 from scipy import optimize
 from scipy.special import erf
 
-from .utils import save_best_sed, save_pdf, save_chi2
+from .utils import save_best_sed, save_pdf, save_chi2, FDbinSize
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
@@ -216,7 +216,8 @@ def analysis(idx, obs):
 
     # We only keep model with fluxes >= -90. If not => no data
     model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
-    model_variables = gbl_model_variables[w[0], :]
+    model_variables = np.ma.masked_where(np.ma.getmask(model_fluxes),
+                                         gbl_model_variables[w[0], :])
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
@@ -328,11 +329,60 @@ def analysis(idx, obs):
 
     # We compute the weighted average and standard deviation using the
     # likelihood as weight.
-    analysed_averages = np.ma.average(model_variables, axis=0,
-                                      weights=likelihood)
-    analysed_std = np.ma.sqrt(np.ma.average(
-        (model_variables - analysed_averages[np.newaxis, :])**2, axis=0,
-        weights=likelihood))
+    analysed_averages = np.empty(len(gbl_analysed_variables))
+    analysed_std = np.empty_like(analysed_averages)
+
+    pdf_binsize = np.empty_like(analysed_averages)
+    min_hist = np.empty_like(analysed_averages)
+    max_hist = np.empty_like(analysed_averages)
+
+    Npdf = 100
+    var = np.empty((Npdf, len(analysed_averages)))
+    pdf = np.empty((Npdf, len(analysed_averages)))
+
+    for i, val in enumerate(analysed_averages):
+        pdf_binsize[i] = FDbinSize(model_variables[:, i])
+        if np.min(model_variables[:, i]) > 0.:
+            min_hist[i] = max(0., np.min(model_variables[:, i]) -
+                              pdf_binsize[i])
+            max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
+        elif np.max(model_variables[:, i]) < 0.:
+            min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
+            max_hist[i] = min(0., np.max(model_variables[:, i]) +
+                              pdf_binsize[i])
+        else:
+            min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
+            max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
+
+    pdf_Npoints = np.around((max_hist - min_hist) / pdf_binsize) + 1
+
+    for i, val in enumerate(analysed_averages):
+        if all((x == model_variables[0, i] or x == -99.)
+               for x in model_variables[:, i]):
+            pdf_grid = max_hist[i]
+            pdf_prob = 1.
+            analysed_averages[i] = model_variables[0, i]
+            analysed_std[i] = 0.
+        else:
+            pdf_prob = np.zeros((pdf_Npoints[i], len(analysed_averages)))
+            pdf_grid = np.zeros((pdf_Npoints[i], len(analysed_averages)))
+            pdf_prob, pdf_grid = np.histogram(model_variables[:, i],
+                                              pdf_Npoints[i],
+                                              (min_hist[i], max_hist[i]),
+                                              weights=likelihood, density=True)
+            pdf_y = np.zeros_like(pdf_prob)
+            pdf_x = np.zeros_like(pdf_prob)
+            for val in range(len(pdf_grid)-1):
+                pdf_x[val] = (pdf_grid[val] +
+                              (pdf_grid[val+1]-pdf_grid[val])/2)
+                pdf_y[val] = ((pdf_grid[val] + (pdf_grid[val+1] -
+                                                pdf_grid[val])/2) *
+                              pdf_prob[val])/np.sum(pdf_prob)
+            analysed_averages[i] = np.sum(pdf_y)
+            analysed_std[i] = np.std(pdf_y)
+        var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
+        pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_y)
+
 
     # TODO Merge with above computation after checking it is fine with a MA.
     gbl_analysed_averages[idx, :] = analysed_averages
@@ -349,8 +399,7 @@ def analysis(idx, obs):
         save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
                   obs_fluxes.count())
     if gbl_save['pdf']:
-        save_pdf(obs['id'], gbl_analysed_variables, model_variables,
-                 likelihood)
+        save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
