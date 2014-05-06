@@ -158,8 +158,15 @@ class Configuration(object):
         with Database() as base:
             filter_list = base.get_filter_list()[0]
 
-        # Finding the known filters in the data table
         obs_table = read_table(self.config['data_file'])
+
+        # Check that the id and redshift columns are present in the input file
+        if 'id' not in obs_table.columns:
+            raise Exception("Column id not present in input file")
+        if 'redshift' not in obs_table.columns:
+            raise Exception("Column redshift not present in input file")
+
+        # Finding the known filters in the data table
         column_list = []
         for column in obs_table.columns:
             filter_name = column[:-4] if column.endswith('_err') else column
