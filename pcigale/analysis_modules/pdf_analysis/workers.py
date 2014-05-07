@@ -12,7 +12,8 @@ import numpy as np
 from scipy import optimize
 from scipy.special import erf
 
-from .utils import save_best_sed, save_pdf, save_chi2, FDbinSize
+from .utils import (save_best_sed, save_pdf, save_chi2, FDbinSize,
+                    dchi2_over_ds2)
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
@@ -417,69 +418,3 @@ def analysis(idx, obs):
                      np.around(n_computed/t_elapsed, decimals=1)),
               end="\r")
 
-def dchi2_over_ds2(s):
-
-    """Function used to estimate the normalization factor in the SED fitting
-    process when upper limits are included in the dataset to fit (from Eq. A11
-    in Sawicki M. 2012, PASA, 124, 1008).
-
-    Parameters
-    ----------
-    s: Float
-        Contains value onto which we perform minimization = normalization
-        factor
-    obs_fluxes: RawArray
-        Contains observed fluxes for each filter.
-    obs_errors: RawArray
-        Contains observed errors for each filter.
-    model_fluxes: RawArray
-        Contains modeled fluxes for each filter.
-    lim_flag: Boolean
-        Tell whether we use upper limits (True) or not (False).
-
-   Returns
-    -------
-    func: Float
-        Eq. A11 in Sawicki M. 2012, PASA, 124, 1008).
-
-    """
-    # We enter into this function if lim_flag = True.
-
-    # The mask "data" selects the filter(s) for which measured fluxes are given
-    # i.e., when obs_fluxes is >=0. and obs_errors >=0.
-    # The mask "lim" selects the filter(s) for which upper limits are given
-    # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
-
-    wlim = np.where((gbl_obs_errors >= -9990.)&(gbl_obs_errors < 0.))
-    wdata = np.where(gbl_obs_errors>=0.)
-
-    mod_fluxes_data = gbl_mod_fluxes[wdata]
-    mod_fluxes_lim = gbl_mod_fluxes[wlim]
-
-    obs_fluxes_data = gbl_obs_fluxes[wdata]
-    obs_fluxes_lim = gbl_obs_fluxes[wlim]
-
-    obs_errors_data = gbl_obs_errors[wdata]
-    obs_errors_lim = -gbl_obs_errors[wlim]
-
-    dchi2_over_ds_data = np.sum(
-        (obs_fluxes_data-s*mod_fluxes_data) *
-        mod_fluxes_data/(obs_errors_data*obs_errors_data))
-
-    dchi2_over_ds_lim = np.sqrt(2./np.pi)*np.sum(
-        mod_fluxes_lim*np.exp(
-            -np.square(
-                (obs_fluxes_lim-s*mod_fluxes_lim)/(np.sqrt(2)*obs_errors_lim)
-                      )
-                             )/(
-            obs_errors_lim*(
-                1.+erf(
-                   (obs_fluxes_lim-s*mod_fluxes_lim)/(np.sqrt(2)*obs_errors_lim)
-                      )
-                           )
-                               )
-                                                )
-
-    func = dchi2_over_ds_data - dchi2_over_ds_lim
-
-    return func
