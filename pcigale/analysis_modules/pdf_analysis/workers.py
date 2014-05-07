@@ -12,7 +12,7 @@ import numpy as np
 from scipy import optimize
 from scipy.special import erf
 
-from .utils import (save_best_sed, save_pdf, save_chi2, chi2_over_ds2)
+from .utils import (save_best_sed, save_pdf, save_chi2, dchi2_over_ds2)
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
