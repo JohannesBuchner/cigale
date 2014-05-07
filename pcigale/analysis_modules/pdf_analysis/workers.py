@@ -210,8 +210,8 @@ def analysis(idx, obs):
 
     global gbl_mod_fluxes, gbl_obs_fluxes, gbl_obs_errors
 
-    # We pick up the models with closest redshift assuming we have limited 
-    # the number of decimals (usually set to 2 decimals).
+    # We pick the indices of the models with closest redshift assuming we have
+    # limited the number of decimals (usually set to 2 decimals).
     w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                gbl_redshifts).argmin()]])
 
@@ -344,7 +344,7 @@ def analysis(idx, obs):
     for i, val in enumerate(analysed_averages):
         pdf_binsize[i] = FDbinSize(model_variables[:, i])
         if pdf_binsize[i]==0.:
-            # if only 1 bin, we cheat to have 1 point in the histogram
+            # If there is only one value, then the histogram has only one bin
             min_hist[i] = min(model_variables[:, i])
             max_hist[i] = min_hist[i]
             pdf_binsize[i] = 1.
