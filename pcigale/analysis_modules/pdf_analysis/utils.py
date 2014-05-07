@@ -178,36 +178,6 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
                            format='ascii.commented_header')
 
 
-def FDbinSize(values):
-    """
-    To define the size of the bin (parameter x), we use the Freedman-Diaconis
-    rule : bin size = 2 * IQR(x) * N^(-1/3) where IQR is the InterQuartile
-    Range containing 50% of sample. We do not use it here but, for a normal
-    distribution IQR = 1.349 * sigma. Note that the actual rule, there is a
-    factor 2. and not 1 like here.
-
-    Parameters
-    ----------
-    values: array like of floats
-        The values of the variable.
-
-    Returns
-    -------
-    h:  float
-      The Freedman-Diaconis bin size
-
-    """
-    # First Calculate the interquartile range
-    values = np.sort(values)
-    upperQuartile = scoreatpercentile(values, 75.)
-    lowerQuartile = scoreatpercentile(values, 25.)
-    IQR = upperQuartile - lowerQuartile
-
-    # Find the Freedman-Diaconis bin size
-    h = 2. * IQR * len(values)**(-1./3.)
-
-    return h
-
 def dchi2_over_ds2(s):
     """Function used to estimate the normalization factor in the SED fitting
     process when upper limits are included in the dataset to fit (from Eq. A11

@@ -12,8 +12,7 @@ import numpy as np
 from scipy import optimize
 from scipy.special import erf
 
-from .utils import (save_best_sed, save_pdf, save_chi2, FDbinSize,
-                    dchi2_over_ds2)
+from .utils import (save_best_sed, save_pdf, save_chi2, chi2_over_ds2)
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
@@ -332,61 +331,55 @@ def analysis(idx, obs):
     # likelihood as weight.
     analysed_averages = np.empty(len(gbl_analysed_variables))
     analysed_std = np.empty_like(analysed_averages)
+    values = np.ma.masked_where(model_variables==-99., model_variables)
 
     pdf_binsize = np.empty_like(analysed_averages)
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
 
-    Npdf = 100
+    Npdf = 100.
+    pdf_binsize = np.empty_like(analysed_averages)
+    min_hist = np.empty_like(analysed_averages)
+    max_hist = np.empty_like(analysed_averages)
+    pdf_prob = np.zeros((Npdf, len(analysed_averages)))
+    pdf_grid = np.zeros((Npdf, len(analysed_averages)))
     var = np.empty((Npdf, len(analysed_averages)))
     pdf = np.empty((Npdf, len(analysed_averages)))
 
-    for i, val in enumerate(analysed_averages):
-        pdf_binsize[i] = FDbinSize(model_variables[:, i])
-        if pdf_binsize[i] == 0.:
-            # If there is only one value, then the histogram has only one bin
-            min_hist[i] = min(model_variables[:, i])
-            max_hist[i] = min_hist[i]
-            pdf_binsize[i] = 1.
-        else:    
-            if np.min(model_variables[:, i]) > 0.:
-                min_hist[i] = max(0., np.min(model_variables[:, i]) -
-                                  pdf_binsize[i])
-                max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
-            elif np.max(model_variables[:, i]) < 0.:
-                min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
-                max_hist[i] = min(0., np.max(model_variables[:, i]) +
-                                  pdf_binsize[i])
-            else:
-                min_hist[i] = np.min(model_variables[:, i]) - pdf_binsize[i]
-                max_hist[i] = np.max(model_variables[:, i]) + pdf_binsize[i]
+#    print("Object analysed: id: {} and z = {}".
+#            format(obs['id'], obs['redshift']), end="\r")
 
-    pdf_Npoints = np.around((max_hist - min_hist) / pdf_binsize) + 1
-
+    # TODO : could we simplify and/or optimize the two loops below?
+    for par, val in enumerate(analysed_averages):
+        min_hist[par] = min(values[:,par])
+        max_hist[par] = max(values[:,par])
+        
     for i, val in enumerate(analysed_averages):
-        if all((x == model_variables[0, i] or x == -99.)
-               for x in model_variables[:, i]):
+        if all((x == model_variables[0, i] or x == -99.) 
+                for x in model_variables[:, i]):
             pdf_grid = max_hist[i]
             pdf_prob = 1.
             analysed_averages[i] = model_variables[0, i]
             analysed_std[i] = 0.
+            # If there is only one value, then the histogram has only one bin
+            pdf_binsize[i] = -1.
+            
         else:
-            pdf_prob = np.zeros((pdf_Npoints[i], len(analysed_averages)))
-            pdf_grid = np.zeros((pdf_Npoints[i], len(analysed_averages)))
+            pdf_binsize[i] = (max_hist[i] - min_hist[i]) / Npdf
             pdf_prob, pdf_grid = np.histogram(model_variables[:, i],
-                                              pdf_Npoints[i],
+                                              Npdf,
                                               (min_hist[i], max_hist[i]),
                                               weights=likelihood, density=True)
-            pdf_y = np.zeros_like(pdf_prob)
-            pdf_x = np.zeros_like(pdf_prob)
-            for val in range(len(pdf_grid)-1):
-                pdf_x[val] = (pdf_grid[val] +
-                              (pdf_grid[val+1]-pdf_grid[val])/2)
-                pdf_y[val] = ((pdf_grid[val] + (pdf_grid[val+1] -
-                                                pdf_grid[val])/2) *
-                              pdf_prob[val])/np.sum(pdf_prob)
-            analysed_averages[i] = np.sum(pdf_y)
-            analysed_std[i] = np.std(pdf_y)
+            pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
+            pdf_y = pdf_x * pdf_prob
+            analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
+            analysed_std[i] = np.sqrt(
+                                 np.sum(
+                                    np.square(pdf_x-analysed_averages[i]) * pdf_y
+                                       ) / np.sum(pdf_prob)
+                                     )
+            analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
+                    
         var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
         pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_y)
 
