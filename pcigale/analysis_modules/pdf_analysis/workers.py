@@ -343,7 +343,7 @@ def analysis(idx, obs):
 
     for i, val in enumerate(analysed_averages):
         pdf_binsize[i] = FDbinSize(model_variables[:, i])
-        if pdf_binsize[i]==0.:
+        if pdf_binsize[i] == 0.:
             # If there is only one value, then the histogram has only one bin
             min_hist[i] = min(model_variables[:, i])
             max_hist[i] = min_hist[i]
