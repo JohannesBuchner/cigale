@@ -77,7 +77,11 @@ class Dale2014(CreationModule):
 
         frac_agn = self.parameters["fracAGN"]
         
-        L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
+        if frac_agn < 1.:
+            L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
+        else:
+            raise Exception("AGN fraction is exactly 1. Behaviour "
+                            "undefined.")
 
         sed.add_module(self.name, self.parameters)
         sed.add_info("agn.fracAGN", self.parameters["fracAGN"])

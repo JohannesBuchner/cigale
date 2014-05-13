@@ -125,7 +125,11 @@ class Fritz2006(CreationModule):
         sed.add_info('fracAGN', self.parameters["fracAGN"])
 
         # Compute the AGN luminosity
-        L_AGN = luminosity * (1./(1.-fracAGN) - 1.)
+        if fracAGN < 1.:
+            L_AGN = luminosity * (1./(1.-fracAGN) - 1.)
+        else:
+            raise Exception("AGN fraction is exactly 1. Behaviour "
+                            "undefined.")
 
         sed.add_contribution('agn_fritz2006_therm', self.fritz2006.wave,
                              L_AGN * self.fritz2006.lumin_therm)
