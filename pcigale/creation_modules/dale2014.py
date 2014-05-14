@@ -60,7 +60,7 @@ class Dale2014(CreationModule):
 
         with Database() as database:
             self.model_sb = database.get_dale2014(0.00, alpha)
-            self.model_quasar = database.get_dale2014(1.00, alpha)
+            self.model_quasar = database.get_dale2014(1.00, 0.0)
 
     def process(self, sed):
         """Add the IR re-emission contributions

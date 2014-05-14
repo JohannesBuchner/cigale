@@ -369,22 +369,16 @@ def build_dale2014(base):
         base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave, lumin))
 
     # Emission from dust heated by AGN - Quasar template
-    fraction = 1.0
-    filename = dale2014_dir + "spectra.1.00AGN.dat"
+    filename = dale2014_dir + "shi_agn.regridded.extended.dat"
     print("Importing {}...".format(filename))
-    datafile = open(filename)
-    data = "".join(datafile.readlines())
-    datafile.close()
 
-    for al in range(1, len(alpha_grid), 1):
-        lumin_quasar = np.genfromtxt(io.BytesIO(data.encode()), usecols=(al))
-        lumin_quasar = pow(10, lumin_quasar) / wave
-        lumin_quasar[lumin_quasar < 0] = 0
-        norm = np.trapz(lumin_quasar, x=wave)
-        lumin_quasar = lumin_quasar / norm
+    wave, lumin_quasar = np.genfromtxt(filename, unpack=True)
+    wave *= 1e3
+    lumin_quasar = 10**lumin_quasar / wave
+    norm = np.trapz(lumin_quasar, x=wave)
+    lumin_quasar = lumin_quasar / norm
 
-        base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave,
-                                   lumin_quasar))
+    base.add_dale2014(Dale2014(1.0, 0.0, wave, lumin_quasar))
 
 
 def build_dl2007(base):
