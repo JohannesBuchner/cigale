@@ -5,6 +5,8 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly & Médéric Boquien
 
+from astropy import log
+log.setLevel('ERROR')
 from astropy.table import Table, Column
 import numpy as np
 from scipy.stats import scoreatpercentile

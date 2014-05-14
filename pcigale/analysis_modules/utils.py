@@ -14,6 +14,8 @@ import os
 import shutil
 
 import numpy as np
+from astropy import log
+log.setLevel('ERROR')
 from astropy.table import Table, Column
 
 # Directory where the output files are stored
