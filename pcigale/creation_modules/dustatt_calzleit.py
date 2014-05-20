@@ -312,5 +312,12 @@ class CalzLeit(CreationModule):
                          -2.5 * np.log10(flux_att[filter_name] /
                                          flux_noatt[filter_name]))
 
+        sed.add_info('attenuation.ebvs_main', ebvs['old'])
+        sed.add_info('attenuation.ebvs_young', ebvs['young'])
+        sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
+        sed.add_info('attenuation.uv_bump_width', uv_bump_width)
+        sed.add_info('attenuation.uv_bump_amplitude', uv_bump_amplitude)
+        sed.add_info('attenuation.powerlaw_slope', powerlaw_slope)
+
 # CreationModule to be returned by get_module
 Module = CalzLeit
