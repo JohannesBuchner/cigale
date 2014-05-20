@@ -188,8 +188,6 @@ def sed(idx):
         print("{}/{} models computed in {} seconds ({} models/s)".
               format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
-#                     np.around(n_computed/t_elapsed, decimals=1)),
-#              end="\r")
                      np.around(n_computed/t_elapsed, decimals=1)))
 
 
@@ -337,7 +335,7 @@ def analysis(idx, obs):
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
 
-    Npdf = 10.
+    Npdf = 100.
     pdf_binsize = np.empty_like(analysed_averages)
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
@@ -408,7 +406,6 @@ def analysis(idx, obs):
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} objects analysed in {} seconds ({} objects/s)".
               format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
-#                     np.around(n_computed/t_elapsed, decimals=1)),
-#              end="\r")
-                     np.around(n_computed/t_elapsed, decimals=1)))
+                     np.around(n_computed/t_elapsed, decimals=1)),
+              end="\r")
 
