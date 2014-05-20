@@ -188,8 +188,9 @@ def sed(idx):
         print("{}/{} models computed in {} seconds ({} models/s)".
               format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
-                     np.around(n_computed/t_elapsed, decimals=1)),
-              end="\r")
+#                     np.around(n_computed/t_elapsed, decimals=1)),
+#              end="\r")
+                     np.around(n_computed/t_elapsed, decimals=1)))
 
 
 def analysis(idx, obs):
@@ -221,7 +222,6 @@ def analysis(idx, obs):
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
-
     # Some observations may not have flux value in some filters, in
     # that case the user is asked to put -9999. as value. We mask these
     # values. Note, we must mask obs_fluxes AFTER obs_errors.
@@ -337,7 +337,7 @@ def analysis(idx, obs):
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
 
-    Npdf = 100.
+    Npdf = 10.
     pdf_binsize = np.empty_like(analysed_averages)
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
@@ -375,7 +375,7 @@ def analysis(idx, obs):
             analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
             analysed_std[i] = np.sqrt(
                                  np.sum(
-                                    np.square(pdf_x-analysed_averages[i]) * pdf_y
+                                    np.square(pdf_x-analysed_averages[i]) * pdf_prob
                                        ) / np.sum(pdf_prob)
                                      )
             analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
@@ -408,6 +408,7 @@ def analysis(idx, obs):
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} objects analysed in {} seconds ({} objects/s)".
               format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
-                     np.around(n_computed/t_elapsed, decimals=1)),
-              end="\r")
+#                     np.around(n_computed/t_elapsed, decimals=1)),
+#              end="\r")
+                     np.around(n_computed/t_elapsed, decimals=1)))
 
