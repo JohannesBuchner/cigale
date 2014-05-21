@@ -361,7 +361,9 @@ def analysis(idx, obs):
             analysed_std[i] = 0.
             # If there is only one value, then the histogram has only one bin
             pdf_binsize[i] = -1.
-            
+
+            var[:, i] = max_hist[i]
+            pdf[:, i] = 1.
         else:
             pdf_binsize[i] = (max_hist[i] - min_hist[i]) / Npdf
             pdf_prob, pdf_grid = np.histogram(model_variables[:, i],
@@ -377,9 +379,9 @@ def analysis(idx, obs):
                                        ) / np.sum(pdf_prob)
                                      )
             analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
-                    
-        var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
-        pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_y)
+
+            var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
+            pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
 
 
     # TODO Merge with above computation after checking it is fine with a MA.
