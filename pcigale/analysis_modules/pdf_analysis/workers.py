@@ -353,7 +353,7 @@ def analysis(idx, obs):
         max_hist[par] = np.max(values[:,par])
         
     for i, val in enumerate(analysed_averages):
-        if all((x == model_variables[0, i] or x == -99.) 
+        if np.all((x == -99. or x == model_variables[0, i])
                 for x in model_variables[:, i]):
             pdf_grid = max_hist[i]
             pdf_prob = 1.
