@@ -349,8 +349,8 @@ def analysis(idx, obs):
 
     # TODO : could we simplify and/or optimize the two loops below?
     for par, val in enumerate(analysed_averages):
-        min_hist[par] = min(values[:,par])
-        max_hist[par] = max(values[:,par])
+        min_hist[par] = np.min(values[:,par])
+        max_hist[par] = np.max(values[:,par])
         
     for i, val in enumerate(analysed_averages):
         if all((x == model_variables[0, i] or x == -99.) 
