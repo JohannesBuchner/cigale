@@ -121,7 +121,7 @@ class PdfAnalysis(AnalysisModule):
         # Initalise variables from input arguments.
         analysed_variables = config["analysed_variables"]
         n_variables = len(analysed_variables)
-        save = {key:config["save_{}".format(key)].lower() == "true"
+        save = {key: config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
         lim_flag = config["lim_flag"].lower() == "true"
 
@@ -197,11 +197,11 @@ class PdfAnalysis(AnalysisModule):
 
         # We use RawArrays for the same reason as previously
         analysed_averages = (RawArray(ctypes.c_double, n_obs * n_variables),
-                           (n_obs, n_variables))
+                             (n_obs, n_variables))
         analysed_std = (RawArray(ctypes.c_double, n_obs * n_variables),
-                           (n_obs, n_variables))
+                        (n_obs, n_variables))
         best_fluxes = (RawArray(ctypes.c_double, n_obs * n_filters),
-                           (n_obs, n_filters))
+                       (n_obs, n_filters))
         best_parameters = (RawArray(ctypes.c_double, n_obs * n_info),
                            (n_obs, n_info))
         best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
