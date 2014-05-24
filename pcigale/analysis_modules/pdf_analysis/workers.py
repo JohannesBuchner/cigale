@@ -335,18 +335,14 @@ def analysis(idx, obs):
     Npdf = 100.
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
-    pdf_prob = np.zeros((Npdf, len(analysed_averages)))
-    pdf_grid = np.zeros((Npdf, len(analysed_averages)))
     var = np.empty((Npdf, len(analysed_averages)))
     pdf = np.empty((Npdf, len(analysed_averages)))
 
     min_hist = np.min(values, axis=0)
     max_hist = np.max(values, axis=0)
-        
+
     for i, val in enumerate(analysed_averages):
         if min_hist[i] == max_hist[i]:
-            pdf_grid = max_hist[i]
-            pdf_prob = 1.
             analysed_averages[i] = model_variables[0, i]
             analysed_std[i] = 0.
 
