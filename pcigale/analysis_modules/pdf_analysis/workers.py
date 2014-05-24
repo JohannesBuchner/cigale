@@ -345,9 +345,6 @@ def analysis(idx, obs):
     var = np.empty((Npdf, len(analysed_averages)))
     pdf = np.empty((Npdf, len(analysed_averages)))
 
-#    print("Object analysed: id: {} and z = {}".
-#            format(obs['id'], obs['redshift']), end="\r")
-
     # TODO : could we simplify and/or optimize the two loops below?
     for par, val in enumerate(analysed_averages):
         min_hist[par] = np.min(values[:,par])
