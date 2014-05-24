@@ -343,10 +343,8 @@ def analysis(idx, obs):
     var = np.empty((Npdf, len(analysed_averages)))
     pdf = np.empty((Npdf, len(analysed_averages)))
 
-    # TODO : could we simplify and/or optimize the two loops below?
-    for par, val in enumerate(analysed_averages):
-        min_hist[par] = np.min(values[:,par])
-        max_hist[par] = np.max(values[:,par])
+    min_hist = np.min(values, axis=0)
+    max_hist = np.max(values, axis=0)
         
     for i, val in enumerate(analysed_averages):
         if min_hist[i] == max_hist[i]:
