@@ -188,7 +188,8 @@ def sed(idx):
         print("{}/{} models computed in {} seconds ({} models/s)".
               format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
-                     np.around(n_computed/t_elapsed, decimals=1)))
+                     np.around(n_computed/t_elapsed, decimals=1)),
+              end="\r")
 
 
 def analysis(idx, obs):
@@ -404,10 +405,9 @@ def analysis(idx, obs):
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
-    if n_computed % 100 == 0 or n_computed == gbl_n_obs:
-        t_elapsed = time.time() - gbl_t_begin
-        print("{}/{} objects analysed in {} seconds ({} objects/s)".
-              format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
-                     np.around(n_computed/t_elapsed, decimals=1)),
-              end="\r")
+    t_elapsed = time.time() - gbl_t_begin
+    print("{}/{} objects analysed in {} seconds ({} objects/s)".
+            format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
+                    np.around(n_computed/t_elapsed, decimals=2)),
+            end="\r")
 
