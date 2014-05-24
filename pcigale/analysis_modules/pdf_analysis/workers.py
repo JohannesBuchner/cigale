@@ -332,9 +332,6 @@ def analysis(idx, obs):
     analysed_std = np.empty_like(analysed_averages)
     values = np.ma.masked_where(model_variables==-99., model_variables)
 
-    min_hist = np.empty_like(analysed_averages)
-    max_hist = np.empty_like(analysed_averages)
-
     Npdf = 100.
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
