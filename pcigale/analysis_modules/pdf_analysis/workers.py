@@ -332,12 +332,10 @@ def analysis(idx, obs):
     analysed_std = np.empty_like(analysed_averages)
     values = np.ma.masked_where(model_variables==-99., model_variables)
 
-    pdf_binsize = np.empty_like(analysed_averages)
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
 
     Npdf = 100.
-    pdf_binsize = np.empty_like(analysed_averages)
     min_hist = np.empty_like(analysed_averages)
     max_hist = np.empty_like(analysed_averages)
     pdf_prob = np.zeros((Npdf, len(analysed_averages)))
@@ -356,13 +354,10 @@ def analysis(idx, obs):
             pdf_prob = 1.
             analysed_averages[i] = model_variables[0, i]
             analysed_std[i] = 0.
-            # If there is only one value, then the histogram has only one bin
-            pdf_binsize[i] = -1.
 
             var[:, i] = max_hist[i]
             pdf[:, i] = 1.
         else:
-            pdf_binsize[i] = (max_hist[i] - min_hist[i]) / Npdf
             pdf_prob, pdf_grid = np.histogram(model_variables[:, i],
                                               Npdf,
                                               (min_hist[i], max_hist[i]),
