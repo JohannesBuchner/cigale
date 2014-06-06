@@ -258,7 +258,7 @@ def analysis(idx, obs):
             gbl_mod_fluxes = model_fluxes[imod, :]
             norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
                                                tol=1e-16)
-    norm_model_fluxes = model_fluxes * norm_facts[:, np.newaxis]
+    model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
     mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
@@ -271,20 +271,20 @@ def analysis(idx, obs):
         # and lim_flag=True
         mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
         chi2_data = np.sum(np.square(
-            (obs_fluxes[mask_data]-norm_model_fluxes[:, mask_data]) /
+            (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
         chi2_lim = -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
                     1.+erf(
-                        (obs_fluxes[mask_lim]-norm_model_fluxes[:, mask_lim]) /
+                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
 
         chi2_ = chi2_data + chi2_lim
     else:
         chi2_ = np.sum(np.square(
-            (obs_fluxes[mask_data] - norm_model_fluxes[:, mask_data]) /
+            (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
     # We use the exponential probability associated with the χ² as
@@ -371,7 +371,7 @@ def analysis(idx, obs):
     gbl_analysed_averages[idx, :] = analysed_averages
     gbl_analysed_std[idx, :] = analysed_std
 
-    gbl_best_fluxes[idx, :] = norm_model_fluxes[best_index, :]
+    gbl_best_fluxes[idx, :] = model_fluxes[best_index, :]
     gbl_best_parameters[idx, :] = list(sed.info.values())
     gbl_best_chi2[idx] = chi2_[best_index]
     gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.count()
