@@ -207,8 +207,6 @@ def analysis(idx, obs):
     # Tolerance threshold under which any flux or error is considered as 0.
     tolerance = 1e-12
 
-    global gbl_mod_fluxes, gbl_obs_fluxes, gbl_obs_errors
-
     # We pick the indices of the models with closest redshift assuming we have
     # limited the number of decimals (usually set to 2 decimals).
     w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
@@ -240,9 +238,6 @@ def analysis(idx, obs):
     lim_flag = gbl_lim_flag*np.logical_and(obs_errors >= -9990.,
                                            obs_errors < tolerance)
 
-    gbl_obs_fluxes = obs_fluxes
-    gbl_obs_errors = obs_errors
-
     # Normalisation factor to be applied to a model fluxes to best fit
     # an observation fluxes. Normalised flux of the models. χ² and
     # likelihood of the fitting. Reduced χ² (divided by the number of
@@ -255,9 +250,10 @@ def analysis(idx, obs):
     if lim_flag.any() is True:
         norm_init = norm_facts
         for imod in range(len(model_fluxes)):
-            gbl_mod_fluxes = model_fluxes[imod, :]
             norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
-                                               tol=1e-16)
+                                               tol=1e-16,
+                                               args=(obs_fluxes, obs_errors,
+                                                     model_fluxes[mod, :]))
     model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
