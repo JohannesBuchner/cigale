@@ -235,8 +235,8 @@ def analysis(idx, obs):
     # 2) s/he puts False in the boolean lim_flag
     # and the limits are processed as no-data below.
 
-    lim_flag = gbl_lim_flag*np.logical_and(obs_errors >= -9990.,
-                                           obs_errors < tolerance)
+    lim_flag = gbl_lim_flag and np.any((obs_errors >= -9990.)&
+                                       (obs_errors < tolerance))
 
     # Normalisation factor to be applied to a model fluxes to best fit
     # an observation fluxes. Normalised flux of the models. χ² and
@@ -247,7 +247,7 @@ def analysis(idx, obs):
         np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
     )
 
-    if lim_flag.any() is True:
+    if lim_flag is True:
         norm_init = norm_facts
         for imod in range(len(model_fluxes)):
             norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
@@ -258,7 +258,7 @@ def analysis(idx, obs):
 
     # χ² of the comparison of each model to each observation.
     mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
-    if lim_flag.any() is True:
+    if lim_flag is True:
         # This mask selects the filter(s) for which measured fluxes are given
         # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
         mask_data = (obs_errors >= tolerance)
