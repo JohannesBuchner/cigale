@@ -27,7 +27,6 @@ from scipy.misc import factorial
 from ..creation_modules import CreationModule
 from pcigale.sed.cosmology import cosmology
 
-
 def igm_transmission(wavelength, redshift):
     """Intergalactic transmission (Meiksin, 2006)
 
@@ -46,9 +45,8 @@ def igm_transmission(wavelength, redshift):
         The intergalactic transmission at each input wavelength.
 
     """
-
     n_transitions_low = 10
-    n_transitions_max = 32
+    n_transitions_max = 31
     gamma = 0.2788  # Gamma(0.5,1) i.e., Gamma(2-beta,1) with beta = 1.5
     n0 = 0.25
     lambda_limit = 91.2  # Lyman limit in nm
@@ -57,10 +55,10 @@ def igm_transmission(wavelength, redshift):
     z_n = np.empty((n_transitions_max, len(wavelength)))
     for n in range(2, n_transitions_max):
         lambda_n[n] = lambda_limit / (1. - 1. / float(n*n))
-        z_n[n, :] = wavelength / lambda_n[n] - 1.
-
-    # From Table 1 in Meiksin (2006), only ne3 are relevant. fact has a
-    # length equal to n_transistions_low.
+        z_n[n, :] = (wavelength / lambda_n[n]) - 1.
+ 
+    # From Table 1 in Meiksin (2006), only n >= 3 are relevant. 
+    # fact has a length equal to n_transitions_low.
     fact = np.array([1., 1., 1., 0.348, 0.179, 0.109, 0.0722, 0.0508, 0.0373,
                      0.0283])
 
@@ -68,10 +66,10 @@ def igm_transmission(wavelength, redshift):
     # Here n = 2 => tau_2 = tau_alpha
     tau_n = np.zeros((n_transitions_max, len(wavelength)))
     if redshift <= 4:
-        tau_a = 0.00211 * np.power(1. + redshift, 3.7)
+        tau_a =       0.00211 * np.power(1. + redshift,  3.7)
         tau_n[2, :] = 0.00211 * np.power(1. + z_n[2, :], 3.7)
-    elif redshift >= 4:
-        tau_a = 0.00058 * np.power(1. + redshift, 4.5)
+    elif redshift > 4:
+        tau_a =       0.00058 * np.power(1. + redshift,  4.5)
         tau_n[2, :] = 0.00058 * np.power(1. + z_n[2, :], 4.5)
 
     # Then, tau_n is the mean optical depth value for transitions
@@ -91,8 +89,10 @@ def igm_transmission(wavelength, redshift):
             tau_n[n, :] = (tau_n[9, :] * 720. /
                            (float(n) * (float(n*n - 1.))))
 
-    w = np.where(z_n[2:n_transitions_max, :] > redshift)
-    tau_n[w] = 0.
+    for n in range(2, n_transitions_max):
+        w = np.where(z_n[n, :] >= redshift)
+        tau_n[n, w] = 0.
+    
     z_l = wavelength / lambda_limit - 1.
     tau_l_igm = np.zeros_like(wavelength)
     w = np.where(z_l < redshift)
@@ -104,7 +104,6 @@ def igm_transmission(wavelength, redshift):
     n = np.arange(n_transitions_low - 1)
     term2 = np.sum(np.power(-1., n) / (factorial(n) * (2*n - 1)))
 
-    w = np.where(z_l < redshift)
     term3 = ((1.+redshift) * np.power(wavelength[w]/lambda_limit, 1.5) -
              np.power(wavelength[w]/lambda_limit, 2.5))
 
@@ -116,18 +115,18 @@ def igm_transmission(wavelength, redshift):
          for n in np.arange(1, n_transitions_low)]), axis=0)
 
     tau_l_lls = np.zeros_like(wavelength)
+    w = np.where(z_l < redshift)
     tau_l_lls[w] = n0 * ((term1 - term2) * term3 - term4)
 
-    tau_taun = 0.
-    for n in range(n_transitions_max):
-        tau_taun = tau_taun + tau_n[n, :]
-
+    tau_taun = np.sum(tau_n[2:n_transitions_max, :], axis=0.)
+     
     lambda_min_igm = (1+redshift)*70.
     weight = np.ones_like(wavelength)
     w = np.where(wavelength < lambda_min_igm)
     weight[w] = np.power(wavelength[w]/lambda_min_igm, 2.)
     # Another weight using erf function can be used.
-    # weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
+    # However, you would need to add: from scipy.special import erf
+#    weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
 
     tau = tau_taun + tau_l_igm + tau_l_lls
     igm_transmission = np.exp(-tau) * weight
