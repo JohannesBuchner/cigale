@@ -94,8 +94,9 @@ def igm_transmission(wavelength, redshift):
         tau_n[n, w] = 0.
     
     z_l = wavelength / lambda_limit - 1.
-    tau_l_igm = np.zeros_like(wavelength)
     w = np.where(z_l < redshift)
+
+    tau_l_igm = np.zeros_like(wavelength)
     tau_l_igm[w] = (0.805 * np.power(1. + z_l[w], 3) *
                     (1. / (1. + z_l[w]) - 1. / (1. + redshift)))
 
@@ -115,21 +116,20 @@ def igm_transmission(wavelength, redshift):
          for n in np.arange(1, n_transitions_low)]), axis=0)
 
     tau_l_lls = np.zeros_like(wavelength)
-    w = np.where(z_l < redshift)
     tau_l_lls[w] = n0 * ((term1 - term2) * term3 - term4)
 
     tau_taun = np.sum(tau_n[2:n_transitions_max, :], axis=0.)
      
     lambda_min_igm = (1+redshift)*70.
-    weight = np.ones_like(wavelength)
     w = np.where(wavelength < lambda_min_igm)
+
+    weight = np.ones_like(wavelength)
     weight[w] = np.power(wavelength[w]/lambda_min_igm, 2.)
     # Another weight using erf function can be used.
     # However, you would need to add: from scipy.special import erf
-#    weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
+    #weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
 
-    tau = tau_taun + tau_l_igm + tau_l_lls
-    igm_transmission = np.exp(-tau) * weight
+    igm_transmission = np.exp(-tau_taun-tau_l_igm-tau_l_lls) * weight
 
     return igm_transmission
 
