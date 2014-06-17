@@ -207,25 +207,28 @@ def analysis(idx, obs):
     # Tolerance threshold under which any flux or error is considered as 0.
     tolerance = 1e-12
 
-    global gbl_mod_fluxes, gbl_obs_fluxes, gbl_obs_errors
+    obs_fluxes = np.array([obs[name] for name in gbl_filters])
+    obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
+
+    wobs = np.where(obs_fluxes > tolerance)
+    obs_fluxes = obs_fluxes[wobs]
+    obs_errors = obs_errors[wobs]
 
     # We pick the indices of the models with closest redshift assuming we have
     # limited the number of decimals (usually set to 2 decimals).
-    w = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
+    wz = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                gbl_redshifts).argmin()]])
 
     # We only keep model with fluxes >= -90. If not => no data
     # Probably because age > age of the universe (see function sed(idx) above).
-    model_fluxes = np.ma.masked_less(gbl_model_fluxes[w[0], :], -90.)
-    model_variables = np.ma.masked_less(gbl_model_variables[w[0], :], -90.)
+    model_fluxes = gbl_model_fluxes[wz[0], :]
 
-    obs_fluxes = np.array([obs[name] for name in gbl_filters])
-    obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
-    # Some observations may not have flux value in some filters, in
-    # that case the user is asked to put -9999. as value. We mask these
-    # values. Note, we must mask obs_fluxes AFTER obs_errors.
-    obs_errors = np.ma.masked_where(obs_fluxes < -9990., obs_errors)
-    obs_fluxes = np.ma.masked_less(obs_fluxes, -9990.)
+    model_fluxes = model_fluxes[:, wobs[0]]
+    model_variables = gbl_model_variables[wz[0], :]
+
+    wvalid = np.where(model_variables[:, 0] >= -90.)
+    model_fluxes = model_fluxes[wvalid[0], :]
+    model_variables = model_variables[wvalid[0], :]
 
     # Some observations may not have flux values in some filter(s), but
     # they can have upper limit(s). To process upper limits, the user
@@ -237,11 +240,8 @@ def analysis(idx, obs):
     # 2) s/he puts False in the boolean lim_flag
     # and the limits are processed as no-data below.
 
-    lim_flag = gbl_lim_flag*np.logical_and(obs_errors >= -9990.,
-                                           obs_errors < tolerance)
-
-    gbl_obs_fluxes = obs_fluxes
-    gbl_obs_errors = obs_errors
+    lim_flag = gbl_lim_flag and np.any((obs_errors >= -9990.)&
+                                       (obs_errors < tolerance))
 
     # Normalisation factor to be applied to a model fluxes to best fit
     # an observation fluxes. Normalised flux of the models. χ² and
@@ -252,17 +252,18 @@ def analysis(idx, obs):
         np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
     )
 
-    if lim_flag.any() is True:
+    if lim_flag is True:
         norm_init = norm_facts
         for imod in range(len(model_fluxes)):
-            gbl_mod_fluxes = model_fluxes[imod, :]
             norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
-                                               tol=1e-16)
-    norm_model_fluxes = model_fluxes * norm_facts[:, np.newaxis]
+                                               tol=1e-16,
+                                               args=(obs_fluxes, obs_errors,
+                                                     model_fluxes[mod, :]))
+    model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
     mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
-    if lim_flag.any() is True:
+    if lim_flag is True:
         # This mask selects the filter(s) for which measured fluxes are given
         # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
         mask_data = (obs_errors >= tolerance)
@@ -271,20 +272,20 @@ def analysis(idx, obs):
         # and lim_flag=True
         mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
         chi2_data = np.sum(np.square(
-            (obs_fluxes[mask_data]-norm_model_fluxes[:, mask_data]) /
+            (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
         chi2_lim = -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
                     1.+erf(
-                        (obs_fluxes[mask_lim]-norm_model_fluxes[:, mask_lim]) /
+                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
 
         chi2_ = chi2_data + chi2_lim
     else:
         chi2_ = np.sum(np.square(
-            (obs_fluxes[mask_data] - norm_model_fluxes[:, mask_data]) /
+            (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
     # We use the exponential probability associated with the χ² as
@@ -296,7 +297,8 @@ def analysis(idx, obs):
     likelihood /= np.sum(likelihood)
     # We don't want to take into account the models with a probability
     # less that the threshold.
-    likelihood = np.ma.masked_less(likelihood, MIN_PROBABILITY)
+    wlikely = np.where(likelihood >= MIN_PROBABILITY)
+    likelihood = likelihood[wlikely]
     # We re-normalise the likelihood.
     likelihood /= np.sum(likelihood)
 
@@ -313,11 +315,11 @@ def analysis(idx, obs):
     if gbl_previous_idx > -1:
         gbl_warehouse.partial_clear_cache(
             gbl_params.index_module_changed(gbl_previous_idx,
-                                            w[0][best_index]))
-    gbl_previous_idx = w[0][best_index]
+                                            wz[0][wvalid[0][best_index]]))
+    gbl_previous_idx = wz[0][wvalid[0][best_index]]
 
     sed = gbl_warehouse.get_sed(gbl_params.modules,
-                                gbl_params.from_index([w[0][best_index]]))
+                                gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
 
     # We correct the mass-dependent parameters
     for key in sed.mass_proportional_info:
@@ -330,16 +332,12 @@ def analysis(idx, obs):
     # likelihood as weight.
     analysed_averages = np.empty(len(gbl_analysed_variables))
     analysed_std = np.empty_like(analysed_averages)
-    values = np.ma.masked_where(model_variables==-99., model_variables)
 
     Npdf = 100.
-    min_hist = np.empty_like(analysed_averages)
-    max_hist = np.empty_like(analysed_averages)
     var = np.empty((Npdf, len(analysed_averages)))
     pdf = np.empty((Npdf, len(analysed_averages)))
-
-    min_hist = np.min(values, axis=0)
-    max_hist = np.max(values, axis=0)
+    min_hist = np.min(model_variables, axis=0)
+    max_hist = np.max(model_variables, axis=0)
 
     for i, val in enumerate(analysed_averages):
         if min_hist[i] == max_hist[i]:
@@ -349,7 +347,7 @@ def analysis(idx, obs):
             var[:, i] = max_hist[i]
             pdf[:, i] = 1.
         else:
-            pdf_prob, pdf_grid = np.histogram(model_variables[:, i],
+            pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
                                               Npdf,
                                               (min_hist[i], max_hist[i]),
                                               weights=likelihood, density=True)
@@ -371,16 +369,16 @@ def analysis(idx, obs):
     gbl_analysed_averages[idx, :] = analysed_averages
     gbl_analysed_std[idx, :] = analysed_std
 
-    gbl_best_fluxes[idx, :] = norm_model_fluxes[best_index, :]
+    gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :]*norm_facts[best_index]
     gbl_best_parameters[idx, :] = list(sed.info.values())
     gbl_best_chi2[idx] = chi2_[best_index]
-    gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.count()
+    gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 
     if gbl_save['best_sed']:
         save_best_sed(obs['id'], sed, norm_facts[best_index])
     if gbl_save['chi2']:
         save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
-                  obs_fluxes.count())
+                  obs_fluxes.size)
     if gbl_save['pdf']:
         save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
