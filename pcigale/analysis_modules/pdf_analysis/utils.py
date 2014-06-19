@@ -15,11 +15,6 @@ from ..utils import OUT_DIR
 
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
-# Name of the file containing the analysis results
-RESULT_FILE = "analysis_results.txt"
-# Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.txt"
-
 
 def save_best_sed(obsid, sed, norm):
     """Save the best SED to a VO table.
@@ -95,12 +90,14 @@ def save_chi2(obsid, analysed_variables, model_variables, reduced_chi2):
         table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, var_name))
 
 
-def save_table_analysis(obsid, analysed_variables, analysed_averages,
+def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,
                         analysed_std):
     """Save the estimated values derived from the analysis of the PDF
 
     Parameters
     ----------
+    filename: name of the file to save
+        Name of the output file
     obsid: table column
         Names of the objects
     analysed_variables: list
@@ -128,15 +125,17 @@ def save_table_analysis(obsid, analysed_variables, analysed_averages,
             np_analysed_std[:, index],
             name=variable+"_err"
         ))
-    result_table.write(OUT_DIR + RESULT_FILE, format='ascii.commented_header')
+    result_table.write(OUT_DIR + filename, format='ascii.commented_header')
 
 
-def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
+def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes, filters,
                     info_keys):
     """Save the values corresponding to the best fit
 
     Parameters
     ----------
+    filename: name of the file to save
+        Name of the output file
     obsid: table column
         Names of the objects
     chi2: RawArray
@@ -176,11 +175,11 @@ def save_table_best(obsid, chi2, chi2_red, variables, fluxes, filters,
         column = Column(np_fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
-    best_model_table.write(OUT_DIR + BEST_MODEL_FILE,
+    best_model_table.write(OUT_DIR + filename,
                            format='ascii.commented_header')
 
 
-def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
+def dchi2_over_ds2(s):
     """Function used to estimate the normalization factor in the SED fitting
     process when upper limits are included in the dataset to fit (from Eq. A11
     in Sawicki M. 2012, PASA, 124, 1008).
@@ -212,17 +211,17 @@ def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
     # The mask "lim" selects the filter(s) for which upper limits are given
     # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
 
-    wlim = np.where((obs_errors >= -9990.)&(obs_errors < 0.))
-    wdata = np.where(obs_errors>=0.)
+    wlim = np.where((gbl_obs_errors >= -9990.)&(gbl_obs_errors < 0.))
+    wdata = np.where(gbl_obs_errors>=0.)
 
-    mod_fluxes_data = mod_fluxes[wdata]
-    mod_fluxes_lim = mod_fluxes[wlim]
+    mod_fluxes_data = gbl_mod_fluxes[wdata]
+    mod_fluxes_lim = gbl_mod_fluxes[wlim]
 
-    obs_fluxes_data = obs_fluxes[wdata]
-    obs_fluxes_lim = bs_fluxes[wlim]
+    obs_fluxes_data = gbl_obs_fluxes[wdata]
+    obs_fluxes_lim = gbl_obs_fluxes[wlim]
 
-    obs_errors_data = obs_errors[wdata]
-    obs_errors_lim = -obs_errors[wlim]
+    obs_errors_data = gbl_obs_errors[wdata]
+    obs_errors_lim = -gbl_obs_errors[wlim]
 
     dchi2_over_ds_data = np.sum(
         (obs_fluxes_data-s*mod_fluxes_data) *
