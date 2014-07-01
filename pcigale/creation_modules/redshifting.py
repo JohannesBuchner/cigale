@@ -146,7 +146,7 @@ class Redshifting(CreationModule):
         ("redshift", (
             "float",
             "Redshift to apply to the galaxy. Leave empty to use the redshifts"
-            "from the input file.",
+            " from the input file.",
             None
         ))
     ])
