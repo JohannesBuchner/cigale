@@ -117,10 +117,12 @@ class Configuration(object):
 
         self.config['data_file'] = ""
         self.config.comments['data_file'] = wrap(
-            "File containing the observation data to be fitted. Each flux "
-            "column must have the name of the corresponding filter, the "
-            "error columns are suffixed with '_err'. The values must be "
-            "in mJy.")
+            "File containing the input data. The columns are 'id' (name of the"
+            " object), 'redshift' (if 0 the distance is assumed to be 10 pc), "
+            "the filter names for the fluxes, and the filter names with the "
+            "'_err' suffix for the uncertainties. The fluxes and the "
+            "uncertainties must be in mJy. This file is optional to generate "
+            "the configuration file, in particular for the savefluxes module.")
 
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = [""] + wrap(
@@ -158,29 +160,34 @@ class Configuration(object):
         with Database() as base:
             filter_list = base.get_filter_list()[0]
 
-        obs_table = read_table(self.config['data_file'])
+        if self.config['data_file'] != '':
+            obs_table = read_table(self.config['data_file'])
 
-        # Check that the id and redshift columns are present in the input file
-        if 'id' not in obs_table.columns:
-            raise Exception("Column id not present in input file")
-        if 'redshift' not in obs_table.columns:
-            raise Exception("Column redshift not present in input file")
+            # Check that the id and redshift columns are present in the input
+            # file
+            if 'id' not in obs_table.columns:
+                raise Exception("Column id not present in input file")
+            if 'redshift' not in obs_table.columns:
+                raise Exception("Column redshift not present in input file")
 
-        # Finding the known filters in the data table
-        column_list = []
-        for column in obs_table.columns:
-            filter_name = column[:-4] if column.endswith('_err') else column
-            if filter_name in filter_list:
-                column_list.append(column)
+            # Finding the known filters in the data table
+            column_list = []
+            for column in obs_table.columns:
+                filter_name = column[:-4] if column.endswith('_err') else column
+                if filter_name in filter_list:
+                    column_list.append(column)
 
-        # Check that we don't have an error column without the associated flux
-        for column in column_list:
-            if column.endswith('_err') and (column[:-4] not in column_list):
-                raise Exception("The observation table as a {} column "
-                                "but no {} column.".format(column,
-                                                           column[:-4]))
+            # Check that we don't have an error column without the associated
+            # flux
+            for column in column_list:
+                if column.endswith('_err') and (column[:-4] not in column_list):
+                    raise Exception("The observation table as a {} column "
+                                    "but no {} column.".format(column,
+                                                            column[:-4]))
 
-        self.config['column_list'] = column_list
+            self.config['column_list'] = column_list
+        else:
+            self.config['column_list'] = ''
         self.config.comments['column_list'] = [""] + wrap(
             "List of the columns in the observation data file to use for "
             "the fitting.")
