@@ -72,7 +72,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
                   best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
-                  lim_flag, n_obs):
+                  lim_flag, n_obs, phase):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -112,6 +112,8 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         to given models.
     n_obs: int
         Number of observations.
+    phase: int
+        Phase of the analysis (data or mock).
 
     """
     init_sed(params, filters, analysed, redshifts, fluxes, variables,
@@ -119,7 +121,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
     global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
     global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
-    global gbl_lim_flag
+    global gbl_lim_flag, gbl_phase
 
     gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
     gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
@@ -145,7 +147,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     gbl_lim_flag = lim_flag
 
     gbl_n_obs = n_obs
-
+    gbl_phase = phase
 
 def sed(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
@@ -308,79 +310,139 @@ def analysis(idx, obs):
 
     # We define the best fitting model for each observation as the one
     # with the least χ².
-    best_index = chi2_.argmin()
+    if len(chi2_)==0:
+    # It sometimes happen because models are older than the Universe's age
+        print("--------------------------------------------------------------")
+        print("No suitable model selected for the object #", idx, "we skip it")
+        print("One possible origin is that models are older than the Universe")
+        print("--------------------------------------------------------------")
+    else:
+        best_index = chi2_.argmin()        
 
     # We compute once again the best sed to obtain its info
-    global gbl_previous_idx
-    if gbl_previous_idx > -1:
-        gbl_warehouse.partial_clear_cache(
-            gbl_params.index_module_changed(gbl_previous_idx,
+        global gbl_previous_idx
+        if gbl_previous_idx > -1:
+            gbl_warehouse.partial_clear_cache(
+                gbl_params.index_module_changed(gbl_previous_idx,
                                             wz[0][wvalid[0][best_index]]))
-    gbl_previous_idx = wz[0][wvalid[0][best_index]]
+        gbl_previous_idx = wz[0][wvalid[0][best_index]]
 
-    sed = gbl_warehouse.get_sed(gbl_params.modules,
+        sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
 
     # We correct the mass-dependent parameters
-    for key in sed.mass_proportional_info:
-        sed.info[key] *= norm_facts[best_index]
-    for index, variable in enumerate(gbl_analysed_variables):
-        if variable in sed.mass_proportional_info:
-            model_variables[:, index] *= norm_facts
+        for key in sed.mass_proportional_info:
+            sed.info[key] *= norm_facts[best_index]
+        for index, variable in enumerate(gbl_analysed_variables):
+            if variable in sed.mass_proportional_info:
+                model_variables[:, index] *= norm_facts
 
     # We compute the weighted average and standard deviation using the
     # likelihood as weight.
-    analysed_averages = np.empty(len(gbl_analysed_variables))
-    analysed_std = np.empty_like(analysed_averages)
+        analysed_averages = np.empty(len(gbl_analysed_variables))
+        analysed_std = np.empty_like(analysed_averages)
 
-    Npdf = 100.
-    var = np.empty((Npdf, len(analysed_averages)))
-    pdf = np.empty((Npdf, len(analysed_averages)))
-    min_hist = np.min(model_variables, axis=0)
-    max_hist = np.max(model_variables, axis=0)
+    # Below this row, we have two options to build the PDF:
+    # 1) the baseline checks how many unique parameter values are analysed and
+    # if less than Npdf (= 100), the PDF is initally built assuming a number
+    # of bins equal to the number of unique value for a given parameter
+    # (e.g., average_sfr, age, attenuation.uv_bump_amplitude, dust.luminosity, 
+    # attenuation.FUV, etc.).
+    # 2) the second one (commented) assumed Npdf = 100 whatever the number of
+    # unique parameters. If you wish to use the latter option instead of the 
+    # formed (baseline), 
+    # comment between <1.. and ..1> and un-comment between <2.. and ..2>
+    # and vice-versa if you want to come back to the baseline
 
-    for i, val in enumerate(analysed_averages):
-        if min_hist[i] == max_hist[i]:
-            analysed_averages[i] = model_variables[0, i]
-            analysed_std[i] = 0.
+####<1..    
+        Npdf = 100.
+        var = np.empty((Npdf, len(analysed_averages)))
+        pdf = np.empty((Npdf, len(analysed_averages)))
+        min_hist = np.min(model_variables, axis=0)
+        max_hist = np.max(model_variables, axis=0)
 
-            var[:, i] = max_hist[i]
-            pdf[:, i] = 1.
-        else:
-            pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
-                                              Npdf,
+        for i, val in enumerate(analysed_averages):
+
+            if len(np.unique(model_variables[:, i])) < Npdf:
+                Nhist = len(np.unique(model_variables[:, i]))
+            else:
+                Nhist = Npdf
+
+            if min_hist[i] == max_hist[i]:
+                pdf_grid = max_hist[i]
+                pdf_prob = 1.
+                analysed_averages[i] = model_variables[0, i]
+                analysed_std[i] = 0.
+
+                var[:, i] = max_hist[i]
+                pdf[:, i] = 1.
+            else:
+                pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
+                                              Nhist,
                                               (min_hist[i], max_hist[i]),
                                               weights=likelihood, density=True)
-            pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
-            pdf_y = pdf_x * pdf_prob
-            analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
-            analysed_std[i] = np.sqrt(
-                                 np.sum(
+                pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
+                pdf_y = pdf_x * pdf_prob
+                analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
+                analysed_std[i] = np.sqrt(
+                                     np.sum(
                                     np.square(pdf_x-analysed_averages[i]) * pdf_prob
-                                       ) / np.sum(pdf_prob)
-                                     )
-            analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
+                                           ) / np.sum(pdf_prob)
+                                         )
+####..1>
+####<2..    
+#        Npdf = 100.
+#        var = np.empty((Npdf, len(analysed_averages)))
+#        pdf = np.empty((Npdf, len(analysed_averages)))
+#        min_hist = np.min(model_variables, axis=0)
+#        max_hist = np.max(model_variables, axis=0)
+#
+#        for i, val in enumerate(analysed_averages):
+#            if min_hist[i] == max_hist[i]:
+#                analysed_averages[i] = model_variables[0, i]
+#                analysed_std[i] = 0.
+#
+#                var[:, i] = max_hist[i]
+#                pdf[:, i] = 1.
+#            else:
+#                pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
+#                                              Npdf,
+#                                              (min_hist[i], max_hist[i]),
+#                                              weights=likelihood, density=True)
+#                pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
+#                pdf_y = pdf_x * pdf_prob
+#                analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
+#                analysed_std[i] = np.sqrt(
+#                                     np.sum(
+#                                    np.square(pdf_x-analysed_averages[i]) * pdf_prob
+#                                           ) / np.sum(pdf_prob)
+#                                         )
+####..2>
+                analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
 
-            var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
-            pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
+                var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
+                pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
 
 
     # TODO Merge with above computation after checking it is fine with a MA.
-    gbl_analysed_averages[idx, :] = analysed_averages
-    gbl_analysed_std[idx, :] = analysed_std
+        gbl_analysed_averages[idx, :] = analysed_averages
+        gbl_analysed_std[idx, :] = analysed_std
 
-    gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :]*norm_facts[best_index]
-    gbl_best_parameters[idx, :] = list(sed.info.values())
-    gbl_best_chi2[idx] = chi2_[best_index]
-    gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
+        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :] \
+                      *norm_facts[best_index]
+        gbl_best_parameters[idx, :] = list(sed.info.values())
+        gbl_best_chi2[idx] = chi2_[best_index]
+        gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 
-    if gbl_save['best_sed']:
-        save_best_sed(obs['id'], sed, norm_facts[best_index])
-    if gbl_save['chi2']:
-        save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
-                  obs_fluxes.size)
-    if gbl_save['pdf']:
-        save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
+    # If observed SED analysis
+        if gbl_phase == 1:
+            if gbl_save['best_sed']:
+                save_best_sed(obs['id'], sed, norm_facts[best_index])
+            if gbl_save['chi2']:
+                save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
+                      obs_fluxes.size)
+            if gbl_save['pdf']:
+                save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1

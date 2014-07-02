@@ -216,11 +216,12 @@ class PdfAnalysis(AnalysisModule):
         best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
         best_chi2_red = (RawArray(ctypes.c_double, n_obs), (n_obs))
 
+        phase = 1
         initargs = (params, filters, analysed_variables, model_redshifts,
                     model_fluxes, model_variables, time.time(),
                     mp.Value('i', 0), analysed_averages, analysed_std,
                     best_fluxes, best_parameters, best_chi2, best_chi2_red,
-                    save, lim_flag, n_obs)
+                    save, lim_flag, n_obs, phase)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             for idx, obs in enumerate(obs_table):
@@ -297,11 +298,12 @@ class PdfAnalysis(AnalysisModule):
                 mock_table[name + "_err"] = mock_errors[:, indx]
                 indx += 1
                                        
+            phase = 2
             initargs = (params, filters, analysed_variables, model_redshifts,
                     model_fluxes, model_variables, time.time(),
                     mp.Value('i', 0), analysed_averages_mock, analysed_std_mock,
                     best_fluxes_mock, best_parameters_mock, best_chi2_mock, 
-                    best_chi2_red_mock, save, lim_flag, n_obs)
+                    best_chi2_red_mock, save, lim_flag, n_obs, phase)
             if cores == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):
