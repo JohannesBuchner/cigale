@@ -24,7 +24,6 @@ import numpy as np
 from .filters import Filter
 from .m2005 import M2005
 from .bc03 import BC03
-from .dh2002 import DH2002
 from .dale2014 import Dale2014
 from .dl2007 import DL2007
 from .dl2014 import DL2014
@@ -116,26 +115,6 @@ class _BC03(BASE):
         self.wavelength_grid = ssp.wavelength_grid
         self.color_table = ssp.color_table
         self.lumin_table = ssp.lumin_table
-
-
-class _DH2002(BASE):
-    """Storage for Dale and Helou (2002) infra-red templates
-
-    The Dale and Helou (2002) template are gathered in a unique numpy array,
-    nevertheless, they are stored in their own table with a unique row.
-
-    """
-
-    __tablename__ = 'dh2002_templates'
-
-    name = Column(String, primary_key=True)
-    description = Column(Text)
-    data = Column(PickleType)
-
-    def __init__(self, name, description, data):
-        self.name = name
-        self.description = description
-        self.data = data
 
 
 class _Dale2014(BASE):
@@ -425,71 +404,6 @@ class Database(object):
             dictionary of parameters and their values
         """
         return self._get_parameters(_BC03)
-
-    def add_dh2002(self, data):
-        """
-        Add Dale and Helou (2002) templates the collection.
-
-        Parameters
-        ----------
-        data: array
-            Array containing the templates data.
-
-        """
-        name = 'dh2002'
-
-        description = ("These are the Dale & Helou (2002) infra-red "
-                       "templates to which the stellar emission was "
-                       "subtracted (Nohl et al., 2009). The data is a "
-                       "tuple composed of the alpha grid, the lambda grid "
-                       "and a 2D array of luminosity density (normalised "
-                       "over the full spectrum) with the alpha in the first "
-                       "axis and the lambda in the second.")
-
-        if self.is_writable:
-            template = _DH2002(name, description, data)
-            self.session.add(template)
-            try:
-                self.session.commit()
-            except exc.IntegrityError:
-                self.session.rollback()
-                raise DatabaseInsertError(
-                    'The template is already in the base.')
-        else:
-            raise Exception('The database is not writable.')
-
-    def get_dh2002(self):
-        """
-        Get the Dale and Helou infrared templates from the database
-
-        Returns
-        -------
-        template: pcigale.base.DH2002
-            The Dale and Helou (2002) infrared templates.
-
-        Raises
-        ------
-        DatabaseLookupError: if the templates are not in the database.
-
-        """
-        result = (self.session.query(_DH2002).
-                  filter(_DH2002.name == 'dh2002').
-                  first())
-        if result:
-            return DH2002(result.data[0], result.data[1], result.data[2])
-        else:
-            raise DatabaseLookupError(
-                "The DH2002 templates are not in the database.")
-
-    def get_dh2002_parameters(self):
-        """Get parameters for the Dale 2014 models.
-
-        Returns
-        -------
-        paramaters: dictionary
-            dictionary of parameters and their values
-        """
-        return self._get_parameters(_DH2002)
 
     def add_dl2007(self, model):
         """

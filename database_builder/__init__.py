@@ -289,45 +289,11 @@ def build_bc2003(base):
         ))
 
 
-def build_dh2002(base):
-    dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
-
-    # Getting the alpha grid for the templates
-    dhcal = np.genfromtxt(dh2002_dir + 'dhcal.dat')
-    alpha_grid = dhcal[:, 1]
-
-    # Getting the lambda grid for the templates (we checked that all share the
-    # same grid).
-    first_template = np.genfromtxt(dh2002_dir + 'irdh01.spec', skip_header=1)
-    lambda_grid = first_template[:, 0] * 0.1  # Convert Å to nm
-
-    templates = []
-
-    for i in range(len(alpha_grid)):
-        filename = dh2002_dir + 'irdh' + ("%02d" % (i + 1)) + '.spec'
-        print("Importing %s..." % filename)
-        table = np.genfromtxt(filename, skip_header=1)[:, 1]  # Luminosity
-                                                              # column
-        # The table give the luminosity density in Lsun/Å normalised to 1 Lsun
-        # over the full spectrum. As we converted the wavelengths to nm, we
-        # must multiply the density per 10 to keep the normalisation.
-        table = table * 10
-        templates.append(table)
-
-    templates = np.array(templates)
-
-    data = (alpha_grid, lambda_grid, templates)
-
-    base.add_dh2002(data)
-
-
 def build_dale2014(base):
-
-    dh2002_dir = os.path.join(os.path.dirname(__file__), 'dh2002/')
     dale2014_dir = os.path.join(os.path.dirname(__file__), 'dale2014/')
 
     # Getting the alpha grid for the templates
-    d14cal = np.genfromtxt(dh2002_dir + 'dhcal.dat')
+    d14cal = np.genfromtxt(dale2014_dir + 'dhcal.dat')
     alpha_grid = d14cal[:, 1]
 
     # Getting the lambda grid for the templates and convert from microns to nm.
@@ -667,32 +633,27 @@ def build_base():
     print("\nDONE\n")
     print('#' * 78)
 
-    print("4- Importing Dale and Helou (2002) templates\n")
-    build_dh2002(base)
-    print("\nDONE\n")
-    print('#' * 78)
-
-    print("5- Importing Draine and Li (2007) models\n")
+    print("4- Importing Draine and Li (2007) models\n")
     build_dl2007(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    print("6- Importing the updated Draine and Li (2007 models)\n")
+    print("5- Importing the updated Draine and Li (2007 models)\n")
     build_dl2014(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    print("7- Importing Fritz et al. (2006) models\n")
+    print("6- Importing Fritz et al. (2006) models\n")
     build_fritz2006(base)
     print("\nDONE\n")
     print('#' * 78)
 
-    print("8- Importing Dale et al (2014) templates\n")
+    print("7- Importing Dale et al (2014) templates\n")
     build_dale2014(base)
     print("\nDONE\n")
     print('#' * 78)
     
-    print("9- Importing nebular lines and continuum\n")
+    print("8- Importing nebular lines and continuum\n")
     build_nebular(base)
     print("\nDONE\n")
     print('#' * 78)
