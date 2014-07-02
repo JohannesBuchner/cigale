@@ -35,7 +35,7 @@ import numpy as np
 
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
-from .utils import save_table_analysis, save_table_best
+from .utils import save_table_analysis, save_table_best, analyse_chi2
 from ...warehouse import SedWarehouse
 from ...data import Database
 from .workers import sed as worker_sed
@@ -231,17 +231,7 @@ class PdfAnalysis(AnalysisModule):
                          initargs=initargs) as pool:
                 pool.starmap(worker_analysis, enumerate(obs_table))
 
-        val_best_chi2_red = np.ctypeslib.as_array(best_chi2_red[0])
-        verylow_redchi2 = sum(chi2_red < TOLERANCE 
-                              for chi2_red in val_best_chi2_red)/n_obs*100.
-        low_redchi2 = sum(chi2_red < 0.5 
-                              for chi2_red in val_best_chi2_red)/n_obs*100.
-        # If low values of reduced chi^2, it means that the data are overfitted
-        # Errors might be under-estimated or not enough valid data.
-        if verylow_redchi2 > 10. or low_redchi2 > 20.:
-            print("\nWarning: "
-              "{} % of the objects have chi^2_red ~ 0. and {} % chi^2_red < 0.5"
-               .format(np.round(verylow_redchi2,1), np.round(low_redchi2,1)))
+        analyse_chi2(best_chi2_red)
 
         print("\nSaving results...")
 

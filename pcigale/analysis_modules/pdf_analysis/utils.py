@@ -244,3 +244,20 @@ def dchi2_over_ds2(s):
     func = dchi2_over_ds_data - dchi2_over_ds_lim
 
     return func
+
+def analyse_chi2(chi2):
+    """Function to analyse the best chi^2 and find out whether what fraction of
+    objects seem to be overconstrainted.
+
+    Parameters
+    ----------
+    chi2: RawArray
+        Contains the reduced chi^2
+
+    """
+    chi2_red = np.ctypeslib.as_array(chi2[0])
+    # If low values of reduced chi^2, it means that the data are overfitted
+    # Errors might be under-estimated or not enough valid data.
+    print("\n{}% of the objects have chi^2_red~0 and {}% chi^2_red<0.5"
+        .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
+                np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
