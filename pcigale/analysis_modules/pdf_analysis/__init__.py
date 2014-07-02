@@ -243,6 +243,8 @@ class PdfAnalysis(AnalysisModule):
               "{} % of the objects have chi^2_red ~ 0. and {} % chi^2_red < 0.5"
                .format(np.round(verylow_redchi2,1), np.round(low_redchi2,1)))
 
+        print("\nSaving results...")
+
         save_table_analysis('analysis_results.txt', obs_table['id'], 
                             analysed_variables, analysed_averages, analysed_std)
         save_table_best('best_models.txt', obs_table['id'], best_chi2, 
@@ -252,18 +254,6 @@ class PdfAnalysis(AnalysisModule):
 
             print("\nMock analysis...")
 
-            # We use RawArrays for the same reason as previously
-            analysed_averages_mock = (RawArray(ctypes.c_double, n_obs * n_variables),
-                             (n_obs, n_variables))
-            analysed_std_mock = (RawArray(ctypes.c_double, n_obs * n_variables),
-                        (n_obs, n_variables))
-            best_fluxes_mock = (RawArray(ctypes.c_double, n_obs * n_filters),
-                       (n_obs, n_filters))
-            best_parameters_mock = (RawArray(ctypes.c_double, n_obs * n_info),
-                           (n_obs, n_info))
-            best_chi2_mock = (RawArray(ctypes.c_double, n_obs), (n_obs))
-            best_chi2_red_mock = (RawArray(ctypes.c_double, n_obs), (n_obs))
-   
             obs_fluxes = np.array([obs_table[name] for name in filters]).T
             obs_errors = np.array([obs_table[name + "_err"] for name in filters]).T
             mock_fluxes = np.empty_like(obs_fluxes)
@@ -301,9 +291,9 @@ class PdfAnalysis(AnalysisModule):
             phase = 2
             initargs = (params, filters, analysed_variables, model_redshifts,
                     model_fluxes, model_variables, time.time(),
-                    mp.Value('i', 0), analysed_averages_mock, analysed_std_mock,
-                    best_fluxes_mock, best_parameters_mock, best_chi2_mock, 
-                    best_chi2_red_mock, save, lim_flag, n_obs, phase)
+                    mp.Value('i', 0), analysed_averages, analysed_std,
+                    best_fluxes, best_parameters, best_chi2,
+                    best_chi2_red, save, lim_flag, n_obs, phase)
             if cores == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):
@@ -313,15 +303,13 @@ class PdfAnalysis(AnalysisModule):
                              initargs=initargs) as pool:
                     pool.starmap(worker_analysis, enumerate(mock_table))
 
-        print("\nSaving results...")
-
-        if mock_flag is True:
+            print("\nSaving results...")
 
             save_table_analysis('analysis_mock_results.txt', mock_table['id'], 
-                  analysed_variables, analysed_averages_mock, analysed_std_mock)
+                  analysed_variables, analysed_averages, analysed_std)
             save_table_best('best_mock_models.txt', mock_table['id'], 
-                        best_chi2_mock, best_chi2_red_mock,
-                        best_parameters_mock, best_fluxes_mock, filters, info)
+                        best_chi2, best_chi2_red,
+                        best_parameters, best_fluxes, filters, info)
 
         print("Run completed!")
 
