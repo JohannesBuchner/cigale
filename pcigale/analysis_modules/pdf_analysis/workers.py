@@ -342,35 +342,22 @@ def analysis(idx, obs):
         analysed_averages = np.empty(len(gbl_analysed_variables))
         analysed_std = np.empty_like(analysed_averages)
 
-    # Below this row, we have two options to build the PDF:
-    # 1) the baseline checks how many unique parameter values are analysed and
-    # if less than Npdf (= 100), the PDF is initally built assuming a number
-    # of bins equal to the number of unique value for a given parameter
-    # (e.g., average_sfr, age, attenuation.uv_bump_amplitude, dust.luminosity, 
-    # attenuation.FUV, etc.).
-    # 2) the second one (commented) assumed Npdf = 100 whatever the number of
-    # unique parameters. If you wish to use the latter option instead of the 
-    # formed (baseline), 
-    # comment between <1.. and ..1> and un-comment between <2.. and ..2>
-    # and vice-versa if you want to come back to the baseline
+    # We check how many unique parameter values are analysed and if less than
+    # Npdf (= 100), the PDF is initally built assuming a number of bins equal
+    # to the number of unique values for a given parameter (e.g., average_sfr,
+    # age, attenuation.uv_bump_amplitude, dust.luminosity, attenuation.FUV,
+    # etc.).
 
-####<1..    
-        Npdf = 100.
+        Npdf = 100
         var = np.empty((Npdf, len(analysed_averages)))
         pdf = np.empty((Npdf, len(analysed_averages)))
         min_hist = np.min(model_variables, axis=0)
         max_hist = np.max(model_variables, axis=0)
 
         for i, val in enumerate(analysed_averages):
-
-            if len(np.unique(model_variables[:, i])) < Npdf:
-                Nhist = len(np.unique(model_variables[:, i]))
-            else:
-                Nhist = Npdf
+            Nhist = min(Npdf, len(np.unique(model_variables[:, i])))
 
             if min_hist[i] == max_hist[i]:
-                pdf_grid = max_hist[i]
-                pdf_prob = 1.
                 analysed_averages[i] = model_variables[0, i]
                 analysed_std[i] = 0.
 
@@ -389,35 +376,6 @@ def analysis(idx, obs):
                                     np.square(pdf_x-analysed_averages[i]) * pdf_prob
                                            ) / np.sum(pdf_prob)
                                          )
-####..1>
-####<2..    
-#        Npdf = 100.
-#        var = np.empty((Npdf, len(analysed_averages)))
-#        pdf = np.empty((Npdf, len(analysed_averages)))
-#        min_hist = np.min(model_variables, axis=0)
-#        max_hist = np.max(model_variables, axis=0)
-#
-#        for i, val in enumerate(analysed_averages):
-#            if min_hist[i] == max_hist[i]:
-#                analysed_averages[i] = model_variables[0, i]
-#                analysed_std[i] = 0.
-#
-#                var[:, i] = max_hist[i]
-#                pdf[:, i] = 1.
-#            else:
-#                pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
-#                                              Npdf,
-#                                              (min_hist[i], max_hist[i]),
-#                                              weights=likelihood, density=True)
-#                pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
-#                pdf_y = pdf_x * pdf_prob
-#                analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
-#                analysed_std[i] = np.sqrt(
-#                                     np.sum(
-#                                    np.square(pdf_x-analysed_averages[i]) * pdf_prob
-#                                           ) / np.sum(pdf_prob)
-#                                         )
-####..2>
                 analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
 
                 var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
