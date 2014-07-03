@@ -185,7 +185,7 @@ class PowerLawAtt(CreationModule):
         av['young'] = float(self.parameters["Av_young"])
         av['old'] = float(self.parameters["Av_old_factor"] * av['young'])
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
-        uv_bump_width = float(self.parameters["uv_bump_wavelength"])
+        uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
         filters = self.filters
@@ -202,7 +202,6 @@ class PowerLawAtt(CreationModule):
             self.sel_attenuation = alambda_av(wavelength, powerlaw_slope,
                                      uv_bump_wavelength, uv_bump_width,
                                      uv_bump_amplitude)
-
         attenuation_total = 0.
         for contrib in list(sed.contribution_names):
             age = contrib.split('.')[-1].split('_')[-1]
@@ -216,10 +215,16 @@ class PowerLawAtt(CreationModule):
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.Av." + contrib, av[age])
-            sed.add_info("attenuation." + contrib, attenuation, True)
+            sed.add_info("attenuation.Av.stellar"+
+                         contrib[contrib.find('_'):], av[age])
+            sed.add_info("attenuation.stellar"+
+                         contrib[contrib.find('_'):], attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
+
+        # Bump and slope of the dust attenuation
+        sed.add_info("attenuation.uv_bump_amplitude", uv_bump_amplitude, True)
+        sed.add_info("attenuation.powerlaw_slope", powerlaw_slope, True)
 
         # Total attenuation
         sed.add_info("dust.luminosity", attenuation_total, True)

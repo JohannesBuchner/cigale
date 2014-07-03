@@ -260,7 +260,7 @@ class CalzLeit(CreationModule):
         ebvs['young'] = float(self.parameters["E_BVs_young"])
         ebvs['old'] = float(self.parameters["E_BVs_old_factor"]) * ebvs['young']
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
-        uv_bump_width = float(self.parameters["uv_bump_wavelength"])
+        uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
         filters = self.filters
