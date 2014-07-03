@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
+# Copyright (C) 2014 Laboratoire d'Astrophysique de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly
+# Author: Yannick Roehlly, Denis Burgarella
 
 """
 Calzetti et al. (2000) and Leitherer et al. (2002) attenuation module
@@ -171,7 +172,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
 class CalzLeit(CreationModule):
     """Calzetti + Leitherer attenuation module
 
-    This module computes the Cardelli, Clayton and Mathis attenuation using the
+    This module computes the dust attenuation using the
     formulae from Calzetti et al. (2000) and Leitherer et al. (2002).
 
     The attenuation can be computed on the whole spectrum or on a specific
