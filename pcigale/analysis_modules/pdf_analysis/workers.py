@@ -265,7 +265,6 @@ def analysis(idx, obs):
     model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
-    mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
     if lim_flag is True:
         # This mask selects the filter(s) for which measured fluxes are given
         # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
@@ -274,19 +273,19 @@ def analysis(idx, obs):
         # i.e., when (obs_flux is >=0. (and obs_errors>=-9990., obs_errors<0.))
         # and lim_flag=True
         mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
-        chi2_data = np.sum(np.square(
+        chi2_ = np.sum(np.square(
             (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
-        chi2_lim = -2. * np.sum(
+        chi2_ += -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
                     1.+erf(
                         (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
-
-        chi2_ = chi2_data + chi2_lim
     else:
+        mask_data = np.logical_and(obs_fluxes > tolerance,
+                                   obs_errors > tolerance)
         chi2_ = np.sum(np.square(
             (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
