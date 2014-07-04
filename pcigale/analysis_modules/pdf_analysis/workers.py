@@ -261,7 +261,7 @@ def analysis(idx, obs):
             norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_facts[imod],
                                                tol=1e-16,
                                                args=(obs_fluxes, obs_errors,
-                                                     model_fluxes[mod, :]))
+                                                     model_fluxes[imod, :]))
     model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
