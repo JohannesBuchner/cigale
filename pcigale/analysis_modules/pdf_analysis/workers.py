@@ -290,16 +290,6 @@ def analysis(idx, obs):
             (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
-    # We select only models that have at least 0.1% of the probability of the
-    # best model to reproduce the observations. It helps eliminating very bad
-    # models.
-    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1)*1e-3,
-                          obs_fluxes.size-1)
-    wlikely = np.where(chi2_ < maxchi2)
-    # We use the exponential probability associated with the χ² as
-    # likelihood function.
-    likelihood = np.exp(-chi2_[wlikely]/2)
-
     ##################################################################
     # Variable analysis                                              #
     ##################################################################
@@ -313,6 +303,16 @@ def analysis(idx, obs):
         print("One possible origin is that models are older than the Universe")
         print("--------------------------------------------------------------")
     else:
+        # We select only models that have at least 0.1% of the probability of the
+        # best model to reproduce the observations. It helps eliminating very bad
+        # models.
+        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1)*1e-3,
+                            obs_fluxes.size-1)
+        wlikely = np.where(chi2_ < maxchi2)
+        # We use the exponential probability associated with the χ² as
+        # likelihood function.
+        likelihood = np.exp(-chi2_[wlikely]/2)
+
         best_index = chi2_.argmin()        
 
     # We compute once again the best sed to obtain its info
