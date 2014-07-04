@@ -11,6 +11,7 @@ import time
 import numpy as np
 from scipy import optimize
 from scipy.special import erf
+import scipy.stats as st
 
 from .utils import (save_best_sed, save_pdf, save_chi2, dchi2_over_ds2)
 from ...warehouse import SedWarehouse
@@ -290,19 +291,15 @@ def analysis(idx, obs):
             (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
+    # We select only models that have at least 0.1% of the probability of the
+    # best model to reproduce the observations. It helps eliminating very bad
+    # models.
+    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1)*1e-3,
+                          obs_fluxes.size-1)
+    wlikely = np.where(chi2_ < maxchi2)
     # We use the exponential probability associated with the χ² as
     # likelihood function.
-    likelihood = np.exp(-chi2_/2)
-    # For the analysis, we consider that the computed models explain
-    # each observation. We normalise the likelihood function to have a
-    # total likelihood of 1 for each observation.
-    likelihood /= np.sum(likelihood)
-    # We don't want to take into account the models with a probability
-    # less that the threshold.
-    wlikely = np.where(likelihood >= MIN_PROBABILITY)
-    likelihood = likelihood[wlikely]
-    # We re-normalise the likelihood.
-    likelihood /= np.sum(likelihood)
+    likelihood = np.exp(-chi2_[wlikely]/2)
 
     ##################################################################
     # Variable analysis                                              #
