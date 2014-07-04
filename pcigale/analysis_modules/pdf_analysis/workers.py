@@ -6,6 +6,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
+from textwrap import wrap
 import time
 
 import numpy as np
@@ -296,12 +297,10 @@ def analysis(idx, obs):
 
     # We define the best fitting model for each observation as the one
     # with the least χ².
-    if len(chi2_)==0:
-    # It sometimes happen because models are older than the Universe's age
-        print("--------------------------------------------------------------")
-        print("No suitable model selected for the object #", idx, "we skip it")
-        print("One possible origin is that models are older than the Universe")
-        print("--------------------------------------------------------------")
+    if chi2_.size == 0:
+        # It sometimes happen because models are older than the Universe's age
+        print("No suitable model found for the object {}. One possible origin "
+              "is that models are older than the Universe.".format(obs['id']))
     else:
         # We select only models that have at least 0.1% of the probability of the
         # best model to reproduce the observations. It helps eliminating very bad
