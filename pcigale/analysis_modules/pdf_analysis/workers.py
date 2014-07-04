@@ -314,7 +314,7 @@ def analysis(idx, obs):
 
         best_index = chi2_.argmin()        
 
-    # We compute once again the best sed to obtain its info
+        # We compute once again the best sed to obtain its info
         global gbl_previous_idx
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
@@ -325,24 +325,23 @@ def analysis(idx, obs):
         sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
 
-    # We correct the mass-dependent parameters
+        # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
             sed.info[key] *= norm_facts[best_index]
         for index, variable in enumerate(gbl_analysed_variables):
             if variable in sed.mass_proportional_info:
                 model_variables[:, index] *= norm_facts
 
-    # We compute the weighted average and standard deviation using the
-    # likelihood as weight.
+        # We compute the weighted average and standard deviation using the
+        # likelihood as weight.
         analysed_averages = np.empty(len(gbl_analysed_variables))
         analysed_std = np.empty_like(analysed_averages)
 
-    # We check how many unique parameter values are analysed and if less than
-    # Npdf (= 100), the PDF is initally built assuming a number of bins equal
-    # to the number of unique values for a given parameter (e.g., average_sfr,
-    # age, attenuation.uv_bump_amplitude, dust.luminosity, attenuation.FUV,
-    # etc.).
-
+        # We check how many unique parameter values are analysed and if less
+        # than Npdf (= 100), the PDF is initally built assuming a number of
+        # bins equal to the number of unique values for a given parameter
+        # (e.g., average_sfr, age, attenuation.uv_bump_amplitude,
+        # dust.luminosity, attenuation.FUV, etc.).
         Npdf = 100
         var = np.empty((Npdf, len(analysed_averages)))
         pdf = np.empty((Npdf, len(analysed_averages)))
