@@ -6,7 +6,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
-from textwrap import wrap
 import time
 
 import numpy as np
@@ -375,7 +374,7 @@ def analysis(idx, obs):
                 pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
 
 
-    # TODO Merge with above computation after checking it is fine with a MA.
+        # TODO Merge with above computation after checking it is fine with a MA
         gbl_analysed_averages[idx, :] = analysed_averages
         gbl_analysed_std[idx, :] = analysed_std
 
@@ -385,7 +384,7 @@ def analysis(idx, obs):
         gbl_best_chi2[idx] = chi2_[best_index]
         gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 
-    # If observed SED analysis
+        # If observed SED analysis
         if gbl_phase == 1:
             if gbl_save['best_sed']:
                 save_best_sed(obs['id'], sed, norm_facts[best_index])
