@@ -11,6 +11,7 @@ import time
 import numpy as np
 from scipy import optimize
 from scipy.special import erf
+import scipy.stats as st
 
 from .utils import (save_best_sed, save_pdf, save_chi2, dchi2_over_ds2)
 from ...warehouse import SedWarehouse
@@ -255,16 +256,14 @@ def analysis(idx, obs):
     )
 
     if lim_flag is True:
-        norm_init = norm_facts
         for imod in range(len(model_fluxes)):
-            norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_init[imod],
+            norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_facts[imod],
                                                tol=1e-16,
                                                args=(obs_fluxes, obs_errors,
-                                                     model_fluxes[mod, :]))
+                                                     model_fluxes[imod, :]))
     model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
-    mask_data = np.logical_and(obs_fluxes > tolerance, obs_errors > tolerance)
     if lim_flag is True:
         # This mask selects the filter(s) for which measured fluxes are given
         # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
@@ -273,36 +272,22 @@ def analysis(idx, obs):
         # i.e., when (obs_flux is >=0. (and obs_errors>=-9990., obs_errors<0.))
         # and lim_flag=True
         mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
-        chi2_data = np.sum(np.square(
+        chi2_ = np.sum(np.square(
             (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
 
-        chi2_lim = -2. * np.sum(
+        chi2_ += -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
                     1.+erf(
                         (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
-
-        chi2_ = chi2_data + chi2_lim
     else:
+        mask_data = np.logical_and(obs_fluxes > tolerance,
+                                   obs_errors > tolerance)
         chi2_ = np.sum(np.square(
             (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
             obs_errors[mask_data]), axis=1)
-
-    # We use the exponential probability associated with the χ² as
-    # likelihood function.
-    likelihood = np.exp(-chi2_/2)
-    # For the analysis, we consider that the computed models explain
-    # each observation. We normalise the likelihood function to have a
-    # total likelihood of 1 for each observation.
-    likelihood /= np.sum(likelihood)
-    # We don't want to take into account the models with a probability
-    # less that the threshold.
-    wlikely = np.where(likelihood >= MIN_PROBABILITY)
-    likelihood = likelihood[wlikely]
-    # We re-normalise the likelihood.
-    likelihood /= np.sum(likelihood)
 
     ##################################################################
     # Variable analysis                                              #
@@ -310,16 +295,24 @@ def analysis(idx, obs):
 
     # We define the best fitting model for each observation as the one
     # with the least χ².
-    if len(chi2_)==0:
-    # It sometimes happen because models are older than the Universe's age
-        print("--------------------------------------------------------------")
-        print("No suitable model selected for the object #", idx, "we skip it")
-        print("One possible origin is that models are older than the Universe")
-        print("--------------------------------------------------------------")
+    if chi2_.size == 0:
+        # It sometimes happen because models are older than the Universe's age
+        print("No suitable model found for the object {}. One possible origin "
+              "is that models are older than the Universe.".format(obs['id']))
     else:
+        # We select only models that have at least 0.1% of the probability of the
+        # best model to reproduce the observations. It helps eliminating very bad
+        # models.
+        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1)*1e-3,
+                            obs_fluxes.size-1)
+        wlikely = np.where(chi2_ < maxchi2)
+        # We use the exponential probability associated with the χ² as
+        # likelihood function.
+        likelihood = np.exp(-chi2_[wlikely]/2)
+
         best_index = chi2_.argmin()        
 
-    # We compute once again the best sed to obtain its info
+        # We compute once again the best sed to obtain its info
         global gbl_previous_idx
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
@@ -330,24 +323,23 @@ def analysis(idx, obs):
         sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
 
-    # We correct the mass-dependent parameters
+        # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
             sed.info[key] *= norm_facts[best_index]
         for index, variable in enumerate(gbl_analysed_variables):
             if variable in sed.mass_proportional_info:
                 model_variables[:, index] *= norm_facts
 
-    # We compute the weighted average and standard deviation using the
-    # likelihood as weight.
+        # We compute the weighted average and standard deviation using the
+        # likelihood as weight.
         analysed_averages = np.empty(len(gbl_analysed_variables))
         analysed_std = np.empty_like(analysed_averages)
 
-    # We check how many unique parameter values are analysed and if less than
-    # Npdf (= 100), the PDF is initally built assuming a number of bins equal
-    # to the number of unique values for a given parameter (e.g., average_sfr,
-    # age, attenuation.uv_bump_amplitude, dust.luminosity, attenuation.FUV,
-    # etc.).
-
+        # We check how many unique parameter values are analysed and if less
+        # than Npdf (= 100), the PDF is initally built assuming a number of
+        # bins equal to the number of unique values for a given parameter
+        # (e.g., average_sfr, age, attenuation.uv_bump_amplitude,
+        # dust.luminosity, attenuation.FUV, etc.).
         Npdf = 100
         var = np.empty((Npdf, len(analysed_averages)))
         pdf = np.empty((Npdf, len(analysed_averages)))
@@ -382,7 +374,7 @@ def analysis(idx, obs):
                 pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
 
 
-    # TODO Merge with above computation after checking it is fine with a MA.
+        # TODO Merge with above computation after checking it is fine with a MA
         gbl_analysed_averages[idx, :] = analysed_averages
         gbl_analysed_std[idx, :] = analysed_std
 
@@ -392,7 +384,7 @@ def analysis(idx, obs):
         gbl_best_chi2[idx] = chi2_[best_index]
         gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 
-    # If observed SED analysis
+        # If observed SED analysis
         if gbl_phase == 1:
             if gbl_save['best_sed']:
                 save_best_sed(obs['id'], sed, norm_facts[best_index])
