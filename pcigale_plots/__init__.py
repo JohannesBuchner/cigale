@@ -2,8 +2,9 @@
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
 # Copyright (C) 2013-2014 Yannick Roehlly
 # Copyright (C) 2013 Institute of Astronomy
+# Copyright (C) 2014 Laboratoire d'Astrophysique de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-# Author: Yannick Roehlly & Médéric Boquien
+# Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
 __version__ = "0.1-alpha"
 
@@ -123,9 +124,11 @@ def _sed_worker(obs, mod, filters):
         ax.set_xlabel("Wavelength [nm]")
         ax.set_ylabel("Flux [mJy]")
         ax.legend(loc='lower right')
-        figure.suptitle("Best model for {}. Reduced $\chi^2$={}".format(
+        figure.suptitle("Best model for {}. z = {}. Reduced $\chi^2$={}.".format(
                         obs['id'],
+                        np.round(obs['redshift'], decimals=2),
                         np.round(mod['reduced_chi_square'], decimals=2)))
+                        
         figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
         plt.close(figure)
     else:
