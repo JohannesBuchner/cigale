@@ -321,7 +321,7 @@ def build_dale2014(base):
     data = "".join(datafile.readlines())
     datafile.close()
 
-    for al in range(1, len(alpha_grid), 1):
+    for al in range(1, len(alpha_grid)+1, 1):
         lumin_with_stell = np.genfromtxt(io.BytesIO(data.encode()),
                                          usecols=(al))
         lumin_with_stell = pow(10, lumin_with_stell) / wave
