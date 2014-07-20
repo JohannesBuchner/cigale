@@ -21,6 +21,7 @@ import os
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
+import matplotlib.gridspec as gridspec
 
 # Name of the file containing the best models information
 BEST_MODEL_FILE = "best_models.txt"
@@ -107,32 +108,58 @@ def _sed_worker(obs, mod, filters):
                                for filt in filters.values()])
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
         mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
-
         xmin = PLOT_L_MIN * (1. + obs['redshift'])
         xmax = PLOT_L_MAX * (1. + obs['redshift'])
         wsed = np.where((sed['wavelength'] > xmin)&(sed['wavelength'] < xmax))
-
         figure = plt.figure()
-        ax = figure.add_subplot(111)
-        ax.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
+        gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
+
+        ax1 = plt.subplot(gs[0])
+        ax2 = plt.subplot(gs[1])
+        ax1.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
                   label="Model spectrum",color='k')
-        ax.scatter(filters_wl, mod_fluxes, marker='o', color='r',
+        ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
                    label="Model fluxes")
-        ax.scatter(filters_wl, obs_fluxes, marker='o', color='b',
+        ax1.scatter(filters_wl, obs_fluxes, marker='o', color='b',
                    label="Observed fluxes")
-        ax.set_xlim(xmin, xmax)
-        ax.set_xlabel("Wavelength [nm]")
-        ax.set_ylabel("Flux [mJy]")
-        ax.legend(loc='lower right')
-        figure.suptitle("Best model for {}. z = {}. Reduced $\chi^2$={}.".format(
-                        obs['id'],
-                        np.round(obs['redshift'], decimals=2),
-                        np.round(mod['reduced_chi_square'], decimals=2)))
-                        
+        mask = obs_fluxes != -9999.
+        ax2.semilogx(filters_wl[mask], (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask], 
+                   marker='o', color='k',
+                   label="(Obs - Mod) / Obs")
+
+        figure.subplots_adjust(hspace=0.,wspace=0.)
+
+        ax1.set_xlim(xmin, xmax)
+        ax2.set_xlim(xmin, xmax)
+        ax2.set_ylim(-1.0, 1.0)
+        ax2.set_xlabel("Observed wavelength [nm]")
+        ax1.set_ylabel("Flux [mJy]")
+        ax2.set_ylabel("Relative residual flux")
+        ax1.legend(loc='upper left', fontsize=10)
+        ax2.legend(loc='upper right', fontsize=10)
+        figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
+                    format(
+                        obs['id'], np.round(obs['redshift'], decimals=3),
+                        np.round(mod['reduced_chi_square'], decimals=2))
+                          )
         figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
         plt.close(figure)
     else:
-        print("No SED found for {}. No plot created.".format())
+        print("No SED found for {}. No plot created.".format(obs['id']))
+
+
+def chi2(config):
+    """Plot the χ² values of analysed variables.
+    """
+    input_data = read_table(config.configuration['data_file'])
+    chi2_vars = (config.configuration['analysis_method_params']
+                 ['analysed_variables'])
+
+    with mp.Pool(processes=config.configuration['cores']) as pool:
+        items = product(input_data['id'], chi2_vars)
+        pool.starmap(_chi2_worker, items)
+        pool.close()
+        pool.join()
 
 
 def chi2(config):
