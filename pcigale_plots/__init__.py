@@ -137,6 +137,8 @@ def _sed_worker(obs, mod, filters):
         ax2.set_ylabel("Relative residual flux")
         ax1.legend(loc='upper left', fontsize=10)
         ax2.legend(loc='upper right', fontsize=10)
+        plt.setp(ax1.get_xticklabels(), visible=False)
+        plt.setp(ax1.get_yticklabels()[1], visible=False)
         figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
                     format(
                         obs['id'], np.round(obs['redshift'], decimals=3),
