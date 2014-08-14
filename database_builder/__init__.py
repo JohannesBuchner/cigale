@@ -237,8 +237,8 @@ def build_m2005(base):
 def build_bc2003(base):
     bc03_dir = os.path.join(os.path.dirname(__file__), 'bc03//')
 
-    # Time grid (1 Myr to 20 Gyr with 1 Myr step)
-    time_grid = np.arange(1, 20000)
+    # Time grid (1 Myr to 14 Gyr with 1 Myr step)
+    time_grid = np.arange(1, 14000)
 
     # Metallicities associated to each key
     metallicity = {
