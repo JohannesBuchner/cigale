@@ -107,6 +107,8 @@ def _sed_worker(obs, mod, filters):
         filters_wl = np.array([filt.effective_wavelength
                                for filt in filters.values()])
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
+        obs_fluxes_err = np.array([obs[filt+'_err']
+                                   for filt in filters.keys()])
         mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
         xmin = PLOT_L_MIN * (1. + obs['redshift'])
         xmax = PLOT_L_MAX * (1. + obs['redshift'])
@@ -120,12 +122,17 @@ def _sed_worker(obs, mod, filters):
                   label="Model spectrum",color='k')
         ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
                    label="Model fluxes")
-        ax1.scatter(filters_wl, obs_fluxes, marker='o', color='b',
-                   label="Observed fluxes")
+        ax1.errorbar(filters_wl, obs_fluxes, yerr=obs_fluxes_err*3, ls='',
+                     marker='_', label='Observed fluxes', color='b',
+                     capsize=0.)
         mask = obs_fluxes != -9999.
-        ax2.semilogx(filters_wl[mask], (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask], 
-                   marker='o', color='k',
-                   label="(Obs - Mod) / Obs")
+        ax2.errorbar(filters_wl[mask],
+                     (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
+                     yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3, marker='_',
+                     label="(Obs-Mod)/Obs", color='k', capsize=0.)
+        ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
+        ax2.set_xscale('log')
+        ax2.minorticks_on()
 
         figure.subplots_adjust(hspace=0.,wspace=0.)
 
