@@ -324,8 +324,8 @@ class SED(object):
         l_lambda = self.luminosity
 
         # Test if the spectrum cover all the filter extend
-        if ((np.min(self.wavelength_grid) > lambda_min) or
-                (np.max(self.wavelength_grid) < lambda_max)):
+        if ((np.min(wavelength) > lambda_min) or
+                (np.max(wavelength) < lambda_max)):
             f_nu = -99.
 
         else:
