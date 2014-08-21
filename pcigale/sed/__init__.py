@@ -238,6 +238,7 @@ class SED(object):
                 new_luminosities = interp1d(self.wavelength_grid,
                                             self.luminosities,
                                             bounds_error=False,
+                                            assume_sorted=True,
                                             fill_value=0.)(new_wavelength_grid)
 
                 # Interpolate the added luminosity array to the new wavelength
@@ -245,6 +246,7 @@ class SED(object):
                 interp_lumin = interp1d(results_wavelengths,
                                         results_lumin,
                                         bounds_error=False,
+                                        assume_sorted=True,
                                         fill_value=0)(new_wavelength_grid)
 
                 self.wavelength_grid = new_wavelength_grid
