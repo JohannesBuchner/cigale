@@ -176,6 +176,8 @@ class Redshifting(CreationModule):
         sed: pcigale.sed.SED object
 
         """
+        redshift = self.redshift
+
         # If the SED is already redshifted, raise an error.
         if 'redshift' in sed.info.keys() and sed.info['redshift'] > 0.:
             raise Exception("The SED is already redshifted <z={}>."
@@ -183,22 +185,23 @@ class Redshifting(CreationModule):
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
-        if self.redshift < 0:
+        if redshift < 0:
             raise Exception("The redshift provided is negative <{}>."
-                            .format(self.redshift))
+                            .format(redshift))
 
-        # We redshift directly the SED wavelength grid
-        sed.wavelength_grid *= 1. + self.redshift
+        if redshift > 0.:
+            # We redshift directly the SED wavelength grid
+            sed.wavelength_grid *= 1. + redshift
 
-        # We modify each luminosity contribution to keep energy constant
-        sed.luminosities /= 1. + self.redshift
+            # We modify each luminosity contribution to keep energy constant
+            sed.luminosities /= 1. + redshift
 
-        sed.add_info("redshift", self.redshift)
+        sed.add_info("redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)
         sed.add_info("universe.age", self.universe_age)
         if self.igm_attenuation is None:
             self.igm_attenuation = igm_transmission(sed.wavelength_grid,
-                                                    self.redshift) - 1.
+                                                    redshift) - 1.
         sed.add_contribution('igm', sed.wavelength_grid,
                              self.igm_attenuation * sed.luminosity)
         sed.add_module(self.name, self.parameters)
