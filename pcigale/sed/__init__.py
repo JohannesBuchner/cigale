@@ -317,15 +317,15 @@ class SED(object):
         """
 
         # Filter limits
-        lambda_min = np.min(transmission[0])
-        lambda_max = np.max(transmission[0])
+        lambda_min = transmission[0][0]
+        lambda_max = transmission[0][-1]
 
         wavelength = self.wavelength_grid
         l_lambda = self.luminosity
 
         # Test if the spectrum cover all the filter extend
-        if ((np.min(wavelength) > lambda_min) or
-                (np.max(wavelength) < lambda_max)):
+        if ((wavelength[0] > lambda_min) or
+                (wavelength[-1] < lambda_max)):
             f_nu = -99.
 
         else:
