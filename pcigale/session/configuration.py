@@ -104,7 +104,8 @@ class Configuration(object):
         """
         self.config = configobj.ConfigObj(filename,
                                           write_empty_values=True,
-                                          indent_type='  ')
+                                          indent_type='  ',
+                                          encoding='UTF8')
 
     def create_blank_conf(self):
         """Create the initial configuration file
