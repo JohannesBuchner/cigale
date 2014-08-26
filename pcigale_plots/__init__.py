@@ -119,13 +119,14 @@ def _sed_worker(obs, mod, filters):
         ax1 = plt.subplot(gs[0])
         ax2 = plt.subplot(gs[1])
         ax1.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
-                  label="Model spectrum",color='k')
+                  label="Model spectrum", color='k', nonposy='clip')
+        ax1.set_autoscale_on(False)
         ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
                    label="Model fluxes")
         ax1.errorbar(filters_wl, obs_fluxes, yerr=obs_fluxes_err*3, ls='',
                      marker='_', label='Observed fluxes', color='b',
                      capsize=0.)
-        mask = obs_fluxes != -9999.
+        mask = np.where(obs_fluxes > 0.)
         ax2.errorbar(filters_wl[mask],
                      (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
                      yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3, marker='_',
