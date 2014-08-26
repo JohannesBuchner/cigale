@@ -125,6 +125,13 @@ class BC03(CreationModule):
         sed.add_info("stellar.b4_sdss_old", old_info["b4_sdss"])
         sed.add_info("stellar.b_912_old", old_info["b_912"])
 
+        sed.add_info("stellar.m_star",
+                     young_info["m_star"] + old_info["m_star"],
+                     True)
+        sed.add_info("stellar.m_gas",
+                     young_info["m_gas"] + old_info["m_gas"],
+                     True)
+
         sed.add_info("galaxy_mass", 1., True)
 
         sed.add_contribution("stellar.old", old_wave, old_lumin)
