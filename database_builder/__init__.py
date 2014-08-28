@@ -297,7 +297,7 @@ def build_dale2014(base):
     alpha_grid = d14cal[:, 1]
 
     # Getting the lambda grid for the templates and convert from microns to nm.
-    first_template = np.genfromtxt(dale2014_dir + 'spectra.0.00AGN.dat')
+    first_template = np.genfromtxt(dale2014_dir + 'spectra.0.00AGN.DL07grid.dat')
     wave = first_template[:, 0] * 1E3
 
     # Getting the stellar emission and interpolate it at the same wavelength
