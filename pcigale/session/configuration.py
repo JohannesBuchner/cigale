@@ -134,6 +134,7 @@ class Configuration(object):
             "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
             "Dust model: casey2012, dale2014, dl2007, dl2014 ; "
             "AGN: dale2014, fritz2006 ; "
+            "Radio: raio ; "
             "redshift: redshifting (mandatory!).")
 
         self.config['analysis_method'] = ""
