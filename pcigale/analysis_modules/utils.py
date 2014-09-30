@@ -171,4 +171,7 @@ def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
     out_table = Table(np.hstack((out_fluxes, out_params)),
                       names=list(filters.keys()) + list(names))
 
+    out_table.add_column(Column(np.arange(model_fluxes[1][0]), name='id'),
+                         index=0)
+
     out_table.write("{}/{}".format(directory, filename), format=out_format)

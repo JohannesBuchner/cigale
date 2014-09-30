@@ -11,8 +11,9 @@ import numpy as np
 
 from ...warehouse import SedWarehouse
 
+from ..utils import OUT_DIR
 
-def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):
+def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -23,6 +24,8 @@ def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):
         Handles the parameters from a 1D index.
     filters: OrderedDict
         Contains filters to compute the fluxes.
+    save_sed: boolean
+        Indicates whether the SED should be saved.
     fluxes: RawArray and tuple containing the shape
         Fluxes of individual models. Shared among workers.
     n_computed: Value
@@ -32,7 +35,8 @@ def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):
 
     """
     global gbl_model_fluxes, gbl_model_info, gbl_n_computed, gbl_t_begin
-    global gbl_params, gbl_previous_idx, gbl_filters, gbl_warehouse
+    global gbl_params, gbl_previous_idx, gbl_filters, gbl_save_sed
+    global gbl_warehouse
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -48,6 +52,8 @@ def init_fluxes(params, filters, fluxes, info, t_begin, n_computed):
     gbl_previous_idx = -1
 
     gbl_filters = filters
+
+    gbl_save_sed = save_sed
 
     gbl_warehouse = SedWarehouse()
 
@@ -71,6 +77,9 @@ def fluxes(idx):
 
     sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index(idx))
+
+    if gbl_save_sed == True:
+        sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
 
     if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
         model_fluxes = -99. * np.ones(len(gbl_filters))
