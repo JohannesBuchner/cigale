@@ -51,6 +51,11 @@ class SaveFluxes(AnalysisModule):
             "Name of the output file.",
             "computed_fluxes.txt"
         )),
+        ("save_sed", (
+            "boolean",
+            "If True, save the generated SED.",
+            "False"
+        )),
         ("output_format", (
             "string",
             "Format of the output file. Any format supported by astropy.table "
@@ -90,7 +95,7 @@ class SaveFluxes(AnalysisModule):
 
         out_file = parameters["output_file"]
         out_format = parameters["output_format"]
-
+        save_sed = parameters["save_sed"].lower() == "true"
 
         # Get the needed filters in the pcigale database. We use an ordered
         # dictionary because we need the keys to always be returned in the
@@ -132,8 +137,8 @@ class SaveFluxes(AnalysisModule):
                                      n_params * n_info),
                         (n_params, n_info))
 
-        initargs = (params, filters,  model_fluxes, model_parameters,
-                    time.time(), mp.Value('i', 0))
+        initargs = (params, filters, save_sed, model_fluxes,
+                    model_parameters, time.time(), mp.Value('i', 0))
         if cores == 1:  # Do not create a new process
             init_worker_fluxes(*initargs)
             for idx in range(n_params):
