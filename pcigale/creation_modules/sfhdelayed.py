@@ -50,7 +50,7 @@ class SFHDelayed(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
-            "False"
+            "True"
         ))
    ])
 
