@@ -58,13 +58,14 @@ class Sfh2Exp(CreationModule):
         ))
          ("SFR_0", (
             "float",
-            "Value of SFR[M_sun/yr] at t = 0",
+            "Value of SFR at t = 0 in M_sun/yr.",
             1.
         )),
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
             "False"
+        )),
     ])
 
     out_parameter_list = OrderedDict([
