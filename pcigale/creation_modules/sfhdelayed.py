@@ -41,8 +41,8 @@ class SFHDelayed(CreationModule):
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
             None
-        ))
-         ("SFR_A", (
+        )),
+         ("sfr_A", (
             "float",
             "Multiplicative factor controlling the amplitude of SFR.",
             1.
@@ -57,7 +57,7 @@ class SFHDelayed(CreationModule):
     out_parameter_list = OrderedDict([
         ("tau_main", "e-folding time of the main stellar population model "
                      "in Myr."),
-        ("age", "Age of the oldest stars in the galaxy in Myr.")
+        ("age", "Age of the oldest stars in the galaxy in Myr."),
         ("sfr_A", "Multiplicative factor controlling the amplitude of SFR.")
     ])
 

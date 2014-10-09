@@ -55,8 +55,8 @@ class Sfh2Exp(CreationModule):
             "integer",
             "Age of the late burst in Myr. Precision is 1 Myr.",
             20.
-        ))
-         ("SFR_0", (
+        )),
+         ("sfr_0", (
             "float",
             "Value of SFR at t = 0 in M_sun/yr.",
             1.
@@ -75,7 +75,7 @@ class Sfh2Exp(CreationModule):
                       "in Myr."),
         ("f_burst", "Produced mass fraction of the late burst population."),
         ("age", "Age of the main stellar population in the galaxy in Myr."),
-        ("burst_age", "Age of the late burst in Myr.")
+        ("burst_age", "Age of the late burst in Myr."),
         ("sfr_0", "SFR at t = 0 in M_sun/yr.")
     ])
 
