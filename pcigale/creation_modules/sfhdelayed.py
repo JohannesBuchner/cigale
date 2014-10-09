@@ -42,12 +42,23 @@ class SFHDelayed(CreationModule):
             "is 1 Myr.",
             None
         ))
-    ])
+         ("SFR_A", (
+            "float",
+            "Multiplicative factor controlling the amplitude of SFR.",
+            1.
+        )),
+        ("normalise", (
+            "boolean",
+            "Normalise the SFH to produce one solar mass.",
+            "False"
+        ))
+   ])
 
     out_parameter_list = OrderedDict([
         ("tau_main", "e-folding time of the main stellar population model "
                      "in Myr."),
         ("age", "Age of the oldest stars in the galaxy in Myr.")
+        ("sfr_A", "Multiplicative factor controlling the amplitude of SFR.")
     ])
 
     def process(self, sed):
@@ -59,15 +70,18 @@ class SFHDelayed(CreationModule):
         """
         tau_main = float(self.parameters["tau_main"])
         age = int(self.parameters["age"])
+        sfr_A = int(self.parameters["sfr_A"])
+        normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
 
         # Main SFR
-        sfr = time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
+        sfr = sfr_A * time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
 
-        # We normalise the SFH to have one solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1.e6, time_grid)
+        # Normalise the SFH to 1 solar mass produced if asked to.
+        if normalise:
+            sfr = sfr / np.trapz(sfr * 1e6, time_grid)
 
         sed.add_module(self.name, self.parameters)
 

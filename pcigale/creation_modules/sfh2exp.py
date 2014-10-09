@@ -47,15 +47,24 @@ class Sfh2Exp(CreationModule):
         )),
         ("age", (
             "integer",
-            "Age of the oldest stars in the galaxy in Myr. The precision "
-            "is 1 Myr.",
-            13000.
+            "Age of the main stellar population in the galaxy in Myr."
+            "The precision is 1 Myr.",
+            5000.
         )),
         ("burst_age", (
             "integer",
             "Age of the late burst in Myr. Precision is 1 Myr.",
             20.
         ))
+         ("SFR_0", (
+            "float",
+            "Value of SFR[M_sun/yr] at t = 0",
+            1.
+        )),
+        ("normalise", (
+            "boolean",
+            "Normalise the SFH to produce one solar mass.",
+            "False"
     ])
 
     out_parameter_list = OrderedDict([
@@ -64,8 +73,9 @@ class Sfh2Exp(CreationModule):
         ("tau_burst", "e-folding time of the late starburst population model "
                       "in Myr."),
         ("f_burst", "Produced mass fraction of the late burst population."),
-        ("age", "Age of the oldest stars in the galaxy in Myr."),
+        ("age", "Age of the main stellar population in the galaxy in Myr."),
         ("burst_age", "Age of the late burst in Myr.")
+        ("sfr_0", "SFR at t = 0 in M_sun/yr.")
     ])
 
     def process(self, sed):
@@ -81,13 +91,15 @@ class Sfh2Exp(CreationModule):
         f_burst = float(self.parameters["f_burst"])
         age = int(self.parameters["age"])
         burst_age = int(self.parameters["burst_age"])
+        sfr_0 = int(self.parameters["sfr_0"])
+        normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
         age = np.max(time_grid)
 
         # Main exponential
-        sfr = np.exp(-time_grid / tau_main)
+        sfr = sfr_0 * np.exp(-time_grid / tau_main)
 
         # Height of the late burst to have the desired produced mass fraction
         # (assuming that the main burst as a height of 1).
@@ -100,8 +112,9 @@ class Sfh2Exp(CreationModule):
         sfr[mask] = sfr[mask] + burst_height * np.exp(
             (-time_grid[mask] + age - burst_age) / tau_burst)
 
-        # We normalise the SFH to have one solar mass produced.
-        sfr = sfr / np.trapz(sfr * 1e6, time_grid)
+        # Normalise the SFH to 1 solar mass produced if asked to.
+        if normalise:
+            sfr = sfr / np.trapz(sfr * 1e6, time_grid)
 
         sed.add_module(self.name, self.parameters)
 
