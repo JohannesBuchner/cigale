@@ -97,8 +97,9 @@ class Dale2014(CreationModule):
 
         sed.add_contribution('dust', self.model_sb.wave,
                              luminosity * self.model_sb.lumin)
-        sed.add_contribution('agn', self.model_quasar.wave,
-                             L_AGN * self.model_quasar.lumin)
+        if frac_agn != 0.:
+            sed.add_contribution('agn', self.model_quasar.wave,
+                                L_AGN * self.model_quasar.lumin)
 
 # CreationModule to be returned by get_module
 Module = Dale2014
