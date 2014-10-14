@@ -62,6 +62,7 @@ class SED(object):
         self.modules = []
         self.wavelength_grid = None
         self.contribution_names = []
+        self.luminosity = None
         self.luminosities = None
         self.info = OrderedDict()
         self.mass_proportional_info = []
@@ -114,17 +115,6 @@ class SED(object):
     def luminosities(self, value):
         self._luminosities = value
 
-    @property
-    def luminosity(self):
-        """Total luminosity of the SED
-
-        Return the total luminosity density vector, i.e. the sum of all the
-        contributions in W/nm.
-        """
-        if self._luminosities is None:
-            return None
-        else:
-            return self._luminosities.sum(0)
 
     @property
     def fnu(self):
@@ -221,8 +211,9 @@ class SED(object):
 
         # If the SED luminosity table is empty, then there is nothing to
         # compute.
-        if self.luminosities is None:
+        if self.luminosity is None:
             self.wavelength_grid = np.copy(results_wavelengths)
+            self.luminosity = np.copy(results_lumin)
             self.luminosities = np.copy(results_lumin)
         else:
             # If the added luminosity contribution changes the SED wavelength
@@ -249,9 +240,11 @@ class SED(object):
 
                 self.wavelength_grid = new_wavelength_grid
                 self.luminosities = np.vstack((new_luminosities, interp_lumin))
+                self.luminosity = self.luminosities.sum(0)
             else:
                 self.luminosities = np.vstack((self.luminosities,
                                                results_lumin))
+                self.luminosity += results_lumin
 
     def get_lumin_contribution(self, name):
         """Get the luminosity vector of a given contribution
