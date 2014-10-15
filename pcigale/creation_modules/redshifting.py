@@ -165,7 +165,7 @@ class Redshifting(CreationModule):
         # We do not define the values of the IGM attenuation component yet.
         # This is because we need the wavelength grid for that first. This
         # will be assigned on the first call.
-        self.igm_attenuation = None
+        self.igm_attenuation = {}
 
 
     def process(self, sed):
@@ -199,11 +199,18 @@ class Redshifting(CreationModule):
         sed.add_info("redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)
         sed.add_info("universe.age", self.universe_age)
-        if self.igm_attenuation is None:
-            self.igm_attenuation = igm_transmission(sed.wavelength_grid,
-                                                    redshift) - 1.
+
+        # We identify the right grid from the length of the wavelength array.
+        # It is not completely foolproof but it is good enough. We need to do
+        # that in case two models do not have the same wavelength sampling.
+        # This is the case for instance if some but not all models have an AGN
+        # fraction of 0.
+        key = sed.wavelength_grid.size
+        if  key not in self.igm_attenuation.keys():
+            self.igm_attenuation[key] = igm_transmission(sed.wavelength_grid,
+                                                         redshift) - 1.
         sed.add_contribution('igm', sed.wavelength_grid,
-                             self.igm_attenuation * sed.luminosity)
+                             self.igm_attenuation[key] * sed.luminosity)
         sed.add_module(self.name, self.parameters)
 
 # CreationModule to be returned by get_module
