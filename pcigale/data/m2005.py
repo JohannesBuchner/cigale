@@ -43,15 +43,15 @@ class M2005(object):
         wavelength_grid: array of floats
             The wavelength [nm] grid used in the spec_table.
         mass_table: (6, n) array of floats
-            The 2D table giving the various stellar masses at a given age. The
+            The 2D table giving the various masses at a given age. The
             first axis is the king of mass, the second is the age based on the
             time_grid.
-                * mass_table[0]: total star mass
-                * mass_table[1]: alive star mass
-                * mass_table[2]: white dwarf star mass
-                * mass_table[3]: neutrino star mass
-                * mass_table[4]: black hole star mass
-                * mass_table[5]: mass in the turn off
+                * mass_table[0]: total mass
+                * mass_table[1]: alive stellar mass
+                * mass_table[2]: white dwarf stars mass
+                * mass_table[3]: neutron stars mass
+                * mass_table[4]: black holes mass
+                * mass_table[5]: turn-off mass
         spec_table: (2, n) array of floats
             The 2D table giving the luminosity density [W/nm] at various time.
             The first axis is the age, base on the time_grid, the second is the
@@ -97,12 +97,12 @@ class M2005(object):
         masses, spectra: array of floats, array of floats
             masses is an array of floats or and array of arrays of floats (the
             second axe is then the age):
-                 - masses[0]: total stellar mass(es)
-                 - masses[1]: alive star mass(es)
-                 - masses[2]: white dwarf mass(es)
-                 - masses[3]: neutrino star mass(es)
-                 - masses[4]: black hole mass(es)
-                 - masses[5]: mass(es) in the turn-off
+                 - masses[0]: total stellar mass
+                 - masses[1]: alive stellar mass
+                 - masses[2]: white dwarf stars mass
+                 - masses[3]: neutron stars mass
+                 - masses[4]: black holes mass
+                 - masses[5]: turn-off mass
             spectra holds:
                 - spectra[0]: wavelengths in nm
                 - spectra[1]: luminosity in W/nm

@@ -26,16 +26,16 @@ class M2005(CreationModule):
 
     Information added to the SED:
         - imf, metallicity, galaxy_age
-        - mass_total, mass_alive, mass_white_dwarf,mass_neutrino,
+        - mass_total, mass_alive, mass_white_dwarf,mass_neutron,
           mass_black_hole, mass_turn_off: stellar masses in solar mass.
         - age: age of the oldest stars in the galaxy.
         - old_young_separation_age: age (in Myr) separating the young and the
               old star populations (if 0, there is only one population)
         - mass_total_old, mass_alive_old, mass_white_dwarf_old,
-          mass_neutrino_old, mass_black_hole_old, mass_turn_off_old: old
+          mass_neutron_old, mass_black_hole_old, mass_turn_off_old: old
               star population masses.
         - mass_total_young, mass_alive_young, mass_white_dwarf_young,
-          mass_neutrino_young, mass_black_hole_young, mass_turn_off_young:
+          mass_neutron_young, mass_black_hole_young, mass_turn_off_young:
               young star population masses.
 
     """
@@ -68,7 +68,7 @@ class M2005(CreationModule):
         ('mass_total', 'Total stellar mass of the galaxy in solar mass.'),
         ('mass_alive', 'Mass of alive stars in solar mass.'),
         ('mass_white_dwarf', 'Mass of white dwarf stars in solar mass.'),
-        ('mass_neutrino', 'Mass of neutrino stars in solar mass.'),
+        ('mass_neutron', 'Mass of neutron stars in solar mass.'),
         ('mass_black_hole', 'Mass of black holes in solar mass.'),
         ('mass_turn_off', 'Mass in the turn-off in solar mass.'),
         ('old_young_separation_age', 'Age (in Myr) separating the old and '
@@ -80,7 +80,7 @@ class M2005(CreationModule):
                            'population).'),
         ('mass_white_dwarf_old', 'Mass of white dwarf stars in solar mass '
                                  '(old population).'),
-        ('mass_neutrino_old', 'Mass of neutrino stars in solar mass '
+        ('mass_neutron_old', 'Mass of neutron stars in solar mass '
                               '(old population).'),
         ('mass_black_hole_old', 'Mass of black holes in solar mass '
                                 '(old population).'),
@@ -92,7 +92,7 @@ class M2005(CreationModule):
                              '(young population).'),
         ('mass_white_dwarf_young', 'Mass of white dwarf stars in solar mass '
                                    '(young population).'),
-        ('mass_neutrino_young', 'Mass of neutrino stars in solar mass '
+        ('mass_neutron_young', 'Mass of neutron stars in solar mass '
                                 '(young population).'),
         ('mass_black_hole_young', 'Mass of black holes in solar mass '
                                   '(young population).'),
@@ -149,14 +149,14 @@ class M2005(CreationModule):
         sed.add_info('stellar.mass_total_old', old_masses[0], True)
         sed.add_info('stellar.mass_alive_old', old_masses[1], True)
         sed.add_info('stellar.mass_white_dwarf_old', old_masses[2], True)
-        sed.add_info('stellar.mass_neutrino_old', old_masses[3], True)
+        sed.add_info('stellar.mass_neutron_old', old_masses[3], True)
         sed.add_info('stellar.mass_black_hole_old', old_masses[4], True)
         sed.add_info('stellar.mass_turn_off_old', old_masses[5], True)
 
         sed.add_info('stellar.mass_total_young', young_masses[0], True)
         sed.add_info('stellar.mass_alive_young', young_masses[1], True)
         sed.add_info('stellar.mass_white_dwarf_young', young_masses[2], True)
-        sed.add_info('stellar.mass_neutrino_young', young_masses[3], True)
+        sed.add_info('stellar.mass_neutron_young', young_masses[3], True)
         sed.add_info('stellar.mass_black_hole_young', young_masses[4], True)
         sed.add_info('stellar.mass_turn_off_young', young_masses[5], True)
 
@@ -166,7 +166,7 @@ class M2005(CreationModule):
                      old_masses[1] + young_masses[1], True)
         sed.add_info('stellar.mass_white_dwarf',
                      old_masses[2] + young_masses[2], True)
-        sed.add_info('stellar.mass_neutrino',
+        sed.add_info('stellar.mass_neutron',
                      old_masses[3] + young_masses[3], True)
         sed.add_info('stellar.mass_black_hole',
                      old_masses[4] + young_masses[4], True)
