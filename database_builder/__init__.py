@@ -191,8 +191,10 @@ def build_m2005(base):
             raise ValueError('Unknown IMF!!!')
 
         # Keep only the actual metallicity values in the mass table
-        # we don't take the first column which contains metallicity
-        mass_table = mass_table[1:, mass_table[0] == metallicity]
+        # we don't take the first column which contains metallicity.
+        # We also eliminate the turn-off mas which makes no send for composite
+        # populations.
+        mass_table = mass_table[1:7, mass_table[0] == metallicity]
 
         # Interpolate the mass table over the new age grid. We multiply per
         # 1000 because the time in Maraston files is given in Gyr.
