@@ -719,7 +719,7 @@ class Database(object):
         metallicity: float
             Gas phase metallicity
         logU: float
-            Radiation field intensity
+            Ionisation parameter
         """
         result = (self.session.query(_NebularLines).
                   filter(_NebularLines.metallicity == metallicity).
@@ -765,7 +765,7 @@ class Database(object):
         metallicity: float
             Gas phase metallicity
         logU: float
-            Radiation field intensity
+            Ionisation parameter
         """
         result = (self.session.query(_NebularContinuum).
                   filter(_NebularContinuum.metallicity == metallicity).

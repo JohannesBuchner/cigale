@@ -28,7 +28,7 @@ class NebularEmission(CreationModule):
     parameter_list = OrderedDict([
         ('logU', (
             'float',
-            "Radiation field intensity",
+            "Ionisation parameter",
             -2.
         )),
         ('f_esc', (
@@ -49,7 +49,7 @@ class NebularEmission(CreationModule):
     ])
 
     out_parameter_list = OrderedDict([
-        ('logU', "Radiation field intensity"),
+        ('logU', "Ionisation parameter"),
         ('f_esc', "Fraction of Lyman continuum photons escaping "
          "the galaxy"),
         ('f_dust', "Fraction of Lyman continuum photons absorbed by dust"),

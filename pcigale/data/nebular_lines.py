@@ -20,7 +20,7 @@ class NebularLines(object):
         metallicity: float
             Gas phase metallicity
         logU: float
-            Radiation field intensity
+            Ionisation parameter
         wave: array
             Vector of the λ grid used in the templates [nm]
         ratio: array
