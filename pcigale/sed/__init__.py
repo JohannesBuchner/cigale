@@ -82,12 +82,12 @@ class SED(object):
 
         if value:
             sfh_time, sfh_sfr = value
-            sfh_age = np.max(sfh_time) - sfh_time
+            sfh_age = sfh_time[-1] - sfh_time
             self._sfh = value
             self.add_info("sfr", sfh_sfr[-1], True, True)
-            self.add_info("average_sfr", np.mean(sfh_sfr[sfh_age <= AV_LAPSE]),
+            self.add_info("average_sfr", np.mean(sfh_sfr[-AV_LAPSE:]),
                           True, True)
-            self.add_info("age", np.max(sfh_time), False, True)
+            self.add_info("age", sfh_time[-1], False, True)
 
     @property
     def fnu(self):
