@@ -363,3 +363,21 @@ class SED(object):
 
         """
         save_sed_to_vo(self, filename, mass)
+
+    def copy(self):
+        sed = SED()
+        sed.sfh = (self._sfh[0].copy(), self._sfh[1].copy())
+        sed.modules = self.modules[:]
+        if self.wavelength_grid is not None:
+            sed.wavelength_grid = self.wavelength_grid.copy()
+            sed.luminosity = self.luminosity.copy()
+            sed.luminosities = self.luminosities.copy()
+        else:
+            sed.wavelength_grid = None
+            sed.luminosity = None
+            sed.luminosities = None
+        sed.contribution_names = self.contribution_names[:]
+        sed.info = self.info.copy()
+        sed.mass_proportional_info = self.mass_proportional_info[:]
+
+        return sed

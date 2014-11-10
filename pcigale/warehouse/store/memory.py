@@ -3,8 +3,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-from copy import deepcopy
-
 
 class SedStore(object):
     """In memory storage"""
@@ -25,7 +23,11 @@ class SedStore(object):
 
         """
         # We return a copy not to modify the stored object.
-        return deepcopy(self.dictionary.get(key))
+        sed = self.dictionary.get(key)
+        if sed is not None:
+            return sed.copy()
+        else:
+            return None
 
     def add(self, key, value):
         """Add a new key, value pair to the cache.
@@ -37,7 +39,7 @@ class SedStore(object):
 
         """
         # We store a copy not to modify the stored object.
-        self.dictionary[key] = deepcopy(value)
+        self.dictionary[key] = value.copy()
 
     def delete(self, key):
         """Delete a key, value pair from the cache
