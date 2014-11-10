@@ -90,33 +90,6 @@ class SED(object):
             self.add_info("age", np.max(sfh_time), False, True)
 
     @property
-    def wavelength_grid(self):
-        """ Return a copy of the wavelength grid
-        """
-        if self._wavelength_grid is None:
-            return None
-        else:
-            return np.copy(self._wavelength_grid)
-
-    @wavelength_grid.setter
-    def wavelength_grid(self, value):
-        self._wavelength_grid = value
-
-    @property
-    def luminosities(self):
-        """ Return a copy of the luminosity contributions
-        """
-        if self._luminosities is None:
-            return None
-        else:
-            return np.copy(self._luminosities)
-
-    @luminosities.setter
-    def luminosities(self, value):
-        self._luminosities = value
-
-
-    @property
     def fnu(self):
         """Total Fν flux density of the SED
 
