@@ -212,9 +212,9 @@ class SED(object):
         # If the SED luminosity table is empty, then there is nothing to
         # compute.
         if self.luminosity is None:
-            self.wavelength_grid = np.copy(results_wavelengths)
-            self.luminosity = np.copy(results_lumin)
-            self.luminosities = np.copy(results_lumin)
+            self.wavelength_grid = results_wavelengths.copy()
+            self.luminosity = results_lumin.copy()
+            self.luminosities = results_lumin.copy()
         else:
             # If the added luminosity contribution changes the SED wavelength
             # grid, we interpolate everything on a common wavelength grid.
