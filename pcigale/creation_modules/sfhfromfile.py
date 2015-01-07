@@ -80,12 +80,16 @@ class SfhFromFile(CreationModule):
         sfr = sfr[time_grid <= age]
         time_grid = time_grid[time_grid <= age]
 
-        # Normalise the SFH to 1 solar mass produced if asked to.
+        # Compute the galaxy mass and normalise the SFH to 1 solar mass
+        # produced if asked to.
+        galaxy_mass = np.trapz(sfr * 1e6, time_grid)
         if normalise:
-            sfr = sfr / np.trapz(sfr * 1e6, time_grid)
+            sfr = sfr / galaxy_mass
+            galaxy_mass = 1.
 
         sed.add_module(self.name, self.parameters)
         sed.sfh = (time_grid, sfr)
+        sed.add_info("galaxy_mass", galaxy_mass, True)
         sed.add_info("sfh.id", sfr_column_number+1)
 
 # CreationModule to be returned by get_module

@@ -79,14 +79,18 @@ class SFHDelayed(CreationModule):
         # Main SFR
         sfr = sfr_A * time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
 
-        # Normalise the SFH to 1 solar mass produced if asked to.
+        # Compute the galaxy mass and normalise the SFH to 1 solar mass
+        # produced if asked to.
+        galaxy_mass = np.trapz(sfr * 1e6, time_grid)
         if normalise:
-            sfr = sfr / np.trapz(sfr * 1e6, time_grid)
+            sfr = sfr / galaxy_mass
+            galaxy_mass = 1.
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
+        sed.add_info("galaxy_mass", galaxy_mass, True)
         sed.add_info("sfh.tau_main", tau_main)
 
 # CreationModule to be returned by get_module

@@ -132,8 +132,6 @@ class BC03(CreationModule):
                      young_info["m_gas"] + old_info["m_gas"],
                      True)
 
-        sed.add_info("galaxy_mass", 1., True)
-
         sed.add_contribution("stellar.old", old_wave, old_lumin)
         sed.add_contribution("stellar.young", young_wave, young_lumin)
 

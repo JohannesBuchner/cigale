@@ -163,8 +163,6 @@ class M2005(CreationModule):
         sed.add_info('stellar.mass_black_hole',
                      old_masses[4] + young_masses[4], True)
 
-        sed.add_info("galaxy_mass", 1., True)
-
         sed.add_contribution("ssp_old",
                              ssp.wavelength_grid,
                              old_spectrum)
