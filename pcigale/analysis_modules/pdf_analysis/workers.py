@@ -192,7 +192,7 @@ def sed(idx):
               format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
-              end="\r")
+              end="\n" if n_computed == gbl_params.size else "\r")
 
 
 def analysis(idx, obs):
@@ -401,5 +401,5 @@ def analysis(idx, obs):
     print("{}/{} objects analysed in {} seconds ({} objects/s)".
             format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
                     np.around(n_computed/t_elapsed, decimals=2)),
-            end="\r")
+            end="\n" if idx == gbl_n_obs-1 else "\r")
 
