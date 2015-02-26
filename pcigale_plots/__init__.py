@@ -115,45 +115,48 @@ def _sed_worker(obs, mod, filters):
         wsed = np.where((sed['wavelength'] > xmin)&(sed['wavelength'] < xmax))
         figure = plt.figure()
         gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
+        if (sed['F_nu'][wsed] > 0.).any():
 
-        ax1 = plt.subplot(gs[0])
-        ax2 = plt.subplot(gs[1])
-        ax1.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
-                  label="Model spectrum", color='k', nonposy='clip')
-        ax1.set_autoscale_on(False)
-        ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
-                   label="Model fluxes")
-        ax1.errorbar(filters_wl, obs_fluxes, yerr=obs_fluxes_err*3, ls='',
-                     marker='_', label='Observed fluxes', color='b',
-                     capsize=0.)
-        mask = np.where(obs_fluxes > 0.)
-        ax2.errorbar(filters_wl[mask],
-                     (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
-                     yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3, marker='_',
-                     label="(Obs-Mod)/Obs", color='k', capsize=0.)
-        ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
-        ax2.set_xscale('log')
-        ax2.minorticks_on()
+          ax1 = plt.subplot(gs[0])
+          ax2 = plt.subplot(gs[1])
+          ax1.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
+                    label="Model spectrum", color='k', nonposy='clip')
+          ax1.set_autoscale_on(False)
+          ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
+                     label="Model fluxes")
+          ax1.errorbar(filters_wl, obs_fluxes, yerr=obs_fluxes_err*3, ls='',
+                       marker='_', label='Observed fluxes', color='b',
+                       capsize=0.)
+          mask = np.where(obs_fluxes > 0.)
+          ax2.errorbar(filters_wl[mask],
+                       (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
+                       yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3, marker='_',
+                       label="(Obs-Mod)/Obs", color='k', capsize=0.)
+          ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
+          ax2.set_xscale('log')
+          ax2.minorticks_on()
 
-        figure.subplots_adjust(hspace=0.,wspace=0.)
+          figure.subplots_adjust(hspace=0.,wspace=0.)
 
-        ax1.set_xlim(xmin, xmax)
-        ax2.set_xlim(xmin, xmax)
-        ax2.set_ylim(-1.0, 1.0)
-        ax2.set_xlabel("Observed wavelength [nm]")
-        ax1.set_ylabel("Flux [mJy]")
-        ax2.set_ylabel("Relative residual flux")
-        ax1.legend(loc='upper left', fontsize=10)
-        ax2.legend(loc='upper right', fontsize=10)
-        plt.setp(ax1.get_xticklabels(), visible=False)
-        plt.setp(ax1.get_yticklabels()[1], visible=False)
-        figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
-                    format(
-                        obs['id'], np.round(obs['redshift'], decimals=3),
-                        np.round(mod['reduced_chi_square'], decimals=2))
-                          )
-        figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
-        plt.close(figure)
+          ax1.set_xlim(xmin, xmax)
+          ax2.set_xlim(xmin, xmax)
+          ax2.set_ylim(-1.0, 1.0)
+          ax2.set_xlabel("Observed wavelength [nm]")
+          ax1.set_ylabel("Flux [mJy]")
+          ax2.set_ylabel("Relative residual flux")
+          ax1.legend(loc='upper left', fontsize=10)
+          ax2.legend(loc='upper right', fontsize=10)
+          plt.setp(ax1.get_xticklabels(), visible=False)
+          plt.setp(ax1.get_yticklabels()[1], visible=False)
+          figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
+                      format(
+                          obs['id'], np.round(obs['redshift'], decimals=3),
+                          np.round(mod['reduced_chi_square'], decimals=2))
+                            )
+          figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
+          plt.close(figure)
+        else:
+          print("No valid best SED found for {}. No plot created.".format(obs['id']))
     else:
         print("No SED found for {}. No plot created.".format(obs['id']))
 
