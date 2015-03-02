@@ -185,6 +185,8 @@ class _Fritz2006(BASE):
     gamma = Column(Float, primary_key=True)
     opening_angle = Column(Float, primary_key=True)
     psy = Column(Float, primary_key=True)
+    norm_scatt = Column(PickleType)
+    norm_agn = Column(PickleType)
     wave = Column(PickleType)
     lumin_therm = Column(PickleType)
     lumin_scatt = Column(PickleType)
@@ -197,6 +199,8 @@ class _Fritz2006(BASE):
         self.gamma = agn.gamma
         self.opening_angle = agn.opening_angle
         self.psy = agn.psy
+        self.norm_scatt = agn.norm_scatt
+        self.norm_agn = agn.norm_agn
         self.wave = agn.wave
         self.lumin_therm = agn.lumin_therm
         self.lumin_scatt = agn.lumin_scatt
@@ -680,6 +684,7 @@ class Database(object):
         if result:
             return Fritz2006(result.r_ratio, result.tau, result.beta,
                              result.gamma, result.opening_angle, result.psy,
+                             result.norm_scatt, result.norm_agn, 
                              result.wave, result.lumin_therm,
                              result.lumin_scatt, result.lumin_agn)
         else:

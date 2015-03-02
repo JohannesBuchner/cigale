@@ -547,10 +547,13 @@ def build_fritz2006(base):
             lumin_therm = lumin_therm / norm
             lumin_scatt = lumin_scatt / norm
             lumin_agn = lumin_agn / norm
-
+            norm_scatt = np.trapz(lumin_scatt, x=wave)
+            norm_agn = np.trapz(lumin_agn, x=wave)
+            
             base.add_fritz2006(Fritz2006(params[4], params[3], params[2],
-                                         params[1], params[0], psy[n], wave,
-                                         lumin_therm, lumin_scatt, lumin_agn))
+                                         params[1], params[0], psy[n], norm_scatt,
+                                         norm_agn, wave, lumin_therm, lumin_scatt,
+                                         lumin_agn))
 
 
 def build_nebular(base):

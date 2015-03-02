@@ -84,7 +84,10 @@ class Fritz2006(CreationModule):
 
     out_parameter_list = OrderedDict([
         ('fracAGN', 'Contribution of the AGN'),
-        ('L_AGN', 'Luminosity of the AGN contribution')
+        ('L_AGN_therm', 'Luminosity of the AGN contribution due to the dust torus'),
+        ('L_AGN_scatt', 'Luminosity of the AGN contribution due to the photon scattering'),
+        ('L_AGN_agn', 'Luminosity of the AGN contribution due to the central source'),
+        ('L_AGN_tot', 'Total luminosity of the AGN contribution')
     ])
 
     def _init_code(self):
@@ -127,17 +130,25 @@ class Fritz2006(CreationModule):
 
         # Compute the AGN luminosity
         if fracAGN < 1.:
-            L_AGN = luminosity * (1./(1.-fracAGN) - 1.)
+            L_AGN_therm = luminosity * (1./(1.-fracAGN) - 1.)
+            L_AGN_scatt = self.fritz2006.norm_scatt * L_AGN_therm
+            L_AGN_agn = self.fritz2006.norm_agn * L_AGN_therm
+            L_AGN_total = L_AGN_therm + L_AGN_scatt + L_AGN_agn
         else:
             raise Exception("AGN fraction is exactly 1. Behaviour "
                             "undefined.")
 
+        sed.add_info('L_AGN_therm', L_AGN_therm)
+        sed.add_info('L_AGN_scatt', L_AGN_scatt)
+        sed.add_info('L_AGN_agn', L_AGN_agn)
+        sed.add_info('L_AGN_total', L_AGN_total)
+
         sed.add_contribution('agn_fritz2006_therm', self.fritz2006.wave,
-                             L_AGN * self.fritz2006.lumin_therm)
+                             L_AGN_therm * self.fritz2006.lumin_therm)
         sed.add_contribution('agn_fritz2006_scatt', self.fritz2006.wave,
-                             L_AGN * self.fritz2006.lumin_scatt)
+                             L_AGN_therm * self.fritz2006.lumin_scatt)
         sed.add_contribution('agn_fritz2006_agn', self.fritz2006.wave,
-                             L_AGN * self.fritz2006.lumin_agn)
+                             L_AGN_therm * self.fritz2006.lumin_agn)
 
 # CreationModule to be returned by get_module
 Module = Fritz2006
