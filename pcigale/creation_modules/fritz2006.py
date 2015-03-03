@@ -10,11 +10,11 @@ Fritz et al. (2006) AGN dust torus emission module
 This module implements the Fritz et al. (2006) models.
 
 """
-
+import numpy as np
 from collections import OrderedDict
 from pcigale.data import Database
 from . import CreationModule
-
+from pcigale.sed.cosmology import cosmology
 
 class Fritz2006(CreationModule):
     """Fritz et al. (2006) AGN dust torus emission
@@ -84,10 +84,10 @@ class Fritz2006(CreationModule):
 
     out_parameter_list = OrderedDict([
         ('fracAGN', 'Contribution of the AGN'),
-        ('l_agn_therm', 'Luminosity of the AGN contribution due to the dust torus'),
-        ('l_agn_scatt', 'Luminosity of the AGN contribution due to the photon scattering'),
-        ('l_agn_agn', 'Luminosity of the AGN contribution due to the central source'),
-        ('l_agn_tot', 'Total luminosity of the AGN contribution')
+        ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to the dust torus'),
+        ('agn.scatt_luminosity', 'Luminosity of the AGN contribution due to the photon scattering'),
+        ('agn.agn_luminosity', 'Luminosity of the AGN contribution due to the central source'),
+        ('agn.luminosity', 'Total luminosity of the AGN contribution')
     ])
 
     def _init_code(self):
@@ -130,25 +130,28 @@ class Fritz2006(CreationModule):
 
         # Compute the AGN luminosity
         if fracAGN < 1.:
-            l_agn_therm = luminosity * (1./(1.-fracAGN) - 1.)
-            l_agn_scatt = self.fritz2006.norm_scatt * l_agn_therm
-            l_agn_agn = self.fritz2006.norm_agn * l_agn_therm
+            agn_power = luminosity * (1./(1.-fracAGN) - 1.)
+            l_agn_therm = agn_power
+            l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt, x=self.fritz2006.wave)
+            l_agn_agn = np.trapz(agn_power * self.fritz2006.lumin_agn, x=self.fritz2006.wave)
             l_agn_total = l_agn_therm + l_agn_scatt + l_agn_agn
+        
+        
         else:
             raise Exception("AGN fraction is exactly 1. Behaviour "
                             "undefined.")
 
-        sed.add_info('l_agn_therm', l_agn_therm)
-        sed.add_info('l_agn_scatt', l_agn_scatt)
-        sed.add_info('l_agn_agn', l_agn_agn)
-        sed.add_info('l_agn_total', l_agn_total)
+        sed.add_info('agn.therm_luminosity', l_agn_therm, True)
+        sed.add_info('agn.scatt_luminosity', l_agn_scatt, True)
+        sed.add_info('agn.agn_luminosity', l_agn_agn, True)
+        sed.add_info('agn.luminosity', l_agn_total, True)
 
         sed.add_contribution('agn.fritz2006_therm', self.fritz2006.wave,
-                             l_agn_therm * self.fritz2006.lumin_therm)
+                             agn_power * self.fritz2006.lumin_therm)
         sed.add_contribution('agn.fritz2006_scatt', self.fritz2006.wave,
-                             l_agn_therm * self.fritz2006.lumin_scatt)
+                             agn_power * self.fritz2006.lumin_scatt)
         sed.add_contribution('agn.fritz2006_agn', self.fritz2006.wave,
-                             l_agn_therm * self.fritz2006.lumin_agn)
+                             agn_power * self.fritz2006.lumin_agn)
 
 # CreationModule to be returned by get_module
 Module = Fritz2006
