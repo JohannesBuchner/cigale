@@ -63,13 +63,14 @@ class Fritz2006(CreationModule):
         )),
         ('opening_angle', (
             'float',
-            "Opening angle of the dust torus. Possible values are: 20, 40, "
-            "60.",
-            40.
+            "Full opening angle of the dust torus (Fig 1 of Fritz 2006).'
+            "Possible values are: 60, 100, 140",
+            100.
         )),
         ('psy', (
             'float',
-            "Angle between AGN axis and line of sight. Possible values are: "
+            "Angle between AGN axis and line of sight (Fig 2 of Fritz 2006)."
+            " Psy = 90◦ for type 2 objects and Psy = 0◦ to type 1. Possible values are: "
             "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100, "
             "80.100, 89.990.",
             50.100
@@ -92,8 +93,8 @@ class Fritz2006(CreationModule):
         tau = self.parameters["tau"]
         beta = self.parameters["beta"]
         gamma = self.parameters["gamma"]
-        opening_angle = self.parameters["opening_angle"]
-        psy = self.parameters["psy"]
+        opening_angle = (180. - self.parameters["opening_angle"]) / 2.
+        psy = 90. - self.parameters["psy"]
 
         with Database() as base:
             self.fritz2006 = base.get_fritz2006(r_ratio, tau, beta, gamma,
