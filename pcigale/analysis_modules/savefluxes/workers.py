@@ -100,4 +100,4 @@ def fluxes(idx):
               format(n_computed, gbl_params.size,
                      np.around(t_elapsed, decimals=1),
                      np.around(n_computed/t_elapsed, decimals=1)),
-              end="\r")
+              end="\n" if n_computed == gbl_params.size else "\r")

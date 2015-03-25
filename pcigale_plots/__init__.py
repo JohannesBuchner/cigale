@@ -18,6 +18,9 @@ import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np
 import os
+import pkg_resources
+from scipy.constants import c, parsec
+from pcigale.sed.cosmology import cosmology
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
@@ -28,8 +31,8 @@ BEST_MODEL_FILE = "best_models.txt"
 # Directory where the output files are stored
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
-PLOT_L_MIN = 91.
-PLOT_L_MAX = 1e6
+PLOT_L_MIN = 0.1
+PLOT_L_MAX = 2e6
 
 
 def _chi2_worker(obj_name, var_name):
@@ -88,7 +91,7 @@ def _pdf_worker(obj_name, var_name):
         print("No PDF found for {}. No plot created.".format(obj_name))
 
 
-def _sed_worker(obs, mod, filters):
+def _sed_worker(obs, mod, filters, sed_type, nologo):
     """Plot the best SED with the associated fluxes in bands
 
     Parameters
@@ -99,77 +102,183 @@ def _sed_worker(obs, mod, filters):
         Data from the best model of one object.
     filters: ordered dictionary of Filter objects
         The observed fluxes in each filter.
+    sed_type: string
+        Type of SED to plot. It can either be "mJy" (flux in mJy and observed
+        frame) or "lum" (luminosity in W and rest frame)
+    nologo: boolean
+        Do not add the logo when set to true.
 
     """
+
     if os.path.isfile(OUT_DIR + "{}_best_model.xml".format(obs['id'])):
+
         sed = Table.read(OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                         table_id="Fnu")
+                         table_id="Flambda")
+
         filters_wl = np.array([filt.effective_wavelength
                                for filt in filters.values()])
+        wavelength_spec = sed['wavelength']
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
         obs_fluxes_err = np.array([obs[filt+'_err']
                                    for filt in filters.keys()])
         mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
-        xmin = PLOT_L_MIN * (1. + obs['redshift'])
-        xmax = PLOT_L_MAX * (1. + obs['redshift'])
-        wsed = np.where((sed['wavelength'] > xmin)&(sed['wavelength'] < xmax))
+        z = obs['redshift']
+        DL = max(10, cosmology.luminosity_distance(z).value * 1e6) * parsec
+
+        if sed_type == 'lum':
+            xmin = PLOT_L_MIN
+            xmax = PLOT_L_MAX
+
+            k_corr_SED = 1e-29 * (4.*np.pi*DL*DL) * c / (filters_wl*1e-9)
+            obs_fluxes *= k_corr_SED
+            obs_fluxes_err *= k_corr_SED
+            mod_fluxes *= k_corr_SED
+
+            for cname in sed.colnames[1:]:
+                sed[cname] *= wavelength_spec
+
+            filters_wl /= 1. + z
+            wavelength_spec /= 1. + z
+        elif sed_type == 'mJy':
+            xmin = PLOT_L_MIN * (1. + z)
+            xmax = PLOT_L_MAX * (1. + z)
+
+            for cname in sed.colnames[1:]:
+                sed[cname] *= (wavelength_spec * 1e29 /
+                               (c / (wavelength_spec * 1e-9)) /
+                               (4. * np.pi * DL * DL))
+        else:
+            print("Unknown plot type")
+
+        filters_wl /= 1000.
+        wavelength_spec /= 1000.
+
+        wsed = np.where((wavelength_spec > xmin) & (wavelength_spec < xmax))
         figure = plt.figure()
         gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
+        if (sed.columns[1][wsed] > 0.).any():
+            ax1 = plt.subplot(gs[0])
+            ax2 = plt.subplot(gs[1])
 
-        ax1 = plt.subplot(gs[0])
-        ax2 = plt.subplot(gs[1])
-        ax1.loglog(sed['wavelength'][wsed], sed['F_nu'][wsed],
-                  label="Model spectrum", color='k', nonposy='clip')
-        ax1.set_autoscale_on(False)
-        ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r',
-                   label="Model fluxes")
-        ax1.errorbar(filters_wl, obs_fluxes, yerr=obs_fluxes_err*3, ls='',
-                     marker='_', label='Observed fluxes', color='b',
-                     capsize=0.)
-        mask = np.where(obs_fluxes > 0.)
-        ax2.errorbar(filters_wl[mask],
-                     (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
-                     yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3, marker='_',
-                     label="(Obs-Mod)/Obs", color='k', capsize=0.)
-        ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
-        ax2.set_xscale('log')
-        ax2.minorticks_on()
+            # Stellar emission
+            ax1.loglog(wavelength_spec[wsed],
+                       (sed['stellar.young'][wsed] +
+                        sed['attenuation.stellar.young'][wsed] +
+                        sed['stellar.old'][wsed] +
+                        sed['attenuation.stellar.old'][wsed]),
+                       label="Stellar attenuated ", color='orange',
+                       marker=None, nonposy='clip', linestyle='-',
+                       linewidth=0.5)
+            ax1.loglog(wavelength_spec[wsed],
+                       (sed['stellar.old'][wsed] +
+                        sed['stellar.young'][wsed]),
+                       label="Stellar unattenuated", color='b', marker=None,
+                       nonposy='clip', linestyle='--', linewidth=0.5)
+            # Dust emission Draine & Li
+            if 'dust.Umin_Umin' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['dust.Umin_Umin'][wsed] +
+                            sed['dust.Umin_Umax'][wsed]),
+                           label="Dust emission", color='r', marker=None,
+                           nonposy='clip', linestyle='-', linewidth=0.5)
+            # Dust emission Dale
+            if 'dust' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed], sed['dust'][wsed],
+                           label="Dust emission", color='r', marker=None,
+                           nonposy='clip', linestyle='-', linewidth=0.5)
+            # AGN emission Fritz
+            if 'agn_fritz2006_therm' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['agn_fritz2006_therm'][wsed] +
+                            sed['agn_fritz2006_scatt'][wsed] +
+                            sed['agn_fritz2006_agn'][wsed]),
+                           label="AGN emission", color='g', marker=None,
+                           nonposy='clip', linestyle='-', linewidth=0.5)
+            # Radio emission
+            if 'radio_nonthermal' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           sed['radio_nonthermal'][wsed],
+                           label="Radio nonthermal", color='brown',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
 
-        figure.subplots_adjust(hspace=0.,wspace=0.)
+            ax1.loglog(wavelength_spec[wsed], sed['F_lambda_total'][wsed],
+                       label="Model spectrum", color='k', nonposy='clip',
+                       linestyle='-', linewidth=2.0)
 
-        ax1.set_xlim(xmin, xmax)
-        ax2.set_xlim(xmin, xmax)
-        ax2.set_ylim(-1.0, 1.0)
-        ax2.set_xlabel("Observed wavelength [nm]")
-        ax1.set_ylabel("Flux [mJy]")
-        ax2.set_ylabel("Relative residual flux")
-        ax1.legend(loc='upper left', fontsize=10)
-        ax2.legend(loc='upper right', fontsize=10)
-        plt.setp(ax1.get_xticklabels(), visible=False)
-        plt.setp(ax1.get_yticklabels()[1], visible=False)
-        figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
-                    format(
-                        obs['id'], np.round(obs['redshift'], decimals=3),
-                        np.round(mod['reduced_chi_square'], decimals=2))
-                          )
-        figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
-        plt.close(figure)
+            ax1.set_autoscale_on(False)
+            ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r', s=8,
+                        label="Model fluxes")
+            mask_ok = np.logical_and(obs_fluxes > 0., obs_fluxes_err > 0.)
+            ax1.errorbar(filters_wl[mask_ok], obs_fluxes[mask_ok],
+                         yerr=obs_fluxes_err[mask_ok]*3, ls='', marker='s',
+                         label='Observed fluxes', markerfacecolor='None',
+                         markersize=6, markeredgecolor='b', capsize=0.)
+            mask_uplim = np.logical_and(np.logical_and(obs_fluxes > 0.,
+                                                       obs_fluxes_err < 0.),
+                                        obs_fluxes_err > -9990.)
+            if not mask_uplim.any() == False:
+                ax1.errorbar(filters_wl[mask_uplim], obs_fluxes[mask_uplim],
+                             uplims=obs_fluxes_err[mask_uplim], ls='',
+                             marker='v', label='Observed upper limits',
+                             markerfacecolor='None', markersize=6,
+                             markeredgecolor='b', capsize=0.)
+            mask_noerr = np.logical_and(obs_fluxes > 0.,
+                                        obs_fluxes_err < -9990.)
+            if not mask_noerr.any() == False:
+                ax1.errorbar(filters_wl[mask_noerr], obs_fluxes[mask_noerr],
+                             ls='', marker='s', markerfacecolor='None',
+                             markersize=6, markeredgecolor='g',
+                             label='Observed fluxes, no errors', capsize=0.)
+            mask = np.where(obs_fluxes > 0.)
+            ax2.errorbar(filters_wl[mask],
+                         (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
+                         yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3,
+                         marker='_', label="(Obs-Mod)/Obs", color='k',
+                         capsize=0.)
+            ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
+            ax2.set_xscale('log')
+            ax2.minorticks_on()
+
+            figure.subplots_adjust(hspace=0., wspace=0.)
+
+            ax1.set_xlim(xmin, xmax)
+            ymin = min(np.min(obs_fluxes[mask_ok]),
+                       np.min(mod_fluxes[mask_ok]))
+            ymax = max(np.max(obs_fluxes[mask_ok]),
+                       np.max(mod_fluxes[mask_ok]))
+            ax1.set_ylim(1e-2*ymin, 1e2*ymax)
+            ax2.set_xlim(xmin, xmax)
+            ax2.set_ylim(-1.0, 1.0)
+            if sed_type == 'lum':
+                ax2.set_xlabel("Rest-frame wavelength [$\mu$m]")
+                ax1.set_ylabel("Luminosity [W]")
+                ax2.set_ylabel("Relative residual luminosity")
+            else:
+                ax2.set_xlabel("Observed wavelength [$\mu$m]")
+                ax1.set_ylabel("Flux [mJy]")
+                ax2.set_ylabel("Relative residual flux")
+            ax1.legend(fontsize=6, loc='best', fancybox=True, framealpha=0.5)
+            ax2.legend(fontsize=6, loc='best', fancybox=True, framealpha=0.5)
+            plt.setp(ax1.get_xticklabels(), visible=False)
+            plt.setp(ax1.get_yticklabels()[1], visible=False)
+            figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
+                            format(obs['id'], np.round(obs['redshift'],
+                                   decimals=3),
+                                   np.round(mod['reduced_chi_square'],
+                                            decimals=2)))
+            if nologo is False:
+                image = plt.imread(pkg_resources.resource_filename(__name__,
+                                   "data/CIGALE.png"))
+                figure.figimage(image, 75, 330, origin='upper', zorder=10,
+                                alpha=1)
+            figure.savefig(OUT_DIR + "{}_best_model.pdf".format(obs['id']))
+            plt.close(figure)
+        else:
+            print("No valid best SED found for {}. No plot created.".
+                  format(obs['id']))
     else:
         print("No SED found for {}. No plot created.".format(obs['id']))
-
-
-def chi2(config):
-    """Plot the χ² values of analysed variables.
-    """
-    input_data = read_table(config.configuration['data_file'])
-    chi2_vars = (config.configuration['analysis_method_params']
-                 ['analysed_variables'])
-
-    with mp.Pool(processes=config.configuration['cores']) as pool:
-        items = product(input_data['id'], chi2_vars)
-        pool.starmap(_chi2_worker, items)
-        pool.close()
-        pool.join()
 
 
 def chi2(config):
@@ -200,18 +309,20 @@ def pdf(config):
         pool.join()
 
 
-def sed(config):
+def sed(config, sed_type, nologo):
     """Plot the best SED with associated observed and modelled fluxes.
     """
     obs = read_table(config.configuration['data_file'])
     mod = Table.read(OUT_DIR + BEST_MODEL_FILE, format='ascii')
+
     with Database() as base:
         filters = OrderedDict([(name, base.get_filter(name))
                                for name in config.configuration['column_list']
                                if not name.endswith('_err')])
 
     with mp.Pool(processes=config.configuration['cores']) as pool:
-        pool.starmap(_sed_worker, zip(obs, mod, repeat(filters)))
+        pool.starmap(_sed_worker, zip(obs, mod, repeat(filters),
+                                      repeat(sed_type), repeat(nologo)))
         pool.close()
         pool.join()
 
@@ -232,6 +343,8 @@ def main():
     chi2_parser.set_defaults(parser='chi2')
 
     sed_parser = subparsers.add_parser('sed', help=sed.__doc__)
+    sed_parser.add_argument('--type', default='mJy')
+    sed_parser.add_argument('--nologo', action="store_true")
     sed_parser.set_defaults(parser='sed')
 
     args = parser.parse_args()
@@ -246,4 +359,4 @@ def main():
     elif args.parser == 'pdf':
         pdf(config)
     elif args.parser == 'sed':
-        sed(config)
+        sed(config, args.type, args.nologo)

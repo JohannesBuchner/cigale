@@ -32,7 +32,7 @@ setup(
 
     include_package_data=True,
     cmdclass={"build": custom_build},
-    package_data={'': ['*.db']},
+    package_data={'pcigale': ['data/data.db'], 'pcigale-plots':['data/CIGALE.png']},
 
     author="Yannick Roehlly",
     author_email="yannick.roehlly@oamp.fr",
