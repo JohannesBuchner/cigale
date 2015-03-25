@@ -63,8 +63,8 @@ class Fritz2006(CreationModule):
         )),
         ('opening_angle', (
             'float',
-            "Full opening angle of the dust torus (Fig 1 of Fritz 2006).'
-            "Possible values are: 60, 100, 140",
+            "Full opening angle of the dust torus (Fig 1 of Fritz 2006)."
+            "Possible values are: 60., 100., 140.",
             100.
         )),
         ('psy', (
