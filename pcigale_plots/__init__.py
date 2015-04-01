@@ -142,6 +142,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
         elif sed_type == 'mJy':
             xmin = PLOT_L_MIN * (1. + z)
             xmax = PLOT_L_MAX * (1. + z)
+            k_corr_SED = 1.
 
             for cname in sed.colnames[1:]:
                 sed[cname] *= (wavelength_spec * 1e29 /
@@ -216,7 +217,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                          markersize=6, markeredgecolor='b', capsize=0.)
             mask_uplim = np.logical_and(np.logical_and(obs_fluxes > 0.,
                                                        obs_fluxes_err < 0.),
-                                        obs_fluxes_err > -9990.)
+                                        obs_fluxes_err > -9990. * k_corr_SED)
             if not mask_uplim.any() == False:
                 ax1.errorbar(filters_wl[mask_uplim], obs_fluxes[mask_uplim],
                              uplims=obs_fluxes_err[mask_uplim], ls='',
@@ -224,7 +225,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                              markerfacecolor='None', markersize=6,
                              markeredgecolor='b', capsize=0.)
             mask_noerr = np.logical_and(obs_fluxes > 0.,
-                                        obs_fluxes_err < -9990.)
+                                        obs_fluxes_err < -9990. * k_corr_SED)
             if not mask_noerr.any() == False:
                 ax1.errorbar(filters_wl[mask_noerr], obs_fluxes[mask_noerr],
                              ls='', marker='s', markerfacecolor='None',
@@ -245,8 +246,12 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ax1.set_xlim(xmin, xmax)
             ymin = min(np.min(obs_fluxes[mask_ok]),
                        np.min(mod_fluxes[mask_ok]))
-            ymax = max(np.max(obs_fluxes[mask_ok]),
-                       np.max(mod_fluxes[mask_ok]))
+            if not mask_uplim.any() == False:
+              ymax = max(np.max(obs_fluxes[mask_uplim]),
+                         np.max(mod_fluxes[mask_uplim]))
+            else:
+              ymax = max(np.max(obs_fluxes[mask_ok]),
+                         np.max(mod_fluxes[mask_ok]))
             ax1.set_ylim(1e-2*ymin, 1e2*ymax)
             ax2.set_xlim(xmin, xmax)
             ax2.set_ylim(-1.0, 1.0)
