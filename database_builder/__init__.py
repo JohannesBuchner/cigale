@@ -226,6 +226,22 @@ def build_m2005(base):
             tmp_list.append(flux_regrid)
         flux_age = np.array(tmp_list)
 
+        # To avoid the creation of waves when interpolating, we refine the grid
+        # beyond 10 μm following a log scale in wavelength. The interpolation
+        # is also done in log space as the spectrum is power-law-like
+        lambda_grid_resamp = np.around(np.logspace(np.log10(10000),
+                                                   np.log10(160000), 50))
+        argmin = np.argmin(10000.-lambda_grid > 0)-1
+        flux_age_resamp = 10.**interpolate.interp1d(
+                                    np.log10(lambda_grid[argmin:]),
+                                    np.log10(flux_age[argmin:, :]),
+                                    assume_sorted=True,
+                                    axis=0)(np.log10(lambda_grid_resamp))
+
+        lambda_grid = np.hstack([lambda_grid[:argmin+1], lambda_grid_resamp])
+        flux_age = np.vstack([flux_age[:argmin+1, :], flux_age_resamp])
+
+
         # Use Z value for metallicity, not log([Z/H])
         metallicity = {-1.35: 0.001,
                        -0.33: 0.01,
