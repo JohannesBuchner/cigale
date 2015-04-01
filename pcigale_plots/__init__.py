@@ -205,7 +205,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
 
             ax1.loglog(wavelength_spec[wsed], sed['F_lambda_total'][wsed],
                        label="Model spectrum", color='k', nonposy='clip',
-                       linestyle='-', linewidth=2.0)
+                       linestyle='-', linewidth=1.5)
 
             ax1.set_autoscale_on(False)
             ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r', s=8,
