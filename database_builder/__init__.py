@@ -281,6 +281,21 @@ def build_bc2003(base):
         ssp_lumin = interpolate.interp1d(ssp_time,
                                          ssp_lumin)(time_grid)
 
+        # To avoid the creation of waves when interpolating, we refine the grid
+        # beyond 10 μm following a log scale in wavelength. The interpolation
+        # is also done in log space as the spectrum is power-law-like
+        ssp_wave_resamp = np.around(np.logspace(np.log10(10000),
+                                                np.log10(160000), 50))
+        argmin = np.argmin(10000.-ssp_wave > 0)-1
+        ssp_lumin_resamp = 10.**interpolate.interp1d(
+                                    np.log10(ssp_wave[argmin:]),
+                                    np.log10(ssp_lumin[argmin:, :]),
+                                    assume_sorted=True,
+                                    axis=0)(np.log10(ssp_wave_resamp))
+
+        ssp_wave = np.hstack([ssp_wave[:argmin+1], ssp_wave_resamp])
+        ssp_lumin = np.vstack([ssp_lumin[:argmin+1, :], ssp_lumin_resamp])
+
         base.add_bc03(BC03(
             imf,
             metallicity[key],
