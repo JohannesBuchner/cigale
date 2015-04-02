@@ -1,25 +1,20 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly
 
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
-"""
-
-
-import atpy
 import configobj
 import pkg_resources
 import pkgutil
 import collections
-import itertools
+import multiprocessing as mp
 import numpy as np
+from glob import glob # To allow the use of glob() in "eval..."
 from textwrap import wrap
-from .tools import param_dict_combine
 from ..data import Database
-from ..sed.modules import common as modules
-from ..stats import common as analysis
+from ..utils import read_table
+from .. import creation_modules
+from .. import analysis_modules
 
 
 def list_modules(package_name):
@@ -27,19 +22,17 @@ def list_modules(package_name):
 
     Parameters
     ----------
-    package_name : string
-        Name of the package (e.g. pcigale.sed.modules).
+    package_name: string
+        Name of the package (e.g. pcigale.creation_modules).
 
     Returns
     -------
-    module_name : array of strings
+    module_name: array of strings
         List of the available modules.
 
     """
     directory = pkg_resources.resource_filename(package_name, '')
     module_names = [name for _, name, _ in pkgutil.iter_modules([directory])]
-    if 'common' in module_names:
-        module_names.remove('common')
 
     return module_names
 
@@ -53,41 +46,45 @@ def evaluate_description(description):
     - If the description is a string beginning with 'eval ', then its content
       (without 'eval ') is evaluated as Python code and its result returned.
       An array is expected.
-    - If the description is a list beginning by 'range', the start, step and
-      stop values are then expected and the range is evaluated.
+    - If the description is a string beginning by 'range', the start, step and
+      stop values are then expected and the range is evaluated (stop included
+      if reached.
     - Then the function tries to evaluate the description as a Numpy array of
       float and returns the mere list if this fails.
 
     Parameters
     ----------
-    description : string or list
+    description: string or list
         The description to be evaluated.
 
     Returns
     -------
-     results : list
+     results: list
         The evaluated list of values.
 
     """
-
-    if not type(description) == list:
-        description = [description]
-
-    if description[0].startswith('eval '):
-        results = eval(description[0][4:])
-        # If the evaluation lead to a single value, we put it in a list.
-        if not isinstance(results, collections.Iterable):
+    results = description
+    if type(description) == str:
+        if description.startswith('eval '):
+            results = eval(description[4:])
+            # If the evaluation lead to a single value, we put it in a list.
+            if not isinstance(results, collections.Iterable):
+                results = [results]
+        elif description.startswith('range '):
+            start, stop, step = [float(item) for item
+                                 in description[5:].split()]
+            results = np.arange(start, stop+step, step)
+        else:
+            # We need to return a list to combine the list of possible values
+            # for each parameter.
             results = [results]
-    elif description[0] == 'range':
-        start = float(description[1])
-        step = float(description[2])
-        stop = float(description[3])
-        results = np.arange(start, stop, step, float)
-    else:
-        try:
-            results = np.array(description, float)
-        except ValueError:
-            results = description
+
+    # We prefer to evaluate the parameter as a numpy array of floats if
+    # possible.
+    try:
+        results = np.array(results, float)
+    except ValueError:
+        pass
 
     return results
 
@@ -101,13 +98,14 @@ class Configuration(object):
 
         Parameters
         ----------
-        filename : string
+        filename: string
             Name of the configuration file (pcigale.conf by default).
 
         """
         self.config = configobj.ConfigObj(filename,
                                           write_empty_values=True,
-                                          indent_type='  ')
+                                          indent_type='  ',
+                                          encoding='UTF8')
 
     def create_blank_conf(self):
         """Create the initial configuration file
@@ -120,20 +118,34 @@ class Configuration(object):
 
         self.config['data_file'] = ""
         self.config.comments['data_file'] = wrap(
-            "File containing the observation data to be fitted. Each flux "
-            "column must have the name of the corresponding filter, the "
-            "error columns are suffixed with '_err'. The values must be "
-            "in mJy.")
+            "File containing the input data. The columns are 'id' (name of the"
+            " object), 'redshift' (if 0 the distance is assumed to be 10 pc), "
+            "the filter names for the fluxes, and the filter names with the "
+            "'_err' suffix for the uncertainties. The fluxes and the "
+            "uncertainties must be in mJy. This file is optional to generate "
+            "the configuration file, in particular for the savefluxes module.")
 
-        self.config['sed_modules'] = []
-        self.config.comments['sed_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules : "
-            + ', '.join(list_modules('pcigale.sed.modules')) + ".")
+        self.config['creation_modules'] = []
+        self.config.comments['creation_modules'] = [""] + wrap(
+            "Order of the modules use for SED creation. Available modules:"
+            "SFH: sfh2exp, sfhdelayed, sfhfromfile ; "
+            "SSP: bc03, m2005 ; "
+            "Nebular: nebular ; "
+            "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
+            "Dust model: casey2012, dale2014, dl2007, dl2014 ; "
+            "AGN: dale2014, fritz2006 ; "
+            "Radio: radio ; "
+            "redshift: redshifting (mandatory!).")
 
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
             "Method used for statistical analysis. Available methods: "
-            + ', '.join(list_modules('pcigale.stats')) + ".")
+            "pdf_analysis, savefluxes.")
+
+        self.config['cores'] = ""
+        self.config.comments['cores'] = [""] + wrap(
+            "Number of CPU cores available. This computer has {} cores."
+            .format(mp.cpu_count()))
 
         self.config.write()
 
@@ -147,26 +159,37 @@ class Configuration(object):
         """
 
         # Getting the list of the filters available in pcigale database
-        base = Database()
-        filter_list = base.get_filter_list()[0]
-        base.close()
+        with Database() as base:
+            filter_list = base.get_filter_list()[0]
 
-        # Finding the known filters in the data table
-        obs_table = atpy.Table(self.config['data_file'])
-        column_list = []
-        for column in obs_table.columns:
-            filter_name = column[:-4] if column.endswith('_err') else column
-            if filter_name in filter_list:
-                column_list.append(column)
+        if self.config['data_file'] != '':
+            obs_table = read_table(self.config['data_file'])
 
-        # Check that we don't have an error column without the associated flux
-        for column in column_list:
-            if column.endswith('_err') and (column[:-4] not in column_list):
-                raise StandardError("The observation table as a {} column "
+            # Check that the id and redshift columns are present in the input
+            # file
+            if 'id' not in obs_table.columns:
+                raise Exception("Column id not present in input file")
+            if 'redshift' not in obs_table.columns:
+                raise Exception("Column redshift not present in input file")
+
+            # Finding the known filters in the data table
+            column_list = []
+            for column in obs_table.columns:
+                filter_name = column[:-4] if column.endswith('_err') else column
+                if filter_name in filter_list:
+                    column_list.append(column)
+
+            # Check that we don't have an error column without the associated
+            # flux
+            for column in column_list:
+                if column.endswith('_err') and (column[:-4] not in column_list):
+                    raise Exception("The observation table as a {} column "
                                     "but no {} column.".format(column,
-                                                               column[:-4]))
+                                                            column[:-4]))
 
-        self.config['column_list'] = column_list
+            self.config['column_list'] = column_list
+        else:
+            self.config['column_list'] = ''
         self.config.comments['column_list'] = [""] + wrap(
             "List of the columns in the observation data file to use for "
             "the fitting.")
@@ -177,19 +200,21 @@ class Configuration(object):
         self.config.comments['sed_creation_modules'] = ["", ""] + wrap(
             "Configuration of the SED creation modules.")
 
-        for module_name in self.config['sed_modules']:
+        for module_name in self.config['creation_modules']:
             self.config["sed_creation_modules"][module_name] = {}
             sub_config = self.config["sed_creation_modules"][module_name]
 
             for name, (typ, description, default) in \
-                    modules.get_module(module_name).parameter_list.items():
+                    creation_modules.get_module(
+                        module_name,
+                        blank=True).parameter_list.items():
                 if default is None:
                     default = ''
                 sub_config[name] = default
                 sub_config.comments[name] = wrap(description)
 
             self.config['sed_creation_modules'].comments[module_name] = [
-                modules.get_module(module_name).comments]
+                creation_modules.get_module(module_name, blank=True).comments]
 
         # Configuration for the analysis method
         self.config['analysis_configuration'] = {}
@@ -197,7 +222,7 @@ class Configuration(object):
             "Configuration of the statistical analysis method.")
         module_name = self.config['analysis_method']
         for name, (typ, desc, default) in \
-                analysis.get_module(module_name).parameter_list.items():
+                analysis_modules.get_module(module_name).parameter_list.items():
             if default is None:
                 default = ''
             self.config['analysis_configuration'][name] = default
@@ -211,69 +236,40 @@ class Configuration(object):
 
         Returns
         -------
-        configuration['data_file'] : string
+        configuration['data_file']: string
             File containing the observations to fit.
-        configuration['column_list'] : list of strings
+        configuration['column_list']: list of strings
             List of the columns of data_file to use in the fitting.
-        configuration['sed_modules'] : list of strings
+        configuration['creation_modules']: list of strings
             List of the modules (in the right order) used to create the SEDs.
-        configuration['sed_modules_params'] : list of dictionaries
+        configuration['creation_modules_params']: list of dictionaries
             Configuration parameters for each module. To each parameter, the
             dictionary associates a list of possible values (possibly only
             one).
-        configuration['analysis_method'] : string
+        configuration['analysis_method']: string
             Statistical analysis module used to fit the data.
-        configuration['analysis_method_params'] : dictionary
+        configuration['analysis_method_params']: dictionary
             Parameters for the statistical analysis module. To each parameter
             is associated a list of possible values.
         """
         configuration = {}
 
-        for section in ['data_file', 'column_list', 'sed_modules',
+        for section in ['data_file', 'column_list', 'creation_modules',
                         'analysis_method']:
             configuration[section] = self.config[section]
+        configuration['cores'] = int(self.config['cores'])
 
         # Parsing the SED modules parameters
-        configuration['sed_modules_params'] = []
-        for module in self.config['sed_modules']:
-            module_params = {}
+        configuration['creation_modules_params'] = []
+        for module in self.config['creation_modules']:
+            module_params = collections.OrderedDict()
             for key, value in \
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
-            configuration['sed_modules_params'].append(module_params)
+            configuration['creation_modules_params'].append(module_params)
 
-        # Parsing the statistical analysis parameters
-        configuration['analysis_method_params'] = {}
-        for key, value in self.config['analysis_configuration'].items():
-            configuration['analysis_method_params'][key] = \
-                evaluate_description(value)
+        # Analysis method parameters
+        configuration['analysis_method_params'] = \
+            self.config['analysis_configuration']
 
         return configuration
-
-    @property
-    def sed_modules_conf_array(self):
-        """Return the array of all the possible parameter sets from the
-        SED creation modules.
-
-        TODO: Maybe it would be more optimal to create an iterator that would
-              iterate over the whole parameter combinations instead of
-              creating the array.
-
-        Returns
-        -------
-        result : array of arrays of dictionaries
-            The inner arrays contains the various parameter dictionaries
-            for the modules listed in configuration['sed_modules'].
-
-        """
-
-        # First, for each module, we transform the dictionary containing all
-        # the possible value for each parameter in a list of dictionaries
-        # containing one value for each parameter. We put this list in a list
-        # corresponding to the SED modules one.
-        tmp_list = [param_dict_combine(dictionary) for dictionary in
-                    self.configuration['sed_modules_params']]
-
-        # The we use itertools to create an array of all possible
-        # combinations.
-        return [x for x in itertools.product(*tmp_list)]

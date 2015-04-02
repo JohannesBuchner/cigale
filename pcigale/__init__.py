@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly
 
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
-"""
+__version__ = "0.1-alpha"
 
 import argparse
+import multiprocessing as mp
+import sys
+
 from .session.configuration import Configuration
-from .stats.common import get_module as get_stats_module
+from .analysis_modules import get_module as get_analysis_module
+from .analysis_modules.utils import ParametersHandler
 
 
 def init(config):
@@ -29,26 +31,42 @@ def genconf(config):
 
 def check(config):
     "Check the configuration."
-    # TODO : Check if all the parameters that don't have default values are
+    # TODO: Check if all the parameters that don't have default values are
     # given for each module.
-    print ("With this configuration, pcigale must compute {} "
-           "SEDs.".format(len(config.sed_modules_conf_array)))
+    print("With this configuration, pcigale must compute {} "
+          "SEDs.".format(ParametersHandler(
+                             config.configuration['creation_modules'],
+                             config.configuration['creation_modules_params']
+                             ).size))
 
 
 def run(config):
     "Run the analysis."
     data_file = config.configuration['data_file']
     column_list = config.configuration['column_list']
-    sed_modules = config.configuration['sed_modules']
-    sed_modules_params = config.sed_modules_conf_array
-    stat_module = get_stats_module(config.configuration['analysis_method'])
-    stat_module_params = config.configuration['analysis_method_params']
+    creation_modules = config.configuration['creation_modules']
+    creation_modules_params = config.configuration['creation_modules_params']
+    analysis_module = get_analysis_module(config.configuration[
+        'analysis_method'])
+    analysis_module_params = config.configuration['analysis_method_params']
+    cores = config.configuration['cores']
 
-    stat_module.process(data_file, column_list, sed_modules,
-                        sed_modules_params, stat_module_params)
+    analysis_module.process(data_file, column_list, creation_modules,
+                            creation_modules_params, analysis_module_params,
+                            cores)
 
 
 def main():
+    # We set the sub processes start method to spawn because it solves
+    # deadlocks when a library cannot handle being used on two sides of a
+    # forked process. This happens on modern Macs with the Accelerate library
+    # for instance. Unfortunately this only comes with python≥3.4. People using
+    # older versions should upgrade if they encounter deadlocks.
+    if sys.version_info[:2] >= (3, 4):
+        mp.set_start_method('spawn')
+    else:
+        print("Could not set the multiprocessing start method to spawn. If "
+              "you encounter a deadlock, please upgrade to Python≥3.4.")
 
     parser = argparse.ArgumentParser()
 

@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
-"""
+# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly
 
 from setuptools import setup, find_packages
 from distutils.command.build import build
@@ -21,7 +17,7 @@ class custom_build(build):
         build.run(self)
 
 entry_points = {
-    'console_scripts': ['pcigale = pcigale:main']
+    'console_scripts': ['pcigale = pcigale:main', 'pcigale-plots = pcigale_plots:main']
 }
 
 setup(
@@ -29,14 +25,14 @@ setup(
     version="0.1a",
     packages=find_packages(exclude=["database_builder"]),
 
-    install_requires=['numpy', 'scipy', 'sqlalchemy', 'atpy', 'matplotlib',
-                      'configobj', 'progressbar', 'pyfits'],
+    install_requires=['numpy', 'scipy', 'sqlalchemy', 'matplotlib',
+                      'configobj', 'astropy'],
 
     entry_points=entry_points,
 
     include_package_data=True,
     cmdclass={"build": custom_build},
-    package_data={'': ['*.db']},
+    package_data={'pcigale': ['data/data.db'], 'pcigale-plots':['data/CIGALE.png']},
 
     author="Yannick Roehlly",
     author_email="yannick.roehlly@oamp.fr",

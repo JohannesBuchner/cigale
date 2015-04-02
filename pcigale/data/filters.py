@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Copyright (C) 2012 Centre de données Astrophysiques de Marseille
-Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
-
-@author: Yannick Roehlly <yannick.roehlly@oamp.fr>
-
-"""
+# Copyright (C) 2012 Centre de données Astrophysiques de Marseille
+# Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
+# Author: Yannick Roehlly
 
 import numpy as np
 
@@ -20,18 +16,18 @@ class Filter(object):
         the transmission table or the effective wavelength are not specified,
         their value is set to None.
 
-        Paramtres
-        ---------
-        name : string
+        Parameters
+        ----------
+        name: string
             Name of the filter
-        description : string
+        description: string
             Description of the filter
-        trans_type : string
+        trans_type: string
             Type of transmission table ('energy' or 'photon')
-        trans_table : array
+        trans_table: array
             trans_table[0] is the wavelength in nm,
             trans_table[1] is the transmission)
-        effective_wavelength : float
+        effective_wavelength: float
             Effective wavelength of the filter
         """
 
@@ -51,7 +47,7 @@ class Filter(object):
         if value in ['energy', 'photon']:
             self._trans_type = value
         else:
-            raise ValueError("Filter transmision type can only be "
+            raise ValueError("Filter transmission type can only be "
                              "'energy' or 'photon'.")
 
     def __str__(self):
