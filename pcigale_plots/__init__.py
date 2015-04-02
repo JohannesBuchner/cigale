@@ -243,17 +243,17 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
 
             figure.subplots_adjust(hspace=0., wspace=0.)
 
-            ax1.set_xlim(xmin, xmax)
+            ax1.set_xlim(1e-1*xmin, 1e3)
             ymin = min(np.min(obs_fluxes[mask_ok]),
                        np.min(mod_fluxes[mask_ok]))
             if not mask_uplim.any() == False:
-              ymax = max(np.max(obs_fluxes[mask_uplim]),
-                         np.max(mod_fluxes[mask_uplim]))
+              ymax = max(max(np.max(obs_fluxes[mask_ok]),np.max(obs_fluxes[mask_uplim])),
+                         max(np.max(mod_fluxes[mask_ok]),np.max(mod_fluxes[mask_uplim])))
             else:
               ymax = max(np.max(obs_fluxes[mask_ok]),
                          np.max(mod_fluxes[mask_ok]))
-            ax1.set_ylim(1e-2*ymin, 1e2*ymax)
-            ax2.set_xlim(xmin, xmax)
+            ax1.set_ylim(1e-1*ymin, 1e1*ymax)
+            ax2.set_xlim(1e-1*xmin, 1e3)
             ax2.set_ylim(-1.0, 1.0)
             if sed_type == 'lum':
                 ax2.set_xlabel("Rest-frame wavelength [$\mu$m]")
