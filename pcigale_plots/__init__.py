@@ -188,11 +188,11 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                            label="Dust emission", color='r', marker=None,
                            nonposy='clip', linestyle='-', linewidth=0.5)
             # AGN emission Fritz
-            if 'agn_fritz2006_therm' in sed.columns:
+            if 'agn.fritz2006_therm' in sed.columns:
                 ax1.loglog(wavelength_spec[wsed],
-                           (sed['agn_fritz2006_therm'][wsed] +
-                            sed['agn_fritz2006_scatt'][wsed] +
-                            sed['agn_fritz2006_agn'][wsed]),
+                           (sed['agn.fritz2006_therm'][wsed] +
+                            sed['agn.fritz2006_scatt'][wsed] +
+                            sed['agn.fritz2006_agn'][wsed]),
                            label="AGN emission", color='g', marker=None,
                            nonposy='clip', linestyle='-', linewidth=0.5)
             # Radio emission
