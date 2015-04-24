@@ -60,7 +60,7 @@ class PdfAnalysis(AnalysisModule):
             "array of strings",
             "List of the variables (in the SEDs info dictionaries) for which "
             "the statistical analysis will be done.",
-            ["sfr", "average_sfr"]
+            ["sfr", "sfr10Myrs", "sfr100Myrs"]
         )),
         ("save_best_sed", (
             "boolean",

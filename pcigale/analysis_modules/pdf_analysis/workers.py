@@ -338,7 +338,7 @@ def analysis(idx, obs):
         # We check how many unique parameter values are analysed and if less
         # than Npdf (= 100), the PDF is initally built assuming a number of
         # bins equal to the number of unique values for a given parameter
-        # (e.g., average_sfr, age, attenuation.uv_bump_amplitude,
+        # (e.g., sfr, age, attenuation.uv_bump_amplitude,
         # dust.luminosity, attenuation.FUV, etc.).
         Npdf = 100
         var = np.empty((Npdf, len(analysed_averages)))

@@ -62,7 +62,9 @@ class M2005(CreationModule):
     out_parameter_list = OrderedDict([
         ('sfr', 'Instantaneous Star Formation Rate in solar mass per year, '
                 'at the age of the galaxy.'),
-        ('average_sfr', 'Average SFR in the last 100 Myr (default) of the '
+        ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
+                        'galaxy history.'),
+        ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
                         'galaxy history.'),
         ('mass_total', 'Total stellar mass of the galaxy in solar mass.'),
         ('mass_alive', 'Mass of alive stars in solar mass.'),
