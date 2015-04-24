@@ -48,12 +48,13 @@ class SaveFluxes(AnalysisModule):
     parameter_list = OrderedDict([
         ("output_file", (
             "string",
-            "Name of the output file.",
+            "Name of the output file that contains the parameters of the model(s)",
+            "and the flux densities in the bands",
             "computed_fluxes.txt"
         )),
         ("save_sed", (
             "boolean",
-            "If True, save the generated SED.",
+            "If True, save the generated spectra for each model.",
             "False"
         )),
         ("output_format", (
