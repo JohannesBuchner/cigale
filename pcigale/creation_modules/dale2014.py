@@ -31,8 +31,9 @@ class Dale2014(CreationModule):
     parameter_list = OrderedDict([
         ('fracAGN', (
             'float',
-            "AGN fraction.",
-            0.1
+            "AGN fraction "
+            "[it is not recommended to combine this AGN emission with that of Fritz et al. (2006)]",
+            0.0
         )),
         ('alpha', (
             'float',

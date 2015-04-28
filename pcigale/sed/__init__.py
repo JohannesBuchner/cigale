@@ -85,7 +85,9 @@ class SED(object):
             sfh_age = sfh_time[-1] - sfh_time
             self._sfh = value
             self.add_info("sfr", sfh_sfr[-1], True, True)
-            self.add_info("average_sfr", np.mean(sfh_sfr[-AV_LAPSE:]),
+            self.add_info("sfr10Myrs", np.mean(sfh_sfr[-10:]),
+                          True, True)
+            self.add_info("sfr100Myrs", np.mean(sfh_sfr[-100:]),
                           True, True)
             self.add_info("age", sfh_time[-1], False, True)
 
