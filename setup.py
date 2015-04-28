@@ -24,7 +24,7 @@ entry_points = {
 
 setup(
     name="pcigale",
-    version="0.1a",
+    version="0.5.1",
     packages=find_packages(exclude=["database_builder"]),
 
     install_requires=['numpy', 'scipy', 'sqlalchemy', 'matplotlib',
@@ -36,8 +36,8 @@ setup(
     package_data={'pcigale': ['data/data.db'],
                   'pcigale_plots': ['data/CIGALE.png']},
 
-    author="Yannick Roehlly",
-    author_email="yannick.roehlly@oamp.fr",
+    author="The CIGALE team",
+    author_email="cigale@lam.fr",
     description="Python Code Investigating Galaxy Emission",
     license="CeCILL-V2",
     keywords="astrophysics, galaxy, SED fitting"
