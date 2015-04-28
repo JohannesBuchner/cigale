@@ -3,8 +3,9 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-from setuptools import setup, find_packages
 from distutils.command.build import build
+
+from setuptools import find_packages, setup
 
 
 class custom_build(build):
@@ -17,7 +18,8 @@ class custom_build(build):
         build.run(self)
 
 entry_points = {
-    'console_scripts': ['pcigale = pcigale:main', 'pcigale-plots = pcigale_plots:main']
+    'console_scripts': ['pcigale = pcigale:main',
+                        'pcigale-plots = pcigale_plots:main']
 }
 
 setup(
@@ -32,12 +34,12 @@ setup(
 
     include_package_data=True,
     cmdclass={"build": custom_build},
-    package_data={'pcigale': ['data/data.db'], 'pcigale-plots':['data/CIGALE.png']},
+    package_data={'pcigale': ['data/data.db'],
+                  'pcigale-plots': ['data/CIGALE.png']},
 
     author="Yannick Roehlly",
     author_email="yannick.roehlly@oamp.fr",
     description="Python Code Investigating Galaxy Emission",
     license="CeCILL-V2",
     keywords="astrophysics, galaxy, SED fitting"
-
 )
