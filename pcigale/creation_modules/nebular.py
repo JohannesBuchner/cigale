@@ -53,7 +53,7 @@ class NebularEmission(CreationModule):
         ('f_esc', "Fraction of Lyman continuum photons escaping "
          "the galaxy"),
         ('f_dust', "Fraction of Lyman continuum photons absorbed by dust"),
-        ('nebular_lines_width', "Width of the nebular lines")
+        ('lines_width', "Width of the nebular lines")
     ])
 
     def _init_code(self):
@@ -90,7 +90,7 @@ class NebularEmission(CreationModule):
                                   ['metallicity']
                                   }
 
-        lines_width = self.parameters['nebular_lines_width'] * 1e3
+        lines_width = self.parameters['lines_width'] * 1e3
         for lines in self.lines_template.values():
             new_wave = np.array([])
             for line_wave in lines.wave:
@@ -143,7 +143,7 @@ class NebularEmission(CreationModule):
         sed.add_info('nebular.logU', self.parameters['logU'])
         sed.add_info('nebular.f_esc', self.parameters['f_esc'])
         sed.add_info('nebular.f_dust', self.parameters['f_dust'])
-        sed.add_info('nebular.lines_width', self.parameters['nebular_lines_width'])
+        sed.add_info('nebular.lines_width', self.parameters['lines_width'])
 
         sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
                              NLy_old * self.conv_line)
