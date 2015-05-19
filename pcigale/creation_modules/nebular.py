@@ -41,7 +41,7 @@ class NebularEmission(CreationModule):
             "Fraction of Lyman continuum photons absorbed by dust",
             0.
         )),
-        ('nebular_lines_width', (
+        ('lines_width', (
             'float',
             "Line width in km/s",
             300.
