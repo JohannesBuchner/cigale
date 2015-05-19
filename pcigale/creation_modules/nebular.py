@@ -134,16 +134,16 @@ class NebularEmission(CreationModule):
         parameters: dictionary containing the parameters
 
         """
-        f_esc = self.parameters['f_esc']
-        f_dust = self.parameters['f_dust']
         NLy_old = sed.info['stellar.n_ly_old']
         NLy_young = sed.info['stellar.n_ly_young']
         lines = self.lines_template[sed.info['stellar.metallicity']]
         cont = self.cont_template[sed.info['stellar.metallicity']]
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('nebular.f_esc', f_esc)
-        sed.add_info('nebular.f_dust', f_dust)
+        sed.add_info('nebular.logU', self.parameters['logU'])
+        sed.add_info('nebular.f_esc', self.parameters['f_esc'])
+        sed.add_info('nebular.f_dust', self.parameters['f_dust'])
+        sed.add_info('nebular.lines_width', self.parameters['nebular_lines_width'])
 
         sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
                              NLy_old * self.conv_line)
