@@ -209,7 +209,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
 
             ax1.set_autoscale_on(False)
             ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r', s=8,
-                        label="Model fluxes")
+                        zorder=3, label="Model fluxes")
             mask_ok = np.logical_and(obs_fluxes > 0., obs_fluxes_err > 0.)
             ax1.errorbar(filters_wl[mask_ok], obs_fluxes[mask_ok],
                          yerr=obs_fluxes_err[mask_ok]*3, ls='', marker='s',
