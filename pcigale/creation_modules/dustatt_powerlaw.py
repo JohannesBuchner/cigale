@@ -229,7 +229,12 @@ class PowerLawAtt(CreationModule):
         sed.add_info("attenuation.powerlaw_slope", powerlaw_slope)
 
         # Total attenuation
-        sed.add_info("dust.luminosity", attenuation_total, True)
+        if 'dust.luminosity' in sed.info:
+            sed.add_info("dust.luminosity",
+                         sed.info["dust.luminosity"]+attenuation_total, True,
+                         True)
+        else:
+            sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only in continuum) in each filter after attenuation.
         flux_att = {}

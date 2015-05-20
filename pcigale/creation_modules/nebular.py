@@ -144,6 +144,9 @@ class NebularEmission(CreationModule):
         sed.add_info('nebular.f_esc', self.parameters['f_esc'])
         sed.add_info('nebular.f_dust', self.parameters['f_dust'])
         sed.add_info('nebular.lines_width', self.parameters['lines_width'])
+        sed.add_info('dust.luminosity',(sed.info['stellar.lum_ly_young'] +
+                     sed.info['stellar.lum_ly_old']) *
+                     self.parameters['f_dust'], True)
 
         sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
                              NLy_old * self.conv_line)

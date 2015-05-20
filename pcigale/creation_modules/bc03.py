@@ -105,6 +105,12 @@ class BC03(CreationModule):
         old_sfh[sfh_age <= separation_age] = 0
         old_wave, old_lumin, old_info = ssp.convolve(sfh_time, old_sfh)
 
+        # We compute the Lyman continuum luminosity as it is important to
+        # compute the energy absorbed by the dust before ionising gas.
+        w = np.where(young_wave <= 91.1)
+        lum_ly_young = np.trapz(young_lumin[w], young_wave[w])
+        lum_ly_old = np.trapz(old_lumin[w], old_wave[w])
+
         sed.add_module(self.name, self.parameters)
 
         sed.add_info("stellar.imf", imf)
@@ -114,6 +120,7 @@ class BC03(CreationModule):
         sed.add_info("stellar.m_star_young", young_info["m_star"], True)
         sed.add_info("stellar.m_gas_young", young_info["m_gas"], True)
         sed.add_info("stellar.n_ly_young", young_info["n_ly"], True)
+        sed.add_info("stellar.lum_ly_young", lum_ly_young, True)
         sed.add_info("stellar.b_400_young", young_info["b_4000"])
         sed.add_info("stellar.b4_vn_young", young_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_young", young_info["b4_sdss"])
@@ -122,6 +129,7 @@ class BC03(CreationModule):
         sed.add_info("stellar.m_star_old", old_info["m_star"], True)
         sed.add_info("stellar.m_gas_old", old_info["m_gas"], True)
         sed.add_info("stellar.n_ly_old", old_info["n_ly"], True)
+        sed.add_info("stellar.lum_ly_old", lum_ly_old, True)
         sed.add_info("stellar.b_400_old", old_info["b_4000"])
         sed.add_info("stellar.b4_vn_old", old_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_old", old_info["b4_sdss"])
