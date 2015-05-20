@@ -81,7 +81,7 @@ def fluxes(idx):
     if gbl_save_sed == True:
         sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
 
-    if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
+    if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
         model_fluxes = -99. * np.ones(len(gbl_filters))
     else:
         model_fluxes = np.array([sed.compute_fnu(filter_.trans_table,

@@ -169,7 +169,7 @@ def sed(idx):
     sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index(idx))
 
-    if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
+    if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
         model_fluxes = -99. * np.ones(len(gbl_filters))
         model_variables = -99. * np.ones(len(gbl_analysed_variables))
     else:
