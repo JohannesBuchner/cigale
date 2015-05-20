@@ -32,7 +32,7 @@ BEST_MODEL_FILE = "best_models.txt"
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 0.1
-PLOT_L_MAX = 2e6
+PLOT_L_MAX = 5e5
 
 
 def _chi2_worker(obj_name, var_name):
