@@ -40,7 +40,38 @@ def nu_to_lambda(frequency):
     """
     return 1.e-9 * c / frequency
 
+def best_grid_memoise(f):
+    """
+    Memoisation helper for the best_grid() function. Given that best_grid takes
+    numpy arrays that are not hashable as input, we cannot use the standard
+    memoisation functions. Here we use the array sizes, minimum and maximum
+    values as hashes.
 
+    Parameters
+    ----------
+    f: function
+        Function to memoise.
+
+    Returns
+    -------
+    best_grid_helper: function
+        Meomoised best_grid function
+    """
+
+    memo = {}
+    def best_grid_helper(x,y):
+        sx = x.size
+        minx = x[0]
+        maxx = x[-1]
+        sy = y.size
+        miny = y[0]
+        maxy = y[-1]
+        if (sx, minx, maxx, sy, miny, maxy) not in memo:
+            memo[(sx, minx, maxx, sy, miny, maxy)] = f(x, y)
+        return memo[(sx, minx, maxx, sy, miny, maxy)]
+    return best_grid_helper
+
+@best_grid_memoise
 def best_grid(wavelengths1, wavelengths2):
     """
     Return the best wavelength grid to regrid to arrays
@@ -61,13 +92,12 @@ def best_grid(wavelengths1, wavelengths2):
         Array containing all the wavelengths found in the input arrays.
 
     """
+
     wl = np.concatenate((wavelengths1, wavelengths2))
     wl.sort(kind='mergesort')
     flag = np.ones(len(wl), dtype=bool)
     np.not_equal(wl[1:], wl[:-1], out=flag[1:])
-
     return wl[flag]
-
 
 def luminosity_to_flux(luminosity, dist):
     """
