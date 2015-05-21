@@ -36,6 +36,8 @@ from . import utils
 from .io.vo import save_sed_to_vo
 from scipy.constants import c, parsec
 from scipy.interpolate import interp1d
+from ..data import Database
+
 
 # Time lapse used to compute the average star formation rate. We use a
 # constant to keep it easily changeable for advanced user while limiting the
@@ -66,6 +68,7 @@ class SED(object):
         self.luminosities = None
         self.info = OrderedDict()
         self.mass_proportional_info = []
+        self.cache_filters = {}
 
     @property
     def sfh(self):
@@ -242,18 +245,14 @@ class SED(object):
                - self.contribution_names[::-1].index(name))
         return self.luminosities[idx]
 
-    def compute_fnu(self, transmission, lambda_eff):
+    def compute_fnu(self, filter_name):
         """
-        Compute the Fν flux density corresponding the filter which
-        transmission is given.
+        Compute the Fν flux density in a given filter
 
         As the SED stores the Lλ luminosity density, we first compute the Fλ
         flux density. Fλ is the integration of the Lλ luminosity multiplied by
         the filter transmission, normalised to this transmission and corrected
-        by the luminosity distance of the source. This is done by the
-        pcigale.sed.utils.luminosity_to_flux function.
-
-        Fλ = luminosity_to_flux( integ( LλT(λ)dλ ) / integ( T(λ)dλ ) )
+        by the luminosity distance of the source.
 
         Fλ is in W/m²/nm. At redshift 0, the flux is computed at 10 pc. Then,
         to compute Fν, we make the approximation:
@@ -267,12 +266,9 @@ class SED(object):
 
         Parameters
         ----------
-        transmission: 2D array of floats
-            A numpy 2D array containing the filter response profile
-            wavelength[nm] vs transmission).
-
-        lambda_eff: float
-            Effective wavelength of the filter in nm.
+        filter_name: string
+            Name of the filter to integrate into. It must be presnt in the
+            database.
 
         Return
         ------
@@ -280,47 +276,55 @@ class SED(object):
             The integrated Fν density in mJy.
         """
 
-        # Filter limits
-        lambda_min = transmission[0][0]
-        lambda_max = transmission[0][-1]
-
         wavelength = self.wavelength_grid
-        l_lambda = self.luminosity
 
-        # Test if the spectrum cover all the filter extend
-        if ((wavelength[0] > lambda_min) or
-                (wavelength[-1] < lambda_max)):
-            f_nu = -99.
-
+        # First we try to fetch the filter's wavelength, transmission and
+        # effective wavelength from the cache. The two keys are the size of the
+        # spectrum wavelength grid and the name of the filter. The first key is
+        # necessary because different spectra may have different sampling. To
+        # avoid having the resample the filter every time on the optimal grid
+        # (spectrum+filter), we store the resampled filter. That way we only
+        # have to resample to spectrum.
+        key = (wavelength.size, filter_name)
+        if key in list(self.cache_filters.keys()):
+            wavelength_r, transmission_r, lambda_eff = self.cache_filters[key]
         else:
+            with Database() as db:
+                filter_ = db.get_filter(filter_name)
+            trans_table = filter_.trans_table
+            lambda_eff = filter_.effective_wavelength
+            lambda_min = filter_.trans_table[0][0]
+            lambda_max = filter_.trans_table[0][-1]
+
+            # Test if the filter covers all the spectrum extent. If not then
+            # the flux is not defined
+            if ((wavelength[0] > lambda_min) or (wavelength[-1] < lambda_max)):
+                return -99.
+
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low
             # density one. Also, we limit the work wavelength domain to the
             # filter one.
-
             w = np.where((wavelength >= lambda_min)&(wavelength <= lambda_max))
-            wavelength_r = utils.best_grid(wavelength[w], transmission[0])
+            wavelength_r = utils.best_grid(wavelength[w], trans_table[0])
+            transmission_r = np.interp(wavelength_r, trans_table[0], trans_table[1])
 
-            l_lambda_r = np.interp(wavelength_r, wavelength, l_lambda)
-            transmission_r = np.interp(wavelength_r, transmission[0],
-                                       transmission[1])
+            self.cache_filters[key] = (wavelength_r, transmission_r, lambda_eff)
 
-            if 'universe.luminosity_distance' in self.info.keys():
-                dist = self.info['universe.luminosity_distance']
-            else:
-                dist = 10. * parsec
+        l_lambda_r = np.interp(wavelength_r, wavelength, self.luminosity)
 
-            f_lambda = utils.luminosity_to_flux(
-                np.trapz(transmission_r * l_lambda_r, wavelength_r),
-                dist)
+        if 'universe.luminosity_distance' in self.info.keys():
+            dist = self.info['universe.luminosity_distance']
+        else:
+            dist = 10. * parsec
 
-            # Fν in W/m²/Hz. The 1e-9 factor is because λ is in nm.
-            f_nu = lambda_eff * f_lambda * lambda_eff * 1e-9 / c
+        f_lambda = utils.luminosity_to_flux(
+            np.trapz(transmission_r * l_lambda_r, wavelength_r),
+            dist)
 
-            # Conversion from W/m²/Hz to mJy
-            f_nu *= 1e+29
-
-        return f_nu
+        # Return Fν in mJy. The 1e-9 factor is because λ is in nm and 1e29 for
+        # convert from W/m²/Hz to mJy.
+        return lambda_eff * lambda_eff* f_lambda *  1e-9 / c * 1e29
 
     def to_votable(self, filename, mass=1.):
         """
@@ -352,5 +356,6 @@ class SED(object):
         sed.contribution_names = self.contribution_names[:]
         sed.info = self.info.copy()
         sed.mass_proportional_info = self.mass_proportional_info[:]
+        sed.cache_filters = self.cache_filters
 
         return sed

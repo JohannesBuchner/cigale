@@ -30,8 +30,8 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     ----------
     params: ParametersHandler
         Handles the parameters from a 1D index.
-    filters: OrderedDict
-        Contains filters to compute the fluxes.
+    filters: List
+        Contains the names of the filters to compute the fluxes.
     analysed: list
         Variable names to be analysed.
     redshifts: RawArray and tuple containing the shape
@@ -173,9 +173,8 @@ def sed(idx):
         model_fluxes = -99. * np.ones(len(gbl_filters))
         model_variables = -99. * np.ones(len(gbl_analysed_variables))
     else:
-        model_fluxes = np.array([sed.compute_fnu(filter_.trans_table,
-                                                 filter_.effective_wavelength)
-                                 for filter_ in gbl_filters.values()])
+        model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
+                                 gbl_filters])
         model_variables = np.array([sed.info[name]
                                     for name in gbl_analysed_variables])
 

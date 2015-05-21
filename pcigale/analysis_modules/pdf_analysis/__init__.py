@@ -37,7 +37,6 @@ from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
 from .utils import save_table_analysis, save_table_best, analyse_chi2
 from ...warehouse import SedWarehouse
-from ...data import Database
 from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
 from .workers import init_analysis as init_worker_analysis
@@ -134,14 +133,7 @@ class PdfAnalysis(AnalysisModule):
         lim_flag = config["lim_flag"].lower() == "true"
         mock_flag = config["mock_flag"].lower() == "true"
 
-        # Get the needed filters in the pcigale database. We use an ordered
-        # dictionary because we need the keys to always be returned in the
-        # same order. We also put the filters in the shared modules as they
-        # are needed to compute the fluxes during the models generation.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                   for name in column_list
-                                   if not name.endswith('_err')])
+        filters = [name for name in column_list if not name.endswith('_err')]
         n_filters = len(filters)
 
         # Read the observation table and complete it by adding error where

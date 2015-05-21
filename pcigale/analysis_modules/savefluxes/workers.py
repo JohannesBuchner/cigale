@@ -22,8 +22,8 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     ----------
     params: ParametersHandler
         Handles the parameters from a 1D index.
-    filters: OrderedDict
-        Contains filters to compute the fluxes.
+    filters: List
+        Contains the names of the filters to compute the fluxes.
     save_sed: boolean
         Indicates whether the SED should be saved.
     fluxes: RawArray and tuple containing the shape
@@ -84,9 +84,8 @@ def fluxes(idx):
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
         model_fluxes = -99. * np.ones(len(gbl_filters))
     else:
-        model_fluxes = np.array([sed.compute_fnu(filter_.trans_table,
-                                                 filter_.effective_wavelength)
-                                 for filter_ in gbl_filters.values()])
+        model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
+                                 gbl_filters])
 
     gbl_model_fluxes[idx, :] = model_fluxes
     gbl_model_info[idx, :] = list(sed.info.values())

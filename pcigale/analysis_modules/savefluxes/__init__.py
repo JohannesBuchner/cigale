@@ -26,7 +26,6 @@ import time
 import numpy as np
 
 from .. import AnalysisModule
-from ...data import Database
 from ..utils import ParametersHandler, backup_dir, save_fluxes
 from ...utils import read_table
 from ...warehouse import SedWarehouse
@@ -98,14 +97,7 @@ class SaveFluxes(AnalysisModule):
         out_format = parameters["output_format"]
         save_sed = parameters["save_sed"].lower() == "true"
 
-        # Get the needed filters in the pcigale database. We use an ordered
-        # dictionary because we need the keys to always be returned in the
-        # same order. We also put the filters in the shared modules as they
-        # are needed to compute the fluxes during the models generation.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                   for name in column_list
-                                   if not name.endswith('_err')])
+        filters = [name for name in column_list if not name.endswith('_err')]
         n_filters = len(filters)
 
         w_redshifting = creation_modules.index('redshifting')
