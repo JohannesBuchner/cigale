@@ -127,7 +127,7 @@ class Configuration(object):
 
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules:"
+            "Order of the modules use for SED creation. Available modules: "
             "SFH: sfh2exp, sfhdelayed, sfhfromfile ; "
             "SSP: bc03, m2005 ; "
             "Nebular: nebular ; "
