@@ -16,7 +16,6 @@ attenuation formulae, adding an UV-bump and a power law.
 import numpy as np
 from collections import OrderedDict
 from . import CreationModule
-from ..data import Database
 
 
 def k_calzetti2000(wavelength):
@@ -238,12 +237,8 @@ class CalzLeit(CreationModule):
 
     def _init_code(self):
         """Get the filters from the database"""
-        filter_list = [item.strip() for item in
-                       self.parameters["filters"].split("&")]
-        self.filters = OrderedDict()
-        with Database() as base:
-            for filter_name in filter_list:
-                self.filters[filter_name] = base.get_filter(filter_name)
+        self.filter_list = [item.strip() for item in
+                            self.parameters["filters"].split("&")]
         # We cannot compute the attenuation until we know the wavelengths. Yet,
         # we reserve the object.
         self.sel_attenuation = None
@@ -264,14 +259,9 @@ class CalzLeit(CreationModule):
         uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
-        filters = self.filters
 
         # Fλ fluxes (only from continuum) in each filter before attenuation.
-        flux_noatt = {}
-        for filter_name, filter_ in filters.items():
-            flux_noatt[filter_name] = sed.compute_fnu(
-                filter_.trans_table,
-                filter_.effective_wavelength)
+        flux_noatt = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
@@ -306,17 +296,12 @@ class CalzLeit(CreationModule):
             sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only from continuum) in each filter after attenuation.
-        flux_att = {}
-        for filter_name, filter_ in filters.items():
-            flux_att[filter_name] = sed.compute_fnu(
-                filter_.trans_table,
-                filter_.effective_wavelength)
+        flux_att = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Attenuation in each filter
-        for filter_name in filters:
-            sed.add_info("attenuation." + filter_name,
-                         -2.5 * np.log10(flux_att[filter_name] /
-                                         flux_noatt[filter_name]))
+        for filt in self.filter_list:
+            sed.add_info("attenuation." + filt,
+                         -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
         sed.add_info('attenuation.ebvs_main', ebvs['old'])
         sed.add_info('attenuation.ebvs_young', ebvs['young'])
