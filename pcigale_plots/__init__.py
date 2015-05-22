@@ -176,17 +176,18 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                        label="Stellar unattenuated", color='b', marker=None,
                        nonposy='clip', linestyle='--', linewidth=0.5)
             # Nebular emission
-            ax1.loglog(wavelength_spec[wsed],
-                       (sed['nebular.lines_young'][wsed] +
-                        sed['nebular.lines_old'][wsed] +
-                        sed['nebular.continuum_young'][wsed] +
-                        sed['nebular.continuum_old'][wsed] +
-                        sed['attenuation.nebular.lines_young'][wsed] +
-                        sed['attenuation.nebular.lines_old'][wsed] +
-                        sed['attenuation.nebular.continuum_young'][wsed] +
-                        sed['attenuation.nebular.continuum_old'][wsed]),
-                       label="Nebular emission", color='y', marker=None,
-                       nonposy='clip', linewidth=.5)
+            if 'nebular.lines_young' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                        (sed['nebular.lines_young'][wsed] +
+                         sed['nebular.lines_old'][wsed] +
+                         sed['nebular.continuum_young'][wsed] +
+                         sed['nebular.continuum_old'][wsed] +
+                         sed['attenuation.nebular.lines_young'][wsed] +
+                         sed['attenuation.nebular.lines_old'][wsed] +
+                         sed['attenuation.nebular.continuum_young'][wsed] +
+                         sed['attenuation.nebular.continuum_old'][wsed]),
+                        label="Nebular emission", color='y', marker=None,
+                        nonposy='clip', linewidth=.5)
             # Dust emission Draine & Li
             if 'dust.Umin_Umin' in sed.columns:
                 ax1.loglog(wavelength_spec[wsed],
