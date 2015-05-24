@@ -100,7 +100,7 @@ class AnalysisModule(object):
         # value and that are not in the parameters dictionary, we add them
         # with their default value.
         for key in self.parameter_list:
-            if (not key in parameters) and (
+            if (key not in parameters) and (
                     self.parameter_list[key][2] is not None):
                 parameters[key] = self.parameter_list[key][2]
 
@@ -124,7 +124,7 @@ class AnalysisModule(object):
             raise KeyError("The parameters passed are different from the "
                            "expected one." + message)
 
-        #We do the actual processing
+        # We do the actual processing
         self._process(data_file, column_list, creation_modules,
                       creation_modules_params, parameters)
 
@@ -196,27 +196,27 @@ def adjust_errors(flux, error, tolerance, lim_flag, default_error=0.1,
     # because if lim_flag is False, we process upper limits as no-data.
     #
     # Replace errors below tolerance by the default one.
-    mask_noerror = np.logical_and(flux>tolerance, error<-9990.)
+    mask_noerror = np.logical_and(flux > tolerance, error < -9990.)
     error[mask_noerror] = (default_error * flux[mask_noerror])
 
     mask_limflag = np.logical_and.reduce(
-                       (flux>tolerance, error>=-9990., error<tolerance))
+                       (flux > tolerance, error >= -9990., error < tolerance))
 
     # Replace upper limits by no data if lim_flag==False
     if not lim_flag:
         flux[mask_limflag] = -9999.
         error[mask_limflag] = -9999.
 
-    mask_ok = np.logical_and(flux>tolerance, error>tolerance)
+    mask_ok = np.logical_and(flux > tolerance, error > tolerance)
 
     # Add the systematic error.
-    error[mask_ok] = np.sqrt(np.square(error[mask_ok]) +
-                    np.square(flux[mask_ok] * systematic_deviation))
+    error[mask_ok] = np.sqrt(error[mask_ok]**2 +
+                             (flux[mask_ok]*systematic_deviation)**2)
     return error
 
 
-def complete_obs_table(obs_table, used_columns, filter_list, tolerance, lim_flag,
-                       default_error=0.1, systematic_deviation=0.1):
+def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
+                       lim_flag, default_error=0.1, systematic_deviation=0.1):
     """Complete the observation table
 
     For each filter:

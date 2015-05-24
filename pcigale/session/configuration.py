@@ -9,7 +9,7 @@ import pkgutil
 import collections
 import multiprocessing as mp
 import numpy as np
-from glob import glob # To allow the use of glob() in "eval..."
+from glob import glob  # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from ..data import Database
 from ..utils import read_table
@@ -182,10 +182,11 @@ class Configuration(object):
             # Check that we don't have an error column without the associated
             # flux
             for column in column_list:
-                if column.endswith('_err') and (column[:-4] not in column_list):
+                if column.endswith('_err') and (column[:-4]
+                                                not in column_list):
                     raise Exception("The observation table as a {} column "
                                     "but no {} column.".format(column,
-                                                            column[:-4]))
+                                                               column[:-4]))
 
             self.config['column_list'] = column_list
         else:

@@ -6,14 +6,11 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
-__version__ = "0.1-alpha"
-
 import argparse
 from astropy.table import Table
 from itertools import product, repeat
 from collections import OrderedDict
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np
@@ -25,6 +22,10 @@ from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
 import matplotlib.gridspec as gridspec
+
+__version__ = "0.1-alpha"
+
+matplotlib.use('Agg')
 
 # Name of the file containing the best models information
 BEST_MODEL_FILE = "best_models.txt"
@@ -178,16 +179,16 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             # Nebular emission
             if 'nebular.lines_young' in sed.columns:
                 ax1.loglog(wavelength_spec[wsed],
-                        (sed['nebular.lines_young'][wsed] +
-                         sed['nebular.lines_old'][wsed] +
-                         sed['nebular.continuum_young'][wsed] +
-                         sed['nebular.continuum_old'][wsed] +
-                         sed['attenuation.nebular.lines_young'][wsed] +
-                         sed['attenuation.nebular.lines_old'][wsed] +
-                         sed['attenuation.nebular.continuum_young'][wsed] +
-                         sed['attenuation.nebular.continuum_old'][wsed]),
-                        label="Nebular emission", color='y', marker=None,
-                        nonposy='clip', linewidth=.5)
+                           (sed['nebular.lines_young'][wsed] +
+                            sed['nebular.lines_old'][wsed] +
+                            sed['nebular.continuum_young'][wsed] +
+                            sed['nebular.continuum_old'][wsed] +
+                            sed['attenuation.nebular.lines_young'][wsed] +
+                            sed['attenuation.nebular.lines_old'][wsed] +
+                            sed['attenuation.nebular.continuum_young'][wsed] +
+                            sed['attenuation.nebular.continuum_old'][wsed]),
+                           label="Nebular emission", color='y', marker=None,
+                           nonposy='clip', linewidth=.5)
             # Dust emission Draine & Li
             if 'dust.Umin_Umin' in sed.columns:
                 ax1.loglog(wavelength_spec[wsed],
@@ -260,11 +261,13 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ymin = min(np.min(obs_fluxes[mask_ok]),
                        np.min(mod_fluxes[mask_ok]))
             if not mask_uplim.any() == False:
-              ymax = max(max(np.max(obs_fluxes[mask_ok]),np.max(obs_fluxes[mask_uplim])),
-                         max(np.max(mod_fluxes[mask_ok]),np.max(mod_fluxes[mask_uplim])))
+                ymax = max(max(np.max(obs_fluxes[mask_ok]),
+                               np.max(obs_fluxes[mask_uplim])),
+                           max(np.max(mod_fluxes[mask_ok]),
+                               np.max(mod_fluxes[mask_uplim])))
             else:
-              ymax = max(np.max(obs_fluxes[mask_ok]),
-                         np.max(mod_fluxes[mask_ok]))
+                ymax = max(np.max(obs_fluxes[mask_ok]),
+                           np.max(mod_fluxes[mask_ok]))
             ax1.set_ylim(1e-1*ymin, 1e1*ymax)
             ax2.set_xlim(xmin, xmax)
             ax2.set_ylim(-1.0, 1.0)

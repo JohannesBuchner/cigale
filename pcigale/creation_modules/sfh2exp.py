@@ -56,7 +56,7 @@ class Sfh2Exp(CreationModule):
             "Age of the late burst in Myr. Precision is 1 Myr.",
             20.
         )),
-         ("sfr_0", (
+        ("sfr_0", (
             "float",
             "Value of SFR at t = 0 in M_sun/yr.",
             1.
@@ -105,7 +105,8 @@ class Sfh2Exp(CreationModule):
         # Height of the late burst to have the desired produced mass fraction
         # (assuming that the main burst as a height of 1).
         burst_height = (f_burst/(1-f_burst) * tau_main/tau_burst *
-            (1-np.exp(-age/tau_main))/(1-np.exp(-burst_age/tau_burst)))
+                        (1-np.exp(-age/tau_main)) /
+                        (1-np.exp(-burst_age/tau_burst)))
 
         # We add the age burst exponential for ages superior to age -
         # burst_age

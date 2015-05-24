@@ -63,9 +63,9 @@ class M2005(CreationModule):
         ('sfr', 'Instantaneous Star Formation Rate in solar mass per year, '
                 'at the age of the galaxy.'),
         ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
-                        'galaxy history.'),
+                      'galaxy history.'),
         ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
-                        'galaxy history.'),
+                       'galaxy history.'),
         ('mass_total', 'Total stellar mass of the galaxy in solar mass.'),
         ('mass_alive', 'Mass of alive stars in solar mass.'),
         ('mass_white_dwarf', 'Mass of white dwarf stars in solar mass.'),
@@ -81,7 +81,7 @@ class M2005(CreationModule):
         ('mass_white_dwarf_old', 'Mass of white dwarf stars in solar mass '
                                  '(old population).'),
         ('mass_neutron_old', 'Mass of neutron stars in solar mass '
-                              '(old population).'),
+                             '(old population).'),
         ('mass_black_hole_old', 'Mass of black holes in solar mass '
                                 '(old population).'),
         ('mass_total_young', 'Total stellar mass of the young population '
@@ -91,7 +91,7 @@ class M2005(CreationModule):
         ('mass_white_dwarf_young', 'Mass of white dwarf stars in solar mass '
                                    '(young population).'),
         ('mass_neutron_young', 'Mass of neutron stars in solar mass '
-                                '(young population).'),
+                               '(young population).'),
         ('mass_black_hole_young', 'Mass of black holes in solar mass '
                                   '(young population).')
     ])

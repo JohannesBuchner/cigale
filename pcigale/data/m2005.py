@@ -1,4 +1,4 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
@@ -132,8 +132,8 @@ class M2005(object):
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:,:nb_steps]
-        spec_table = self.spec_table[:,:nb_steps]
+        mass_table = self.mass_table[:, :nb_steps]
+        spec_table = self.spec_table[:, :nb_steps]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         masses = 1.e6 * step * np.dot(mass_table, sfh_sfr[::-1])

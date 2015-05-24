@@ -47,8 +47,8 @@ class SaveFluxes(AnalysisModule):
     parameter_list = OrderedDict([
         ("output_file", (
             "string",
-            "Name of the output file that contains the parameters of the model(s) "
-            "and the flux densities in the bands",
+            "Name of the output file that contains the parameters of the "
+            "model(s) and the flux densities in the bands",
             "computed_fluxes.txt"
         )),
         ("save_sed", (
@@ -128,7 +128,7 @@ class SaveFluxes(AnalysisModule):
                         (n_params, n_filters))
         model_parameters = (RawArray(ctypes.c_double,
                                      n_params * n_info),
-                        (n_params, n_info))
+                            (n_params, n_info))
 
         initargs = (params, filters, save_sed, model_fluxes,
                     model_parameters, time.time(), mp.Value('i', 0))

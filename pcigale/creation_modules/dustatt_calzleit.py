@@ -41,9 +41,9 @@ def k_calzetti2000(wavelength):
 
     # Attenuation between 120 nm and 630 nm
     mask = (wavelength < 630)
-    result[mask] = 2.659 * (-2.156 + 1.509e3 / wavelength[mask]
-                            - 0.198e6 / wavelength[mask] ** 2
-                            + 0.011e9 / wavelength[mask] ** 3) + 4.05
+    result[mask] = 2.659 * (-2.156 + 1.509e3 / wavelength[mask] -
+                            0.198e6 / wavelength[mask] ** 2 +
+                            0.011e9 / wavelength[mask] ** 3) + 4.05
 
     # Attenuation between 630 nm and 2200 nm
     mask = (wavelength >= 630)
@@ -71,9 +71,9 @@ def k_leitherer2002(wavelength):
 
     """
     wavelength = np.array(wavelength)
-    result = (5.472 + 0.671e3 / wavelength
-              - 9.218e3 / wavelength ** 2
-              + 2.620e6 / wavelength ** 3)
+    result = (5.472 + 0.671e3 / wavelength -
+              9.218e3 / wavelength ** 2 +
+              2.620e6 / wavelength ** 3)
 
     return result
 
@@ -98,8 +98,8 @@ def uv_bump(wavelength, central_wave, gamma, ebump):
 
     """
     return (ebump * wavelength ** 2 * gamma ** 2 /
-            ((wavelength ** 2 - central_wave ** 2) ** 2
-             + wavelength ** 2 * gamma ** 2))
+            ((wavelength ** 2 - central_wave ** 2) ** 2 +
+             wavelength ** 2 * gamma ** 2))
 
 
 def power_law(wavelength, delta):
@@ -261,20 +261,20 @@ class CalzLeit(CreationModule):
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
 
         # Fλ fluxes (only from continuum) in each filter before attenuation.
-        flux_noatt = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
+        flux_noatt = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
             self.sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
-                                   uv_bump_width, uv_bump_amplitude,
-                                   powerlaw_slope)
+                                            uv_bump_width, uv_bump_amplitude,
+                                            powerlaw_slope)
 
         attenuation_total = 0.
         for contrib in list(sed.contribution_names):
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **
-                                    (ebvs[age] * self.sel_attenuation / -2.5))
+                                     (ebvs[age] * self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
@@ -296,7 +296,7 @@ class CalzLeit(CreationModule):
             sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only from continuum) in each filter after attenuation.
-        flux_att = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
+        flux_att = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Attenuation in each filter
         for filt in self.filter_list:

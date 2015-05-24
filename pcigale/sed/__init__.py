@@ -102,7 +102,8 @@ class SED(object):
 
         # Fλ flux density in W/m²/nm
         f_lambda = utils.luminosity_to_flux(self.luminosity,
-                                            self.info['universe.luminosity_distance'])
+                                            self.info
+                                            ['universe.luminosity_distance'])
 
         # Fν flux density in mJy
         f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
@@ -241,8 +242,8 @@ class SED(object):
 
         """
         # Find the index of the _last_ name element
-        idx = (len(self.contribution_names) - 1
-               - self.contribution_names[::-1].index(name))
+        idx = (len(self.contribution_names) - 1 -
+               self.contribution_names[::-1].index(name))
         return self.luminosities[idx]
 
     def compute_fnu(self, filter_name):
@@ -305,11 +306,14 @@ class SED(object):
             # to avoid interpolating a high wavelength density curve to a low
             # density one. Also, we limit the work wavelength domain to the
             # filter one.
-            w = np.where((wavelength >= lambda_min)&(wavelength <= lambda_max))
+            w = np.where((wavelength >= lambda_min) &
+                         (wavelength <= lambda_max))
             wavelength_r = utils.best_grid(wavelength[w], trans_table[0])
-            transmission_r = np.interp(wavelength_r, trans_table[0], trans_table[1])
+            transmission_r = np.interp(wavelength_r, trans_table[0],
+                                       trans_table[1])
 
-            self.cache_filters[key] = (wavelength_r, transmission_r, lambda_eff)
+            self.cache_filters[key] = (wavelength_r, transmission_r,
+                                       lambda_eff)
 
         l_lambda_r = np.interp(wavelength_r, wavelength, self.luminosity)
 
@@ -324,7 +328,7 @@ class SED(object):
 
         # Return Fν in mJy. The 1e-9 factor is because λ is in nm and 1e29 for
         # convert from W/m²/Hz to mJy.
-        return lambda_eff * lambda_eff* f_lambda *  1e-9 / c * 1e29
+        return lambda_eff * lambda_eff * f_lambda * 1e-9 / c * 1e29
 
     def to_votable(self, filename, mass=1.):
         """

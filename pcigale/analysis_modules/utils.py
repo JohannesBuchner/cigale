@@ -15,8 +15,9 @@ import shutil
 
 import numpy as np
 from astropy import log
-log.setLevel('ERROR')
 from astropy.table import Table, Column
+
+log.setLevel('ERROR')
 
 # Directory where the output files are stored
 OUT_DIR = "out/"
@@ -71,8 +72,8 @@ class ParametersHandler(object):
                     isinstance(value, str)):
                 dictionary[key] = [value]
 
-        # We use itertools.product to make all the possible combinations from the
-        # value lists.
+        # We use itertools.product to make all the possible combinations from
+        # the value lists.
         key_list = dictionary.keys()
         value_array_list = [dictionary[key] for key in key_list]
         combination_list = [collections.OrderedDict(zip(key_list, combination))

@@ -20,6 +20,7 @@ from ...warehouse import SedWarehouse
 # moments computation.
 MIN_PROBABILITY = 1e-20
 
+
 def init_sed(params, filters, analysed, redshifts, fluxes, variables,
              t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
@@ -69,6 +70,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     gbl_analysed_variables = analysed
 
     gbl_warehouse = SedWarehouse()
+
 
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
@@ -150,6 +152,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     gbl_n_obs = n_obs
     gbl_phase = phase
 
+
 def sed(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
     RawArrays.
@@ -219,7 +222,7 @@ def analysis(idx, obs):
     # We pick the indices of the models with closest redshift assuming we have
     # limited the number of decimals (usually set to 2 decimals).
     wz = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
-                                               gbl_redshifts).argmin()]])
+                                                       gbl_redshifts).argmin()]])
 
     # We only keep model with fluxes >= -90. If not => no data
     # Probably because age > age of the universe (see function sed(idx) above).
@@ -242,7 +245,7 @@ def analysis(idx, obs):
     # 2) s/he puts False in the boolean lim_flag
     # and the limits are processed as no-data below.
 
-    lim_flag = gbl_lim_flag and np.any((obs_errors >= -9990.)&
+    lim_flag = gbl_lim_flag and np.any((obs_errors >= -9990.) &
                                        (obs_errors < tolerance))
 
     # Normalisation factor to be applied to a model fluxes to best fit
@@ -256,8 +259,8 @@ def analysis(idx, obs):
 
     if lim_flag is True:
         for imod in range(len(model_fluxes)):
-            norm_facts[imod] = optimize.newton(dchi2_over_ds2, norm_facts[imod],
-                                               tol=1e-16,
+            norm_facts[imod] = optimize.newton(dchi2_over_ds2,
+                                               norm_facts[imod], tol=1e-16,
                                                args=(obs_fluxes, obs_errors,
                                                      model_fluxes[imod, :]))
     model_fluxes *= norm_facts[:, np.newaxis]
@@ -299,28 +302,28 @@ def analysis(idx, obs):
         print("No suitable model found for the object {}. One possible origin "
               "is that models are older than the Universe.".format(obs['id']))
     else:
-        # We select only models that have at least 0.1% of the probability of the
-        # best model to reproduce the observations. It helps eliminating very bad
-        # models.
-        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1)*1e-3,
-                            obs_fluxes.size-1)
+        # We select only models that have at least 0.1% of the probability of
+        # the best model to reproduce the observations. It helps eliminating
+        # very bad models.
+        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1) *
+                              1e-3, obs_fluxes.size-1)
         wlikely = np.where(chi2_ < maxchi2)
         # We use the exponential probability associated with the χ² as
         # likelihood function.
         likelihood = np.exp(-chi2_[wlikely]/2)
 
-        best_index = chi2_.argmin()        
+        best_index = chi2_.argmin()
 
         # We compute once again the best sed to obtain its info
         global gbl_previous_idx
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
                 gbl_params.index_module_changed(gbl_previous_idx,
-                                            wz[0][wvalid[0][best_index]]))
+                                                wz[0][wvalid[0][best_index]]))
         gbl_previous_idx = wz[0][wvalid[0][best_index]]
 
         sed = gbl_warehouse.get_sed(gbl_params.modules,
-                                gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
+                                    gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
@@ -367,11 +370,11 @@ def analysis(idx, obs):
                                     np.square(pdf_x-analysed_averages[i]) * pdf_prob
                                            ) / np.sum(pdf_prob)
                                          )
-                analysed_std[i] = max(0.05*analysed_averages[i], analysed_std[i])
+                analysed_std[i] = max(0.05*analysed_averages[i],
+                                      analysed_std[i])
 
                 var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
                 pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
-
 
         # TODO Merge with above computation after checking it is fine with a MA
         gbl_analysed_averages[idx, :] = analysed_averages
@@ -388,8 +391,8 @@ def analysis(idx, obs):
             if gbl_save['best_sed']:
                 save_best_sed(obs['id'], sed, norm_facts[best_index])
             if gbl_save['chi2']:
-                save_chi2(obs['id'], gbl_analysed_variables, model_variables, chi2_ /
-                      obs_fluxes.size)
+                save_chi2(obs['id'], gbl_analysed_variables, model_variables,
+                          chi2_, obs_fluxes.size)
             if gbl_save['pdf']:
                 save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
@@ -398,7 +401,6 @@ def analysis(idx, obs):
         n_computed = gbl_n_computed.value
     t_elapsed = time.time() - gbl_t_begin
     print("{}/{} objects analysed in {} seconds ({} objects/s)".
-            format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
-                    np.around(n_computed/t_elapsed, decimals=2)),
-            end="\n" if idx == gbl_n_obs-1 else "\r")
-
+          format(n_computed, gbl_n_obs, np.around(t_elapsed, decimals=1),
+                 np.around(n_computed/t_elapsed, decimals=2)),
+          end="\n" if idx == gbl_n_obs-1 else "\r")

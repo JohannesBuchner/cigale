@@ -95,19 +95,17 @@ class NebularEmission(CreationModule):
             new_wave = np.array([])
             for line_wave in lines.wave:
                 width = line_wave * lines_width / cst.c
-                new_wave = np.concatenate((new_wave, np.linspace(line_wave -
-                                                                 3. * width,
-                                                                 line_wave
-                                                                 + 3. *
-                                                                 width,
-                                                                 9)))
+                new_wave = np.concatenate((new_wave,
+                                           np.linspace(line_wave - 3. * width,
+                                                       line_wave + 3. * width,
+                                                       9)))
             new_wave.sort()
             new_flux = np.zeros_like(new_wave)
             for line_flux, line_wave in zip(lines.ratio, lines.wave):
                 width = line_wave * lines_width / cst.c
                 new_flux += (line_flux * np.exp(- 4. * np.log(2.) *
-                            (new_wave - line_wave) ** 2. / (width * width)) /
-                            (width * np.sqrt(np.pi / np.log(2.)) / 2.))
+                             (new_wave - line_wave) ** 2. / (width * width)) /
+                             (width * np.sqrt(np.pi / np.log(2.)) / 2.))
             lines.wave = new_wave
             lines.ratio = new_flux
 
@@ -144,19 +142,19 @@ class NebularEmission(CreationModule):
         sed.add_info('nebular.f_esc', self.parameters['f_esc'])
         sed.add_info('nebular.f_dust', self.parameters['f_dust'])
         sed.add_info('nebular.lines_width', self.parameters['lines_width'])
-        sed.add_info('dust.luminosity',(sed.info['stellar.lum_ly_young'] +
+        sed.add_info('dust.luminosity', (sed.info['stellar.lum_ly_young'] +
                      sed.info['stellar.lum_ly_old']) *
                      self.parameters['f_dust'], True)
 
-        sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
-                             NLy_old * self.conv_line)
-        sed.add_contribution('nebular.lines_young', lines.wave, lines.ratio *
-                             NLy_young * self.conv_line)
+        sed.add_contribution('nebular.lines_old', lines.wave,
+                             lines.ratio * NLy_old * self.conv_line)
+        sed.add_contribution('nebular.lines_young', lines.wave,
+                             lines.ratio * NLy_young * self.conv_line)
 
-        sed.add_contribution('nebular.continuum_old', cont.wave, cont.lumin *
-                             NLy_old * self.conv_cont)
-        sed.add_contribution('nebular.continuum_young', cont.wave, cont.lumin *
-                             NLy_young * self.conv_cont)
+        sed.add_contribution('nebular.continuum_old', cont.wave,
+                             cont.lumin * NLy_old * self.conv_cont)
+        sed.add_contribution('nebular.continuum_young', cont.wave,
+                             cont.lumin * NLy_young * self.conv_cont)
 
 # CreationModule to be returned by get_module
 Module = NebularEmission

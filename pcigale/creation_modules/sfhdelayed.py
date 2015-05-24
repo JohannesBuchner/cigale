@@ -42,7 +42,7 @@ class SFHDelayed(CreationModule):
             "is 1 Myr.",
             None
         )),
-         ("sfr_A", (
+        ("sfr_A", (
             "float",
             "Multiplicative factor controlling the amplitude of SFR.",
             1.
@@ -52,7 +52,7 @@ class SFHDelayed(CreationModule):
             "Normalise the SFH to produce one solar mass.",
             "True"
         ))
-   ])
+    ])
 
     out_parameter_list = OrderedDict([
         ("tau_main", "e-folding time of the main stellar population model "

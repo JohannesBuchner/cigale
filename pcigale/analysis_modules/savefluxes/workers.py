@@ -13,6 +13,7 @@ from ...warehouse import SedWarehouse
 
 from ..utils import OUT_DIR
 
+
 def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
@@ -78,7 +79,7 @@ def fluxes(idx):
     sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index(idx))
 
-    if gbl_save_sed == True:
+    if gbl_save_sed is True:
         sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
 
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:

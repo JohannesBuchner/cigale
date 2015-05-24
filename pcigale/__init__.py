@@ -3,8 +3,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-__version__ = "0.1-alpha"
-
 import argparse
 import multiprocessing as mp
 import sys
@@ -12,6 +10,8 @@ import sys
 from .session.configuration import Configuration
 from .analysis_modules import get_module as get_analysis_module
 from .analysis_modules.utils import ParametersHandler
+
+__version__ = "0.1-alpha"
 
 
 def init(config):

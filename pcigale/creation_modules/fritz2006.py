@@ -16,6 +16,7 @@ from pcigale.data import Database
 from . import CreationModule
 from pcigale.sed.cosmology import cosmology
 
+
 class Fritz2006(CreationModule):
     """Fritz et al. (2006) AGN dust torus emission
 
@@ -70,9 +71,9 @@ class Fritz2006(CreationModule):
         ('psy', (
             'float',
             "Angle between equatorial axis and line of sight. "
-            "Psy = 90◦ for type 1 and Psy = 0° for type 2. Possible values are: "
-            "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100, "
-            "80.100, 89.990.",
+            "Psy = 90◦ for type 1 and Psy = 0° for type 2. Possible values "
+            "are: 0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, "
+            "70.100, 80.100, 89.990.",
             50.100
         )),
         ('fracAGN', (
@@ -84,9 +85,12 @@ class Fritz2006(CreationModule):
 
     out_parameter_list = OrderedDict([
         ('fracAGN', 'Contribution of the AGN'),
-        ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to the dust torus'),
-        ('agn.scatt_luminosity', 'Luminosity of the AGN contribution due to the photon scattering'),
-        ('agn.agn_luminosity', 'Luminosity of the AGN contribution due to the central source'),
+        ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to '
+                                 'the dust torus'),
+        ('agn.scatt_luminosity', 'Luminosity of the AGN contribution due to '
+                                 'the photon scattering'),
+        ('agn.agn_luminosity', 'Luminosity of the AGN contribution due to the '
+                               'central source'),
         ('agn.luminosity', 'Total luminosity of the AGN contribution')
     ])
 
@@ -132,11 +136,12 @@ class Fritz2006(CreationModule):
         if fracAGN < 1.:
             agn_power = luminosity * (1./(1.-fracAGN) - 1.)
             l_agn_therm = agn_power
-            l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt, x=self.fritz2006.wave)
-            l_agn_agn = np.trapz(agn_power * self.fritz2006.lumin_agn, x=self.fritz2006.wave)
+            l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt,
+                                   x=self.fritz2006.wave)
+            l_agn_agn = np.trapz(agn_power * self.fritz2006.lumin_agn,
+                                 x=self.fritz2006.wave)
             l_agn_total = l_agn_therm + l_agn_scatt + l_agn_agn
-        
-        
+
         else:
             raise Exception("AGN fraction is exactly 1. Behaviour "
                             "undefined.")

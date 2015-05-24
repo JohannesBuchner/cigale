@@ -126,8 +126,8 @@ class BC03(object):
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        color_table = self.color_table[:,:idx + 1]
-        lumin_table = self.lumin_table[:,:idx + 1]
+        color_table = self.color_table[:, :idx + 1]
+        lumin_table = self.lumin_table[:, :idx + 1]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         color_info = 1.e6 * step * np.dot(color_table, sfh_sfr[::-1])

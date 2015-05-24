@@ -40,6 +40,7 @@ def nu_to_lambda(frequency):
     """
     return 1.e-9 * c / frequency
 
+
 def best_grid_memoise(f):
     """
     Memoisation helper for the best_grid() function. Given that best_grid takes
@@ -57,9 +58,9 @@ def best_grid_memoise(f):
     best_grid_helper: function
         Meomoised best_grid function
     """
-
     memo = {}
-    def best_grid_helper(x,y):
+
+    def best_grid_helper(x, y):
         sx = x.size
         minx = x[0]
         maxx = x[-1]
@@ -70,6 +71,7 @@ def best_grid_memoise(f):
             memo[(sx, minx, maxx, sy, miny, maxy)] = f(x, y)
         return memo[(sx, minx, maxx, sy, miny, maxy)]
     return best_grid_helper
+
 
 @best_grid_memoise
 def best_grid(wavelengths1, wavelengths2):
@@ -98,6 +100,7 @@ def best_grid(wavelengths1, wavelengths2):
     flag = np.ones(len(wl), dtype=bool)
     np.not_equal(wl[1:], wl[:-1], out=flag[1:])
     return wl[flag]
+
 
 def luminosity_to_flux(luminosity, dist):
     """

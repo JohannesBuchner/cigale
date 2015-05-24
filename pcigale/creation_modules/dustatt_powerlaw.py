@@ -57,8 +57,8 @@ def uv_bump(wavelength, central_wave, gamma, ebump):
 
     """
     return (ebump * wavelength ** 2 * gamma ** 2 /
-            ((wavelength ** 2 - central_wave ** 2) ** 2
-             + wavelength ** 2 * gamma ** 2))
+            ((wavelength ** 2 - central_wave ** 2) ** 2 +
+             wavelength ** 2 * gamma ** 2))
 
 
 def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
@@ -97,7 +97,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
 class PowerLawAtt(CreationModule):
     """Power law attenuation module
 
-    This module computes the attenuation using a power law 
+    This module computes the attenuation using a power law
     as defined in Charlot and Fall (2000).
 
     The attenuation can be computed on the whole spectrum or on a specific
@@ -185,20 +185,20 @@ class PowerLawAtt(CreationModule):
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
 
         # Fλ fluxes (only from continuum)) in each filter before attenuation.
-        flux_noatt = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
+        flux_noatt = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
             self.sel_attenuation = alambda_av(wavelength, powerlaw_slope,
-                                     uv_bump_wavelength, uv_bump_width,
-                                     uv_bump_amplitude)
-  
+                                              uv_bump_wavelength,
+                                              uv_bump_width, uv_bump_amplitude)
+
         attenuation_total = 0.
         for contrib in list(sed.contribution_names):
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **
-                                    (av[age] * self.sel_attenuation / -2.5))
+                                     (av[age] * self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
@@ -206,9 +206,9 @@ class PowerLawAtt(CreationModule):
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.Av.stellar"+
+            sed.add_info("attenuation.Av.stellar" +
                          contrib[contrib.find('_'):], av[age])
-            sed.add_info("attenuation.stellar"+
+            sed.add_info("attenuation.stellar" +
                          contrib[contrib.find('_'):], attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
@@ -226,7 +226,7 @@ class PowerLawAtt(CreationModule):
             sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only in continuum) in each filter after attenuation.
-        flux_att = {filt:sed.compute_fnu(filt) for filt in self.filter_list}
+        flux_att = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Attenuation in each filter
         for filt in self.filter_list:

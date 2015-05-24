@@ -51,9 +51,9 @@ class BC03(CreationModule):
         ("sfr", "Instantaneous Star Formation Rate in solar mass per year, "
                 "at the age of the galaxy."),
         ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
-                        'galaxy history.'),
+                      'galaxy history.'),
         ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
-                        'galaxy history.'),
+                       'galaxy history.'),
         ("ssp_m_star", "Total mass in stars in Solar mass."),
         ("ssp_m_gas", "Mass returned to the ISM by evolved stars in Solar "
                       "mass."),

@@ -40,7 +40,7 @@ def complete_parameters(given_parameters, parameter_list):
     """
     # Complete the given parameters with default values when needed.
     for key in parameter_list:
-        if (not key in given_parameters) and (
+        if (key not in given_parameters) and (
                 parameter_list[key][2] is not None):
             given_parameters[key] = parameter_list[key][2]
     # Check parameter consistency between the parameter list and the given
