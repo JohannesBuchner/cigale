@@ -35,7 +35,6 @@ from collections import OrderedDict
 from . import utils
 from .io.vo import save_sed_to_vo
 from scipy.constants import c, parsec
-from scipy.interpolate import interp1d
 from ..data import Database
 
 
@@ -196,26 +195,14 @@ class SED(object):
             # grid, we interpolate everything on a common wavelength grid.
             if (results_wavelengths.size != self.wavelength_grid.size or
                     not np.all(results_wavelengths == self.wavelength_grid)):
-                # Compute the new wavelength grid for the spectrum.
-                new_wavelength_grid = utils.best_grid(results_wavelengths,
-                                                      self.wavelength_grid)
-
                 # Interpolate each luminosity component to the new wavelength
                 # grid setting everything outside the wavelength domain to 0.
-                new_luminosities = interp1d(self.wavelength_grid,
+                self.wavelength_grid, self.luminosities = \
+                    utils.interpolate_lumin(self.wavelength_grid,
                                             self.luminosities,
-                                            bounds_error=False,
-                                            assume_sorted=True,
-                                            fill_value=0.)(new_wavelength_grid)
+                                            results_wavelengths,
+                                            results_lumin)
 
-                # Interpolate the added luminosity array to the new wavelength
-                # grid
-                interp_lumin = np.interp(new_wavelength_grid,
-                                         results_wavelengths, results_lumin,
-                                         left=0., right=0.)
-
-                self.wavelength_grid = new_wavelength_grid
-                self.luminosities = np.vstack((new_luminosities, interp_lumin))
                 self.luminosity = self.luminosities.sum(0)
             else:
                 self.luminosities = np.vstack((self.luminosities,
