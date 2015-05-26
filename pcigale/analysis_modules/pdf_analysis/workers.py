@@ -392,7 +392,7 @@ def analysis(idx, obs):
                 save_best_sed(obs['id'], sed, norm_facts[best_index])
             if gbl_save['chi2']:
                 save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                          chi2_, obs_fluxes.size)
+                          chi2_ / obs_fluxes.size)
             if gbl_save['pdf']:
                 save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
