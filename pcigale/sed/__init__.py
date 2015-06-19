@@ -333,7 +333,8 @@ class SED(object):
 
     def copy(self):
         sed = SED()
-        sed._sfh = (self._sfh[0], self._sfh[1])
+        if self.sfh is not None:
+            sed._sfh = (self._sfh[0], self._sfh[1])
         sed.modules = self.modules[:]
         if self.wavelength_grid is not None:
             sed.wavelength_grid = self.wavelength_grid.copy()
