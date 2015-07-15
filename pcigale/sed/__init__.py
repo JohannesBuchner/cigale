@@ -25,7 +25,7 @@ Such SED is characterised by:
 
 - info: a dictionary containing various information about the SED.
 
-- mass_proportional_info: the list of keys in the info dictionary whose value
+- mass_proportional_info: the set of keys in the info dictionary whose value
   is proportional to the galaxy mass.
 
 """
@@ -66,7 +66,7 @@ class SED(object):
         self.luminosity = None
         self.luminosities = None
         self.info = OrderedDict()
-        self.mass_proportional_info = []
+        self.mass_proportional_info = set()
         self.cache_filters = {}
 
     @property
@@ -134,7 +134,7 @@ class SED(object):
         if (key not in self.info) or force:
             self.info[key] = value
             if mass_proportional:
-                self.mass_proportional_info.append(key)
+                self.mass_proportional_info.add(key)
         else:
             raise KeyError("The information %s is already present "
                            "in the SED. " % key)
@@ -345,7 +345,7 @@ class SED(object):
             sed.luminosities = None
         sed.contribution_names = self.contribution_names[:]
         sed.info = self.info.copy()
-        sed.mass_proportional_info = self.mass_proportional_info[:]
+        sed.mass_proportional_info = self.mass_proportional_info.copy()
         sed.cache_filters = self.cache_filters
 
         return sed
