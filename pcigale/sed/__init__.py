@@ -272,7 +272,10 @@ class SED(object):
         # avoid having the resample the filter every time on the optimal grid
         # (spectrum+filter), we store the resampled filter. That way we only
         # have to resample to spectrum.
-        key = (wavelength.size, filter_name)
+        if 'redshift' in self.info:
+            key = (wavelength.size, filter_name, self.info['redshift'])
+        else:
+            key = (wavelength.size, filter_name, 0.)
         if key in list(self.cache_filters.keys()):
             wavelength_r, transmission_r, lambda_eff = self.cache_filters[key]
         else:
