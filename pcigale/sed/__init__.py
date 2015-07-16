@@ -48,6 +48,10 @@ class SED(object):
     """Spectral Energy Distribution with associated information
     """
 
+    # We declare the filters cache here as to be efficient it needs to be
+    # shared between different objects.
+    cache_filters = {}
+
     def __init__(self, sfh=None):
         """Create a new SED
 
@@ -67,7 +71,6 @@ class SED(object):
         self.luminosities = None
         self.info = OrderedDict()
         self.mass_proportional_info = set()
-        self.cache_filters = {}
 
     @property
     def sfh(self):
@@ -350,6 +353,5 @@ class SED(object):
         sed.contribution_names = self.contribution_names[:]
         sed.info = self.info.copy()
         sed.mass_proportional_info = self.mass_proportional_info.copy()
-        sed.cache_filters = self.cache_filters
 
         return sed
