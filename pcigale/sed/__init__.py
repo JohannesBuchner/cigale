@@ -83,15 +83,21 @@ class SED(object):
 
     @sfh.setter
     def sfh(self, value):
+
+        # The SFH can be set multiple times. Maybe it's better to make is
+        # settable only once and then provide an update_sfh method for when
+        # it's needed.
         self._sfh = value
 
         if value:
             sfh_time, sfh_sfr = value
             self._sfh = value
-            self.add_info("sfh.sfr", sfh_sfr[-1], True)
-            self.add_info("sfh.sfr10Myrs", np.mean(sfh_sfr[-10:]), True)
-            self.add_info("sfh.sfr100Myrs", np.mean(sfh_sfr[-100:]), True)
-            self.add_info("sfh.age", sfh_time[-1], False)
+            self.add_info("sfh.sfr", sfh_sfr[-1], True, force=True)
+            self.add_info("sfh.sfr10Myrs", np.mean(sfh_sfr[-10:]), True,
+                          force=True)
+            self.add_info("sfh.sfr100Myrs", np.mean(sfh_sfr[-100:]), True,
+                          force=True)
+            self.add_info("sfh.age", sfh_time[-1], False, force=True)
 
     @property
     def fnu(self):
