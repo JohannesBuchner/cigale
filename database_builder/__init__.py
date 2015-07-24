@@ -157,7 +157,14 @@ def build_filters(base):
                             filter_type, filter_table)
 
         # We normalise the filter and compute the effective wavelength.
-        new_filter.normalise()
+        # If the filter is a pseudo-filter used to compute line fluxes, it
+        # should not be normalised.
+        if not filter_name.startswith('PSEUDO'):
+            new_filter.normalise()
+        else:
+            new_filter.effective_wavelength = np.mean(
+                filter_table[0][filter_table[1] > 0]
+            )
 
         base.add_filter(new_filter)
 
