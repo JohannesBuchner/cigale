@@ -29,7 +29,13 @@ class Param(CreationModule):
 
     """
 
-    parameter_list = OrderedDict()
+    parameter_list = OrderedDict([
+        ("OK", (
+            "boolean",
+            "Are you here?.",
+            "True"
+        ))
+    ])
 
     out_parameter_list = OrderedDict([
         ("beta_calz94", "The UV slope in the range 125-180&240-260nm"),
