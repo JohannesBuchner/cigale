@@ -110,14 +110,6 @@ class Param(CreationModule):
 
         D_4000 = np.mean(luminosity[w_D4000red]) / np.mean(luminosity[w_D4000blue])
 
-        #plt.scatter(np.log10(10.*wavelength[w_calz94]),
-        #            np.log10(1e7/10.*luminosity[w_calz94]),
-        #            alpha=0.5, color="b", marker="v")
-        #plt.plot(np.log10(10.*wavelength[w_calz94]),
-        #            regression_calz94[0]*np.log10(10.*wavelength[w_calz94])+regression_calz94[1],
-        #            alpha=0.5, color="r", linestyle="-")
-        #plt.show()
-
         sed.add_info("param.beta_calz94", beta_calz94)
         sed.add_info("param.FUV_luminosity", L_FUV, True)
         sed.add_info("param.D_4000", D_4000)

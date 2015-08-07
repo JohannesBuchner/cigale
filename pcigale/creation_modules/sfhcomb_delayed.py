@@ -98,7 +98,6 @@ class SfhComb(CreationModule):
         # Ages of the sequence of SF events in Myr, 
         # N_events over "age" with the last one starting at "age_last"
         time_event = np.linspace(0., age-age_last, num = N_events)
-        #print("time_events", time_event)
 
         # Add each delayed SFH
         for i_time in range(N_events):
@@ -121,7 +120,7 @@ class SfhComb(CreationModule):
         sed.add_info("sfh.N_events", N_events)
         sed.add_info("sfh.tau_events", tau_events)
         sed.add_info("sfh.age_last", age_last)
-        #sed.add_info("age", age)
+        sed.add_info("sfh.age", age)
 
 # CreationModule to be returned by get_module
 Module = SfhComb

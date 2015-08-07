@@ -123,9 +123,6 @@ class MBB(CreationModule):
               wavelength = sed.wavelength_grid
               sed.add_info(item_balance, 1., True)
               sed.add_contribution(item_balance, wavelength, -lumin * epsilon)
-           # We read again the dust luminosities to check everything is OK.
-           #   lumin2 = sed.get_lumin_contribution(item_balance)
-           #   print("residual", lumin, lumin2)
 
         # If the modified black body does not enter into the energy budget, 
         # we do not change the luminosity of other dust contributions.

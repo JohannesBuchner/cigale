@@ -99,11 +99,9 @@ class SfhComb(CreationModule):
         # Ages of the sequence of SF events in Myr, 
         # N_events over "age" with the last one starting at "age_last"
         time_event = np.linspace(0., age-age_last, num = N_events)
-        #print("time_event", time_event)
 
         for i_time in range(N_events):
            sfr[time_event[i_time]:time_event[i_time]+t_duration] = sfr_A
-        #print("sfr", sfr)
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
@@ -120,7 +118,7 @@ class SfhComb(CreationModule):
         sed.add_info("sfh.N_events", N_events)
         sed.add_info("sfh.t_duration", t_duration)
         sed.add_info("sfh.age_last", age_last)
-        #sed.add_info("age", age)
+        sed.add_info("sfh.age", age)
 
 # CreationModule to be returned by get_module
 Module = SfhComb
