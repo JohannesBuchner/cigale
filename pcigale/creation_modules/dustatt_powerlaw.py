@@ -206,10 +206,8 @@ class PowerLawAtt(CreationModule):
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.Av.stellar" +
-                         contrib[contrib.find('_'):], av[age])
-            sed.add_info("attenuation.stellar" +
-                         contrib[contrib.find('_'):], attenuation, True)
+            sed.add_info("attenuation.Av." + contrib, av[age])
+            sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
