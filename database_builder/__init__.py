@@ -406,6 +406,10 @@ def build_dl2007(base):
                 "4.00", "5.00", "7.00", "8.00", "10.0", "12.0", "15.0",
                 "20.0", "25.0"]
 
+    # Mdust/MH used to retrieve the dust mass as models as given per atom of H
+    MdMH = {"00":0.0100, "10":0.0100, "20":0.0101, "30":0.0102, "40":0.0102,
+            "50":0.0103, "60":0.0104}
+
     # Here we obtain the wavelength beforehand to avoid reading it each time.
     datafile = open(dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umaximum[0],
                                                                   umaximum[0],
@@ -420,8 +424,8 @@ def build_dl2007(base):
     # We convert wavelengths from μm to nm
     wave *= 1000.
 
-    # The models are in Jy cm² sr¯¹ H¯¹. We convert this to W/nm.
-    conv = 4. * np.pi * 1e-30 / cst.m_p * cst.c / (wave * wave) * 1e9
+    # Conversion factor from Jy cm² sr¯¹ H¯¹ to W nm¯¹ (kg of H)¯¹
+    conv = 4. * np.pi * 1e-30 / (cst.m_p+cst.m_e) * cst.c / (wave*wave) * 1e9
 
     for model in sorted(qpah.keys()):
         for umin in uminimum:
@@ -436,8 +440,8 @@ def build_dl2007(base):
             lumin = np.genfromtxt(io.BytesIO(data.encode()), usecols=(2))
             # For some reason fluxes are decreasing in the model files
             lumin = lumin[::-1]
-            # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
-            lumin *= conv
+            # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
+            lumin *= conv/MdMH[model]
 
             base.add_dl2007(DL2007(qpah[model], umin, umin, wave, lumin))
             for umax in umaximum:
@@ -453,8 +457,8 @@ def build_dl2007(base):
                 # For some reason fluxes are decreasing in the model files
                 lumin = lumin[::-1]
 
-                # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
-                lumin *= conv
+                # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
+                lumin *= conv/MdMH[model]
 
                 base.add_dl2007(DL2007(qpah[model], umin, umax, wave, lumin))
 
@@ -477,6 +481,11 @@ def build_dl2014(base):
              "1.9", "2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7",
              "2.8", "2.9", "3.0"]
 
+    # Mdust/MH used to retrieve the dust mass as models as given per atom of H
+    MdMH = {"000":0.0100, "010":0.0100, "020":0.0101, "030":0.0102,
+            "040":0.0102, "050":0.0103, "060":0.0104, "070":0.0105,
+            "080":0.0106, "090":0.0107, "100":0.0108}
+
     # Here we obtain the wavelength beforehand to avoid reading it each time.
     datafile = open(dl2014_dir + "U{}_{}_MW3.1_{}/spec_1.0.dat"
                     .format(uminimum[0], uminimum[0], "000"))
@@ -490,8 +499,8 @@ def build_dl2014(base):
     # We convert wavelengths from μm to nm
     wave *= 1000.
 
-    # The models are in Jy cm² sr¯¹ H¯¹. We convert this to W/nm.
-    conv = 4. * np.pi * 1e-30 / cst.m_p * cst.c / (wave * wave) * 1e9
+    # Conversion factor from Jy cm² sr¯¹ H¯¹ to W nm¯¹ (kg of H)¯¹
+    conv = 4. * np.pi * 1e-30 / (cst.m_p+cst.m_e) * cst.c / (wave*wave) * 1e9
 
     for model in sorted(qpah.keys()):
         for umin in uminimum:
@@ -504,8 +513,8 @@ def build_dl2014(base):
             # For some reason fluxes are decreasing in the model files
             lumin = lumin[::-1]
 
-            # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
-            lumin *= conv
+            # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
+            lumin *= conv/MdMH[model]
 
             base.add_dl2014(DL2014(qpah[model], umin, umin, 1.0, wave, lumin))
             for al in alpha:
@@ -518,8 +527,8 @@ def build_dl2014(base):
                 # For some reason fluxes are decreasing in the model files
                 lumin = lumin[::-1]
 
-                # Conversion from Jy cm² sr¯¹ H¯¹ to W/nm
-                lumin *= conv
+                # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
+                lumin *= conv/MdMH[model]
 
                 base.add_dl2014(DL2014(qpah[model], umin, 1e7, al, wave,
                                        lumin))

@@ -85,8 +85,9 @@ class DL2014(CreationModule):
         # we need to normalize them to 1 W here to easily scale them from the
         # power absorbed in the UV-optical. If we want to retrieve the dust
         # mass at a later point, we have to save their "emissivity" per unit
-        # mass in W kg¯¹, The gamma parameter does not affect the fact that it
-        # is for 1 kg because it represents a mass fraction of each component.
+        # mass in W (kg of dust)¯¹, The gamma parameter does not affect the
+        # fact that it is for 1 kg because it represents a mass fraction of
+        # each component.
         self.emissivity = np.trapz((1. - gamma) * self.model_minmin.lumin +
                                    gamma * self.model_minmax.lumin,
                                    x=self.model_minmin.wave)
@@ -114,6 +115,9 @@ class DL2014(CreationModule):
         sed.add_info('dust.umin', self.parameters["umin"])
         sed.add_info('dust.alpha', self.parameters["alpha"])
         sed.add_info('dust.gamma', self.parameters["gamma"])
+        # To compute the dust mass we simply divide the luminosity in W by the
+        # emissivity in W/kg of dust.
+        sed.add_info('dust.mass', luminosity / self.emissivity, True)
 
         sed.add_contribution('dust.Umin_Umin', self.model_minmin.wave,
                              luminosity * self.model_minmin.lumin)
