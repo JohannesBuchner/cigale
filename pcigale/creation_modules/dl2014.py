@@ -71,15 +71,17 @@ class DL2014(CreationModule):
     def _init_code(self):
         """Get the model out of the database"""
 
-        qpah = self.parameters["qpah"]
-        umin = self.parameters["umin"]
-        alpha = self.parameters["alpha"]
-        gamma = self.parameters["gamma"]
-        umax = 1e7
+        self.qpah = self.parameters["qpah"]
+        self.umin = self.parameters["umin"]
+        self.alpha = self.parameters["alpha"]
+        self.gamma = self.parameters["gamma"]
+        self.umax = 1e7
 
         with Database() as database:
-            self.model_minmin = database.get_dl2014(qpah, umin, umin, 1.)
-            self.model_minmax = database.get_dl2014(qpah, umin, umax, alpha)
+            self.model_minmin = database.get_dl2014(self.qpah, self.umin,
+                                                    self.umin, 1.)
+            self.model_minmax = database.get_dl2014(self.qpah, self.umin,
+                                                    self.umax, self.alpha)
 
         # The models in memory are in W/nm for 1 kg of dust. At the same time
         # we need to normalize them to 1 W here to easily scale them from the
@@ -88,14 +90,14 @@ class DL2014(CreationModule):
         # mass in W (kg of dust)¯¹, The gamma parameter does not affect the
         # fact that it is for 1 kg because it represents a mass fraction of
         # each component.
-        self.emissivity = np.trapz((1. - gamma) * self.model_minmin.lumin +
-                                   gamma * self.model_minmax.lumin,
+        self.emissivity = np.trapz((1.-self.gamma) * self.model_minmin.lumin +
+                                   self.gamma * self.model_minmax.lumin,
                                    x=self.model_minmin.wave)
 
         # We want to be able to display the respective contributions of both
         # components, therefore we keep they separately.
-        self.model_minmin.lumin *= (1. - gamma) / self.emissivity
-        self.model_minmax.lumin *= gamma / self.emissivity
+        self.model_minmin.lumin *= (1. - self.gamma) / self.emissivity
+        self.model_minmax.lumin *= self.gamma / self.emissivity
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -111,10 +113,10 @@ class DL2014(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('dust.qpah', self.parameters["qpah"])
-        sed.add_info('dust.umin', self.parameters["umin"])
-        sed.add_info('dust.alpha', self.parameters["alpha"])
-        sed.add_info('dust.gamma', self.parameters["gamma"])
+        sed.add_info('dust.qpah', self.qpah)
+        sed.add_info('dust.umin', self.umin)
+        sed.add_info('dust.alpha', self.alpha)
+        sed.add_info('dust.gamma', self.gamma)
         # To compute the dust mass we simply divide the luminosity in W by the
         # emissivity in W/kg of dust.
         sed.add_info('dust.mass', luminosity / self.emissivity, True)
