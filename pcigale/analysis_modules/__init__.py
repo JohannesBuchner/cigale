@@ -250,14 +250,14 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
 
     Raises
     ------
-    StandardError: When a filter is not present in the observation table.
+    Exception: When a filter is not present in the observation table.
 
     """
     # TODO Print or log a warning when an error column is in the used column
     # list but is not present in the observation table.
     for name in filter_list:
         if name not in obs_table.columns:
-            raise StandardError("The filter <{}> (at least) is not present in "
+            raise Exception("The filter <{}> (at least) is not present in "
                                 "the observation table.".format(name))
 
         name_err = name + "_err"
