@@ -285,7 +285,7 @@ class SED(object):
             key = (wavelength.size, filter_name, self.info['redshift'])
         else:
             key = (wavelength.size, filter_name, 0.)
-        if key in list(self.cache_filters.keys()):
+        if key in self.cache_filters:
             wavelength_r, transmission_r, lambda_eff = self.cache_filters[key]
         else:
             with Database() as db:
