@@ -179,7 +179,7 @@ class Redshifting(CreationModule):
         redshift = self.redshift
 
         # If the SED is already redshifted, raise an error.
-        if 'redshift' in sed.info.keys() and sed.info['redshift'] > 0.:
+        if 'redshift' in sed.info and sed.info['redshift'] > 0.:
             raise Exception("The SED is already redshifted <z={}>."
                             .format(sed.info['redshift']))
 
@@ -207,7 +207,7 @@ class Redshifting(CreationModule):
         # This is the case for instance if some but not all models have an AGN
         # fraction of 0.
         key = sed.wavelength_grid.size
-        if key not in self.igm_attenuation.keys():
+        if key not in self.igm_attenuation:
             self.igm_attenuation[key] = igm_transmission(sed.wavelength_grid,
                                                          redshift) - 1.
         sed.add_contribution('igm', sed.wavelength_grid,

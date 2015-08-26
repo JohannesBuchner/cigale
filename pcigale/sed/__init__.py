@@ -315,7 +315,7 @@ class SED(object):
 
         l_lambda_r = np.interp(wavelength_r, wavelength, self.luminosity)
 
-        if 'universe.luminosity_distance' in self.info.keys():
+        if 'universe.luminosity_distance' in self.info:
             dist = self.info['universe.luminosity_distance']
         else:
             dist = 10. * parsec

@@ -98,7 +98,7 @@ class MBB(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
