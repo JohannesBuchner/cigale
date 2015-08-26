@@ -31,8 +31,8 @@ Such SED is characterised by:
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import utils
+from .infodict import InfoDict
 from .io.vo import save_sed_to_vo
 from scipy.constants import c, parsec
 from ..data import Database
@@ -69,7 +69,7 @@ class SED(object):
         self.contribution_names = []
         self.luminosity = None
         self.luminosities = None
-        self.info = OrderedDict()
+        self.info = InfoDict()
         self.mass_proportional_info = set()
 
     @property
