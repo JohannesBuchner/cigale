@@ -7,6 +7,9 @@ import numpy as np
 from scipy.constants import c, pi
 from scipy.interpolate import interp1d
 
+# Cache of dx for integrate(y,dx) done by flux_trapz
+dx_cache = {}
+
 
 def lambda_to_nu(wavelength):
     """Convert wavelength (nm) to frequency (Hz)
@@ -366,3 +369,40 @@ def interpolate_lumin(wl, lumin, wl_new, lumin_new):
     lumin_out[-1, :] = np.interp(wl_best, wl_new, lumin_new, left=0., right=0.)
 
     return (wl_best, lumin_out)
+
+
+def flux_trapz(y, x, key):
+    """
+    Light weight trapezoidal rule used to compute the flux in filters. It
+    assumes that all the x and y input arrays are already numpy arrays to save
+    time. Also the width between x elements are saved in cache using the "key"
+    parameter as for a given x sampling it will always be the same. We do not
+    compute they key ourselves because we do not have a proper way to hash it.
+    Using x[0], x[-1], and x.size is not sufficient as if the redshift is small
+    it is very likely that not of these elements will change. However the
+    calling function has this knowledge and actually uses them to get the
+    resampled filters from the cache. That way the two cache are sure to remain
+    consistent.
+
+    Parameters
+    ----------
+    y: 1D array
+        The values to be integrated, typically fluxes
+    x: 1D array
+        Sampling of y, typically wavelengths
+    key: tuple
+        Contains the size of the x array, the name of the filter, and the
+        redshift. Those elements point to a unique x grid. This is used to
+        cache some computations are the x sampling will not change.
+
+    Returns
+    -------
+    flux_trapz: float
+        integral(y, dx)
+    """
+    if key in dx_cache:
+        dx = dx_cache[key]
+    else:
+        dx = np.diff(x)
+        dx_cache[key] = dx
+    return (dx*(y[1:]+y[:-1])).sum()/2.

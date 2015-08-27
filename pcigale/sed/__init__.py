@@ -321,7 +321,7 @@ class SED(object):
             dist = 10. * parsec
 
         f_lambda = utils.luminosity_to_flux(
-            np.trapz(transmission_r * l_lambda_r, wavelength_r),
+            utils.flux_trapz(transmission_r * l_lambda_r, wavelength_r, key),
             dist)
 
         # Return Fν in mJy. The 1e-9 factor is because λ is in nm and 1e29 for
