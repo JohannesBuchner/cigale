@@ -326,7 +326,7 @@ class SED(object):
 
         # Return Fν in mJy. The 1e-9 factor is because λ is in nm and 1e29 for
         # convert from W/m²/Hz to mJy.
-        return lambda_eff * lambda_eff * f_lambda * 1e-9 / c * 1e29
+        return 1e-9 / c * 1e29 * lambda_eff * lambda_eff * f_lambda
 
     def to_votable(self, filename, mass=1.):
         """
