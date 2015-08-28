@@ -3,7 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-from json import JSONEncoder, JSONDecoder
+import marshal
 from ..sed import SED
 from .. import creation_modules
 
@@ -54,10 +54,9 @@ class SedWarehouse(object):
         a pcigale.creation_modules.Module instance
 
         """
-        # JSon representation of the tuple (name, parameters) used as a key
-        # for storing the module in the cache.
-        encoder = JSONEncoder()
-        module_key = encoder.encode((name, kwargs))
+        # Marshal a tuple (name, parameters) to be used as a key for storing
+        # the module in the cache.
+        module_key = marshal.dumps((name, kwargs))
 
         if module_key in self.module_cache:
             module = self.module_cache[module_key]
@@ -85,9 +84,8 @@ class SedWarehouse(object):
 
         """
         if n_modules_max > -1:
-            decoder = JSONDecoder()
             for k in list(self.storage.dictionary.keys()):
-                list_modules = decoder.decode(k)[0]
+                list_modules = marshal.loads(k)[0]
                 if len(list_modules) > n_modules_max:
                     self.storage.delete(k)
 
@@ -116,10 +114,9 @@ class SedWarehouse(object):
         module_list = list(module_list)
         parameter_list = list(parameter_list)
 
-        # JSon representation of the tuple (module_list, parameter_list)
-        # used as a key for storing the SED in the cache.
-        encoder = JSONEncoder()
-        sed_key = encoder.encode((module_list, parameter_list))
+        # Marshal a tuple (module_list, parameter_list) to be used as a key for
+        # storing the SED in the cache.
+        sed_key = marshal.dumps((module_list, parameter_list))
 
         sed = self.storage.get(sed_key)
 
