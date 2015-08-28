@@ -12,7 +12,6 @@ This module implements the Draine and Li (2007) infra-red models.
 
 """
 
-from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 from . import CreationModule
@@ -30,7 +29,7 @@ class DL2007(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ('qpah', (
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
@@ -58,7 +57,7 @@ class DL2007(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ('qpah', 'Mass fraction of PAH'),
         ('umin', 'Minimum radiation field'),
         ('umax', 'Maximum radiation field'),

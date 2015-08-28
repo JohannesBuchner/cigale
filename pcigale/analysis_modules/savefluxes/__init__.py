@@ -14,7 +14,6 @@ parameters.
 The data file is used only to get the list of fluxes to be computed.
 
 """
-from collections import OrderedDict
 import ctypes
 from datetime import datetime
 from itertools import product, repeat
@@ -44,7 +43,7 @@ class SaveFluxes(AnalysisModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("output_file", (
             "string",
             "Name of the output file that contains the parameters of the "

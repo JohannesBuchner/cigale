@@ -15,7 +15,6 @@ constant.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -30,7 +29,7 @@ class SfhQuench(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("quenching_age", (
             "integer",
             "Age of the galaxy at which the quenching happens in Myr.",
@@ -51,7 +50,7 @@ class SfhQuench(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("sfh.quenching_age", "Age of the galaxt when the quenching occurs "
                               "in Myr."),
         ("sfh.quenching_factor", "Quenching factor applied.")

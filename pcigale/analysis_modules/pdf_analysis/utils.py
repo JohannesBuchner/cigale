@@ -149,7 +149,7 @@ def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes,
         All variables corresponding to a SED
     fluxes: RawArray
         Fluxes in all bands for each object
-    filters: OrderedDict
+    filters: list
         Filters used to compute the fluxes
     info_keys: list
         Parameters names

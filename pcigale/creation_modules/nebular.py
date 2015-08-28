@@ -3,7 +3,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Médéric Boquien <mboquien@ast.cam.ac.uk>
 
-from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 import scipy.constants as cst
@@ -25,7 +24,7 @@ class NebularEmission(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ('logU', (
             'float',
             "Ionisation parameter",
@@ -48,7 +47,7 @@ class NebularEmission(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ('logU', "Ionisation parameter"),
         ('f_esc', "Fraction of Lyman continuum photons escaping "
          "the galaxy"),

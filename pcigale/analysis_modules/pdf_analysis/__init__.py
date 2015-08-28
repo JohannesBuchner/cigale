@@ -25,7 +25,6 @@ reduced χ²) is given for each observation.
 
 """
 
-from collections import OrderedDict
 import ctypes
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -54,7 +53,7 @@ REDSHIFT_DECIMALS = 2
 class PdfAnalysis(AnalysisModule):
     """PDF analysis module"""
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("analysed_variables", (
             "array of strings",
             "List of the variables (in the SEDs info dictionaries) for which "

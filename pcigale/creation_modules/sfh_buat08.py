@@ -22,7 +22,6 @@ and interpolate the values of a, b and c.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -39,7 +38,7 @@ class SfhBuat08(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("velocity", (
             "float",
             "Rotational velocity of the galaxy in km/s. Must be between 80 "
@@ -59,7 +58,7 @@ class SfhBuat08(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("sfh.velocity", "Rotational velocity of the galaxy in km/s."),
         ("galaxy_mass", "Mass of the galaxy in solar mass.")
     ])

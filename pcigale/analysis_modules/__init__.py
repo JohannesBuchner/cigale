@@ -5,7 +5,6 @@
 # Author: Yannick Roehlly & Denis Burgarella
 
 from importlib import import_module
-from collections import OrderedDict
 import numpy as np
 from scipy import stats
 from astropy.table import Column
@@ -15,13 +14,13 @@ class AnalysisModule(object):
     """Abstract class, the pCigale analysis modules are based on.
     """
 
-    # parameter_list is a ordered dictionary containing all the parameters
+    # parameter_list is a dictionary containing all the parameters
     # used by the module. Each parameter name is associate to a tuple
     # (variable type, description [string], default value). Each module must
     # define its parameter list, unless it does not use any parameter. Using
     # None means that there is no description, unit or default value. If None
     # should be the default value, use the 'None' string instead.
-    parameter_list = OrderedDict()
+    parameter_list = dict()
 
     def __init__(self, **kwargs):
         """Instantiate a analysis module

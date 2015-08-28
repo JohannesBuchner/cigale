@@ -34,8 +34,8 @@ class ParametersHandler(object):
         ----------
         modules: list
             Contains the modules in the order they are called
-        params: OrderedDict
-            Contains a list of parameters for each module
+        params: list of dictionaries
+            Contains a dictionary of parameters for each module
 
         """
         self.modules = modules
@@ -61,7 +61,7 @@ class ParametersHandler(object):
 
         """
         # We make a copy of the dictionary as we are modifying it.
-        dictionary = collections.OrderedDict(dictionary)
+        dictionary = dict(dictionary)
 
         # First, we must ensure that all values are lists; when a value is a
         # single element, we put it in a list.
@@ -76,7 +76,7 @@ class ParametersHandler(object):
         # the value lists.
         key_list = dictionary.keys()
         value_array_list = [dictionary[key] for key in key_list]
-        combination_list = [collections.OrderedDict(zip(key_list, combination))
+        combination_list = [dict(zip(key_list, combination))
                             for combination in
                             itertools.product(*value_array_list)]
 
@@ -151,8 +151,8 @@ def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
         Contains the fluxes of each model.
     model_parameters: RawArray
         Contains the parameters associated to each model.
-    filters: OrderedDict
-        Contains the filters.
+    filters: list
+        Contains the filter names.
     names: List
         Contains the parameters names.
     filename: str

@@ -13,7 +13,6 @@ decreasing exponentials.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -29,7 +28,7 @@ class Sfh2Exp(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
@@ -68,7 +67,7 @@ class Sfh2Exp(CreationModule):
         )),
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("tau_main", "e-folding time of the main stellar population model "
                      "in Myr."),
         ("tau_burst", "e-folding time of the late starburst population model "

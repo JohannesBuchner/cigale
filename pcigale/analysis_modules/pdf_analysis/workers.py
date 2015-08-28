@@ -84,7 +84,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     ----------
     params: ParametersHandler
         Handles the parameters from a 1D index.
-    filters: OrderedDict
+    filters: list
         Contains filters to compute the fluxes.
     analysed: list
         Variable names to be analysed

@@ -12,7 +12,6 @@ This module reads a SED spectrum from a file.
 """
 
 from astropy.table import Table
-from collections import OrderedDict
 from ..utils import read_table
 from . import CreationModule
 
@@ -22,7 +21,7 @@ class LoadSpecFile(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("filename", (
             'str',
             "Name of the file to load and to add to the SED table. This "

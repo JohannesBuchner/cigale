@@ -13,7 +13,6 @@ This module reads the star formation history in a file.
 
 from astropy.table import Table
 import numpy as np
-from collections import OrderedDict
 from ..utils import read_table
 from . import CreationModule
 
@@ -29,7 +28,7 @@ class SfhFromFile(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("filename", (
             "str",
             "Name of the file containing the SFH. The first column must be "

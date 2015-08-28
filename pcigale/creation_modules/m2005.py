@@ -12,7 +12,6 @@ This module implements the Maraston (2005) Single Stellar Populations.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 from ..data import Database
 
@@ -39,7 +38,7 @@ class M2005(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ('imf', (
             'int',
             "Initial mass function: 0 (Salpeter) or 1 (Kroupa)",
@@ -59,7 +58,7 @@ class M2005(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ('sfr', 'Instantaneous Star Formation Rate in solar mass per year, '
                 'at the age of the galaxy.'),
         ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '

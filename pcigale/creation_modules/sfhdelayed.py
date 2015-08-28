@@ -14,7 +14,6 @@ rise of the SFR up to a maximum, followed by an exponential decrease.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -30,7 +29,7 @@ class SFHDelayed(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
@@ -54,7 +53,7 @@ class SFHDelayed(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("tau_main", "e-folding time of the main stellar population model "
                      "in Myr."),
         ("age", "Age of the oldest stars in the galaxy in Myr."),

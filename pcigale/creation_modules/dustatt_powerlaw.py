@@ -14,7 +14,6 @@ in Charlot and Fall (2000) with a UV bump added.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -105,7 +104,7 @@ class PowerLawAtt(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("Av_young", (
             "float",
             "V-band attenuation of the young population.",
@@ -146,7 +145,7 @@ class PowerLawAtt(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("Av", "V-band attenuation."),
         ("Av_old_factor", "Reduction factor for the V-band attenuation "
                           "of  the old population compared to the young "

@@ -14,7 +14,6 @@ attenuation formulae, adding an UV-bump and a power law.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -179,7 +178,7 @@ class CalzLeit(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("E_BVs_young", (
             "float",
             "E(B-V)*, the colour excess of the stellar continuum light for "
@@ -221,7 +220,7 @@ class CalzLeit(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("E_BVs", "E(B-V), the colour excess of the stellar continuum "
                   "light for each population."),
         ("E_BVs_old_factor", "Ratio of the old population E(B-V) to the "

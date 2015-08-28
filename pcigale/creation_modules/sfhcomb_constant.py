@@ -13,7 +13,6 @@ regularly-spaced short constant SF events.
 """
 
 import numpy as np
-from collections import OrderedDict
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -29,7 +28,7 @@ class SfhComb(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("N_events", (
             "integer",
             "Number of individual star formation events. ",
@@ -66,7 +65,7 @@ class SfhComb(CreationModule):
         )),
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("N_events", "Number of individual star formation events"),
         ("t_duration", "Length of each individual star formation event "
                       "in Myr."),

@@ -11,7 +11,6 @@ This module implements the Fritz et al. (2006) models.
 
 """
 import numpy as np
-from collections import OrderedDict
 from pcigale.data import Database
 from . import CreationModule
 from pcigale.sed.cosmology import cosmology
@@ -39,7 +38,7 @@ class Fritz2006(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ('r_ratio', (
             'float',
             "Ratio of the maximum to minimum radii of the dust torus. "
@@ -83,7 +82,7 @@ class Fritz2006(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ('fracAGN', 'Contribution of the AGN'),
         ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to '
                                  'the dust torus'),

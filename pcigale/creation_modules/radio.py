@@ -19,7 +19,6 @@ This module implements the radio emission of galaxies, taking into account only
 
 import numpy as np
 import scipy.constants as cst
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -32,7 +31,7 @@ class Radio(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("qir", (
             "float",
             "The value of the FIR/radio correlation coefficient.",
@@ -45,7 +44,7 @@ class Radio(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("qir", "The value of the FIR/radio correlation coefficient."),
         ("alpha", "The slope of the power-law synchrotron emission.")
     ])

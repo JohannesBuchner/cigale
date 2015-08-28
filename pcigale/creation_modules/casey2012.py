@@ -14,7 +14,6 @@ This module implements the Casey (2012) infra-red models.
 
 import numpy as np
 import scipy.constants as cst
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -27,7 +26,7 @@ class Casey2012(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("temperature", (
             "float",
             "Temperature of the dust in K.",
@@ -45,7 +44,7 @@ class Casey2012(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
+    out_parameter_list = dict([
         ("temperature", "Temperature of the dust in K."),
         ("beta", "Emissivity index of the dust."),
         ("alpha", "Mid-infrared powerlaw slope.")
