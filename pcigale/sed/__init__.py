@@ -341,6 +341,12 @@ class SED(object):
         save_sed_to_vo(self, filename, mass)
 
     def copy(self):
+        """
+        Create a new copy of the object. This is done manually rather than
+        using copy.deepcopy() for speed reasons. As we know the structure of
+        the object, we can do a better job.
+
+        """
         sed = SED()
         if self._sfh is not None:
             sed._sfh = (self._sfh[0], self._sfh[1])
@@ -349,10 +355,6 @@ class SED(object):
             sed.wavelength_grid = self.wavelength_grid.copy()
             sed.luminosity = self.luminosity.copy()
             sed.luminosities = self.luminosities.copy()
-        else:
-            sed.wavelength_grid = None
-            sed.luminosity = None
-            sed.luminosities = None
         sed.contribution_names = self.contribution_names[:]
         sed.info = self.info.copy()
         sed.mass_proportional_info = self.mass_proportional_info.copy()
