@@ -282,8 +282,11 @@ class SED(object):
         # have to resample to spectrum.
         if 'redshift' in self.info:
             key = (wavelength.size, filter_name, self.info['redshift'])
+            dist = self.info['universe.luminosity_distance']
         else:
             key = (wavelength.size, filter_name, 0.)
+            dist = 10. * parsec
+
         if key in self.cache_filters:
             wavelength_r, transmission_r, lambda_eff = self.cache_filters[key]
         else:
@@ -313,11 +316,6 @@ class SED(object):
                                        lambda_eff)
 
         l_lambda_r = np.interp(wavelength_r, wavelength, self.luminosity)
-
-        if 'universe.luminosity_distance' in self.info:
-            dist = self.info['universe.luminosity_distance']
-        else:
-            dist = 10. * parsec
 
         f_lambda = utils.luminosity_to_flux(
             utils.flux_trapz(transmission_r * l_lambda_r, wavelength_r, key),
