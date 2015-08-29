@@ -54,13 +54,6 @@ class SFHDelayed(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("tau_main", "e-folding time of the main stellar population model "
-                     "in Myr."),
-        ("age", "Age of the oldest stars in the galaxy in Myr."),
-        ("sfr_A", "Multiplicative factor controlling the amplitude of SFR.")
-    ])
-
     def process(self, sed):
         """
         Parameters

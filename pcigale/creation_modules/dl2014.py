@@ -61,13 +61,6 @@ class DL2014(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ('qpah', 'Mass fraction of PAH'),
-        ('umin', 'Minimum radiation field'),
-        ('alpha', 'Power law slope dU/dM∝U¯ᵅ'),
-        ('gamma', 'Fraction illuminated from Umin to Umax')
-    ])
-
     def _init_code(self):
         """Get the model out of the database"""
 

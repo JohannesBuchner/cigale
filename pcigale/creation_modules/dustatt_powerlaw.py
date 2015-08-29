@@ -146,20 +146,6 @@ class PowerLawAtt(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("Av", "V-band attenuation."),
-        ("Av_old_factor", "Reduction factor for the V-band attenuation "
-                          "of  the old population compared to the young "
-                          "one (<1)."),
-        ("attenuation", "Amount of luminosity attenuated in W for each "
-                        "component and in total."),
-        ("uv_bump_wavelength", "Central wavelength of UV bump in nm."),
-        ("uv_bump_width", "Width of the UV bump in nm."),
-        ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
-        ("powerlaw_slope", "Slope of the power law."),
-        ("FILTER_attenuation", "Attenuation in the FILTER filter.")
-    ])
-
     def _init_code(self):
         self.filter_list = [item.strip() for item in
                             self.parameters["filters"].split("&")]

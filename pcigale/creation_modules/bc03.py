@@ -47,24 +47,6 @@ class BC03(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("sfr", "Instantaneous Star Formation Rate in solar mass per year, "
-                "at the age of the galaxy."),
-        ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
-                      'galaxy history.'),
-        ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
-                       'galaxy history.'),
-        ("ssp_m_star", "Total mass in stars in Solar mass."),
-        ("ssp_m_gas", "Mass returned to the ISM by evolved stars in Solar "
-                      "mass."),
-        ("ssp_n_ly", "rate of H-ionizing photons in s^-1, per Solar mass "
-                     "of galaxy."),
-        ("ssp_b_4000", "Amplitude of 4000 Å break (Bruzual 2003)"),
-        ("ssp_b4_vn", "Amplitude of 4000 Å narrow break (Balogh et al. 1999)"),
-        ("ssp_b4_sdss", "Amplitude of 4000 Å break (Stoughton et al. 2002)"),
-        ("ssp_b_912", "Amplitude of Lyman discontinuity")
-    ])
-
     def _init_code(self):
         """Read the SSP from the database."""
         if self.parameters["imf"] == 0:

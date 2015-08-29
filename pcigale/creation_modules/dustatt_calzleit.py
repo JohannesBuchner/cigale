@@ -221,20 +221,6 @@ class CalzLeit(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("E_BVs", "E(B-V), the colour excess of the stellar continuum "
-                  "light for each population."),
-        ("E_BVs_old_factor", "Ratio of the old population E(B-V) to the "
-                             "young one."),
-        ("attenuation", "Amount of luminosity attenuated in W for each "
-                        "component and in total."),
-        ("uv_bump_wavelength", "Central wavelength of UV bump in nm."),
-        ("uv_bump_width", "Width of the UV bump in nm."),
-        ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
-        ("powerlaw_slope", "Slope of the power law."),
-        ("FILTER_attenuation", "Attenuation in the FILTER filter.")
-    ])
-
     def _init_code(self):
         """Get the filters from the database"""
         self.filter_list = [item.strip() for item in

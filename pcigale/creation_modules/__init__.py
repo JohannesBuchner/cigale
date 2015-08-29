@@ -79,14 +79,6 @@ class CreationModule(object):
     # be the default value, use the 'None' string instead.
     parameter_list = dict()
 
-    # out_parameter_list is a dictionary containing all the SED
-    # parameters that are added to the SED info dictionary and for which a
-    # statistical analysis may be done. Each parameter name is associated with
-    # its description. In the SED info dictionary, the parameter name in
-    # is postfixed with a same postfix used in the module name, to allow
-    # the use of repeated modules.
-    out_parameter_list = dict()
-
     # comments is the text that is used to comment the module section in
     # the configuration file. For instance, it can be used to give special
     # instructions for the configuration.

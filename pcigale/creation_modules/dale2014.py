@@ -50,12 +50,6 @@ class Dale2014(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ('fracAGN', 'Contribution of the AGN'),
-        ('alpha', 'Alpha slope'),
-        ('lir', 'Total IR luminosity between 8 and 1000 microns (AGN + SB)')
-    ])
-
     def _init_code(self):
         """
         Get the models out of the database

@@ -65,14 +65,6 @@ class SfhComb(CreationModule):
         )),
     ])
 
-    out_parameter_list = dict([
-        ("N_events", "Number of individual star formation events"),
-        ("tau_events", "e-folding time of all short events in Myr.."),
-        ("age", "Age of the stellar population in the galaxy in Myr."),
-        ("age_last", "Time since the end of the last SF event in Myr."),
-        ("sfr_A", "Height of each SF event in M_sun/yr.")
-    ])
-
     def process(self, sed):
         """Add a star formation history formed by several 
         regularly-spaced delayed-SFH short SF events.

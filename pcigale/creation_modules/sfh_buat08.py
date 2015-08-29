@@ -59,11 +59,6 @@ class SfhBuat08(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("sfh.velocity", "Rotational velocity of the galaxy in km/s."),
-        ("galaxy_mass", "Mass of the galaxy in solar mass.")
-    ])
-
     def process(self, sed):
         """
         Parameters

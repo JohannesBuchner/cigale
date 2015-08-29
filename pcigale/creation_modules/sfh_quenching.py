@@ -51,12 +51,6 @@ class SfhQuench(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("sfh.quenching_age", "Age of the galaxt when the quenching occurs "
-                              "in Myr."),
-        ("sfh.quenching_factor", "Quenching factor applied.")
-    ])
-
     def process(self, sed):
         """
         Parameters

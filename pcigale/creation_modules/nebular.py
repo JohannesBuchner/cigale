@@ -48,14 +48,6 @@ class NebularEmission(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ('logU', "Ionisation parameter"),
-        ('f_esc', "Fraction of Lyman continuum photons escaping "
-         "the galaxy"),
-        ('f_dust', "Fraction of Lyman continuum photons absorbed by dust"),
-        ('lines_width', "Width of the nebular lines")
-    ])
-
     def _init_code(self):
         """Get the nebular emission lines out of the database and resample
            them to see the line profile. Compute scaling coefficients.

@@ -83,17 +83,6 @@ class Fritz2006(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ('fracAGN', 'Contribution of the AGN'),
-        ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to '
-                                 'the dust torus'),
-        ('agn.scatt_luminosity', 'Luminosity of the AGN contribution due to '
-                                 'the photon scattering'),
-        ('agn.agn_luminosity', 'Luminosity of the AGN contribution due to the '
-                               'central source'),
-        ('agn.luminosity', 'Total luminosity of the AGN contribution')
-    ])
-
     def _init_code(self):
         """Get the template set out of the database"""
         r_ratio = self.parameters["r_ratio"]

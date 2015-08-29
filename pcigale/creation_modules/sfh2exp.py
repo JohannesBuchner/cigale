@@ -68,17 +68,6 @@ class Sfh2Exp(CreationModule):
         )),
     ])
 
-    out_parameter_list = dict([
-        ("tau_main", "e-folding time of the main stellar population model "
-                     "in Myr."),
-        ("tau_burst", "e-folding time of the late starburst population model "
-                      "in Myr."),
-        ("f_burst", "Produced mass fraction of the late burst population."),
-        ("age", "Age of the main stellar population in the galaxy in Myr."),
-        ("burst_age", "Age of the late burst in Myr."),
-        ("sfr_0", "SFR at t = 0 in M_sun/yr.")
-    ])
-
     def process(self, sed):
         """Add a double decreasing exponential Star Formation History.
 

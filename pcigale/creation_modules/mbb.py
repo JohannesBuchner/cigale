@@ -56,12 +56,6 @@ class MBB(CreationModule):
         )),
     ])
 
-    out_parameter_list = dict([
-        ("t_mbb", "Temperature of the modified black body in K."),
-        ("beta_mbb", "Emissivity index of the modified black body."),
-        ("epsilon_mbb", "Fraction of L_dust in the modified black body.")
-    ])
-
     def _init_code(self):
         """Build the model for a given set of parameters."""
 

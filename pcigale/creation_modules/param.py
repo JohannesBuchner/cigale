@@ -37,12 +37,6 @@ class Param(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("beta_calz94", "The UV slope in the range 125-180&240-260nm"),
-        ("FUV_luminosity", "The rest-frame FUV luminosity"),
-        ("D_4000", "The D_4000 index")
-    ])
-
     def process(self, sed):
         """Computes the parameters for each model.
 

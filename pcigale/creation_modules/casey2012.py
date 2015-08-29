@@ -45,12 +45,6 @@ class Casey2012(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("temperature", "Temperature of the dust in K."),
-        ("beta", "Emissivity index of the dust."),
-        ("alpha", "Mid-infrared powerlaw slope.")
-    ])
-
     def _init_code(self):
         """Build the model for a given set of parameters."""
 

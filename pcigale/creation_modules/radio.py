@@ -45,11 +45,6 @@ class Radio(CreationModule):
         ))
     ])
 
-    out_parameter_list = dict([
-        ("qir", "The value of the FIR/radio correlation coefficient."),
-        ("alpha", "The slope of the power-law synchrotron emission.")
-    ])
-
     def _init_code(self):
         """Build the model for a given set of parameters."""
 
