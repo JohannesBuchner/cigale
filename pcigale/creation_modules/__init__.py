@@ -150,7 +150,6 @@ class CreationModule(object):
         raise NotImplementedError()
 
 
-@profile
 def get_module(name, **kwargs):
     """Get a SED creation module from its name
 
