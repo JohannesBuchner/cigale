@@ -70,7 +70,7 @@ class SFHDelayed(CreationModule):
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
 
         # Main SFR
-        sfr = sfr_A * time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
+        sfr = time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
@@ -78,6 +78,9 @@ class SFHDelayed(CreationModule):
         if normalise:
             sfr = sfr / galaxy_mass
             galaxy_mass = 1.
+        else:
+            sfr *= sfr_A
+            galaxy_mass *= sfr_A
 
         sed.add_module(self.name, self.parameters)
 

@@ -89,7 +89,7 @@ class Sfh2Exp(CreationModule):
         age = np.max(time_grid)
 
         # Main exponential
-        sfr = sfr_0 * np.exp(-time_grid / tau_main)
+        sfr = np.exp(-time_grid / tau_main)
 
         # Height of the late burst to have the desired produced mass fraction
         # (assuming that the main burst as a height of 1).
@@ -109,6 +109,9 @@ class Sfh2Exp(CreationModule):
         if normalise:
             sfr = sfr / galaxy_mass
             galaxy_mass = 1.
+        else:
+            sfr *= sfr_0
+            galaxy_mass *= sfr_0
 
         sed.add_module(self.name, self.parameters)
 

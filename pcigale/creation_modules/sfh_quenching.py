@@ -81,7 +81,7 @@ class SfhQuench(CreationModule):
             galaxy_mass = np.trapz(sfr, time) * 1e6
             if normalise:
                 sfr = sfr / galaxy_mass
-                galaxy_mass = 1
+                galaxy_mass = 1.
 
             sed.sfh = (time, sfr)
             sed.add_info("galaxy_mass", galaxy_mass, True, force=True)
