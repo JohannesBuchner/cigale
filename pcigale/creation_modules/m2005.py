@@ -11,6 +11,7 @@ This module implements the Maraston (2005) Single Stellar Populations.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 from ..data import Database
@@ -38,7 +39,7 @@ class M2005(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ('imf', (
             'int',
             "Initial mass function: 0 (Salpeter) or 1 (Kroupa)",

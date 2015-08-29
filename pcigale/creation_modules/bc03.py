@@ -12,6 +12,7 @@ Populations.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 from ..data import Database
@@ -25,7 +26,7 @@ class BC03(CreationModule):
     component to the SED.
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("imf", (
             "int",
             "Initial mass function: 0 (Salpeter) or 1 (Chabrier).",

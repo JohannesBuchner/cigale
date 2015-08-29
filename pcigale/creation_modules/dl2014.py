@@ -12,6 +12,7 @@ This module implements the updated Draine and Li (2007) infrared models.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 from . import CreationModule
@@ -29,7 +30,7 @@ class DL2014(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ('qpah', (
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "

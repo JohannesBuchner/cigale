@@ -12,6 +12,7 @@ regularly-spaced short constant SF events.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -28,7 +29,7 @@ class SfhComb(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("N_events", (
             "integer",
             "Number of individual star formation events. ",

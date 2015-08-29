@@ -15,6 +15,7 @@ for all the physical processes at play to build the received total emission.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -28,7 +29,7 @@ class Param(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("OK", (
             "boolean",
             "Are you here?.",

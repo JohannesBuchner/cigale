@@ -14,6 +14,7 @@ constant.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -29,7 +30,7 @@ class SfhQuench(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("quenching_age", (
             "integer",
             "Age of the galaxy at which the quenching happens in Myr.",

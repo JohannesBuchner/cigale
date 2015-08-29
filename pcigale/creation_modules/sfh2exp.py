@@ -12,6 +12,7 @@ decreasing exponentials.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -28,7 +29,7 @@ class Sfh2Exp(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",

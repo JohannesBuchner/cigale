@@ -21,6 +21,7 @@ and interpolate the values of a, b and c.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -38,7 +39,7 @@ class SfhBuat08(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("velocity", (
             "float",
             "Rotational velocity of the galaxy in km/s. Must be between 80 "

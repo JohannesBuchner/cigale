@@ -10,6 +10,7 @@ Fritz et al. (2006) AGN dust torus emission module
 This module implements the Fritz et al. (2006) models.
 
 """
+from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 from . import CreationModule
@@ -38,7 +39,7 @@ class Fritz2006(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ('r_ratio', (
             'float',
             "Ratio of the maximum to minimum radii of the dust torus. "

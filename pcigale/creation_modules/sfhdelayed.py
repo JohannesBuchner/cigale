@@ -13,6 +13,7 @@ rise of the SFR up to a maximum, followed by an exponential decrease.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 from . import CreationModule
 
@@ -29,7 +30,7 @@ class SFHDelayed(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",

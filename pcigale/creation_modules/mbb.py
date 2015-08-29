@@ -16,6 +16,7 @@ in dust and not visible in the wavelength range.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
 from . import CreationModule
@@ -31,7 +32,7 @@ class MBB(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("epsilon_mbb", (
             "float",
             "Fraction [>= Ø] of L_dust(energy balance) in the MBB",

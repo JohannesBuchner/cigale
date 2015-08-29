@@ -11,6 +11,7 @@ This module implements the Dale (2014) infra-red models.
 
 """
 
+from collections import OrderedDict
 from pcigale.data import Database
 from . import CreationModule
 
@@ -27,7 +28,7 @@ class Dale2014(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ('fracAGN', (
             'float',
             "AGN fraction. It is not recommended to combine this AGN emission "
