@@ -150,6 +150,7 @@ class CreationModule(object):
         raise NotImplementedError()
 
 
+@profile
 def get_module(name, **kwargs):
     """Get a SED creation module from its name
 
@@ -165,11 +166,9 @@ def get_module(name, **kwargs):
     -------
     a pcigale.creation_modules.Module instance
     """
-    # Determine the real module name by removing the dotted prefix.
-    module_name = name.split('.')[0]
 
     try:
-        module = import_module("." + module_name, 'pcigale.creation_modules')
+        module = import_module("." + name, 'pcigale.creation_modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
         print('Module ' + module_name + ' does not exists!')
