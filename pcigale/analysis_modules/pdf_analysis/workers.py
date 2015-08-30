@@ -189,7 +189,7 @@ def sed(idx):
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
-    if n_computed % 100 == 0 or n_computed == gbl_params.size:
+    if n_computed % 250 == 0 or n_computed == gbl_params.size:
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} models computed in {} seconds ({} models/s)".
               format(n_computed, gbl_params.size,
