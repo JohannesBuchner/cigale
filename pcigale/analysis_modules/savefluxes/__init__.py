@@ -119,6 +119,7 @@ class SaveFluxes(AnalysisModule):
         warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
         info = list(sed.info.keys())
+        info.sort()
         n_info = len(sed.info)
         del warehouse, sed
 
