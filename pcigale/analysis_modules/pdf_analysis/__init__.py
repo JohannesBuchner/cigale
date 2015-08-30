@@ -159,8 +159,9 @@ class PdfAnalysis(AnalysisModule):
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = sed.info
-        n_info = len(sed.info)
+        info = list(sed.info.keys())
+        info.sort()
+        n_info = len(info)
         del warehouse, sed
 
         print("Computing the models fluxes...")
@@ -231,7 +232,7 @@ class PdfAnalysis(AnalysisModule):
                             analysed_std)
         save_table_best('best_models.txt', obs_table['id'], best_chi2,
                         best_chi2_red, best_parameters, best_fluxes, filters,
-                        info.keys())
+                        info)
 
         if mock_flag is True:
 
@@ -295,7 +296,7 @@ class PdfAnalysis(AnalysisModule):
                                 analysed_std)
             save_table_best('best_mock_models.txt', mock_table['id'],
                             best_chi2, best_chi2_red, best_parameters,
-                            best_fluxes, filters, info.keys())
+                            best_fluxes, filters, info)
 
         print("Run completed!")
 
