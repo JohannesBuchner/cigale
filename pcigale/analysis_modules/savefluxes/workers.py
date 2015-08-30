@@ -37,7 +37,7 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """
     global gbl_model_fluxes, gbl_model_info, gbl_n_computed, gbl_t_begin
     global gbl_params, gbl_previous_idx, gbl_filters, gbl_save_sed
-    global gbl_warehouse
+    global gbl_warehouse, gbl_keys
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -58,6 +58,7 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
 
     gbl_warehouse = SedWarehouse()
 
+    gbl_keys = None
 
 def fluxes(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
@@ -70,7 +71,7 @@ def fluxes(idx):
         handler.
 
     """
-    global gbl_previous_idx
+    global gbl_previous_idx, gbl_keys
     if gbl_previous_idx > -1:
         gbl_warehouse.partial_clear_cache(
             gbl_params.index_module_changed(gbl_previous_idx, idx))
@@ -89,7 +90,10 @@ def fluxes(idx):
                                  gbl_filters])
 
     gbl_model_fluxes[idx, :] = model_fluxes
-    gbl_model_info[idx, :] = list(sed.info.values())
+    if gbl_keys is None:
+        gbl_keys = list(sed.info.keys())
+        gbl_keys.sort()
+    gbl_model_info[idx, :] = np.array([sed.info[k] for k in gbl_keys])
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1

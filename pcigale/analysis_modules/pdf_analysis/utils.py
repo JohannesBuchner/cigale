@@ -170,6 +170,8 @@ def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes,
     best_model_table.add_column(Column(np_chi2, name="chi_square"))
     best_model_table.add_column(Column(np_chi2_red, name="reduced_chi_square"))
 
+    info_keys = list(info_keys)
+    info_keys.sort()
     for index, name in enumerate(info_keys):
         column = Column(np_variables[:, index], name=name)
         best_model_table.add_column(column)

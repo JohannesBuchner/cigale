@@ -124,7 +124,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
     global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
     global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
-    global gbl_lim_flag, gbl_phase
+    global gbl_lim_flag, gbl_phase, gbl_keys
 
     gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
     gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
@@ -151,6 +151,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
 
     gbl_n_obs = n_obs
     gbl_phase = phase
+    gbl_keys = None
 
 
 def sed(idx):
@@ -210,6 +211,7 @@ def analysis(idx, obs):
 
     """
     # Tolerance threshold under which any flux or error is considered as 0.
+    global gbl_keys
     tolerance = 1e-12
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
@@ -382,7 +384,11 @@ def analysis(idx, obs):
 
         gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :] \
                       *norm_facts[best_index]
-        gbl_best_parameters[idx, :] = list(sed.info.values())
+
+        if gbl_keys is None:
+            gbl_keys = list(sed.info.keys())
+            gbl_keys.sort()
+        gbl_best_parameters[idx, :] = np.array([sed.info[k] for k in gbl_keys])
         gbl_best_chi2[idx] = chi2_[best_index]
         gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 

@@ -118,7 +118,7 @@ class SaveFluxes(AnalysisModule):
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = sed.info
+        info = list(sed.info.keys())
         n_info = len(sed.info)
         del warehouse, sed
 
