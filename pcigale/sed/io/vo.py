@@ -77,7 +77,8 @@ def save_sed_to_vo(sed, filename, norm=1.):
         # If there is a stellar population then the norm factor is the stellar
         # mass.
         votable.infos.append(Info(name="Galaxy mass in Msun", value=norm))
-    votable.infos.append(Info(name="Redshift", value=sed.info['redshift']))
+    votable.infos.append(Info(name="Redshift",
+                              value=sed.info['universe.redshift']))
     for name, value in sed.info.items():
         if name in sed.mass_proportional_info:
             votable.infos.append(Info(name=name, value=norm * value))

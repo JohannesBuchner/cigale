@@ -50,7 +50,7 @@ class Param(CreationModule):
         # this module must be the last one. Note that it does require
         # an SFH and an SSP module but nothing else (except redshifting)
 
-        redshift = sed.info['redshift']
+        redshift = sed.info['universe.redshift']
         # Wavelengths are in nanometers.
         wavelength = sed.wavelength_grid
         # Luminosity is is W/nm.

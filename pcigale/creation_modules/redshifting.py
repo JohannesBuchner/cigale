@@ -177,9 +177,10 @@ class Redshifting(CreationModule):
         redshift = self.redshift
 
         # If the SED is already redshifted, raise an error.
-        if 'redshift' in sed.info and sed.info['redshift'] > 0.:
+        if ('universe.redshift' in sed.info and
+            sed.info['universe.redshift'] > 0.):
             raise Exception("The SED is already redshifted <z={}>."
-                            .format(sed.info['redshift']))
+                            .format(sed.info['universe.redshift']))
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
@@ -195,7 +196,7 @@ class Redshifting(CreationModule):
             sed.luminosities /= 1. + redshift
             sed.luminosity /= 1. + redshift
 
-        sed.add_info("redshift", redshift)
+        sed.add_info("universe.redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)
         sed.add_info("universe.age", self.universe_age)
 

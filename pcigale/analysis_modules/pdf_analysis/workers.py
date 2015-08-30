@@ -182,7 +182,7 @@ def sed(idx):
         model_variables = np.array([sed.info[name]
                                     for name in gbl_analysed_variables])
 
-    gbl_model_redshifts[idx] = sed.info['redshift']
+    gbl_model_redshifts[idx] = sed.info['universe.redshift']
     gbl_model_fluxes[idx, :] = model_fluxes
     gbl_model_variables[idx, :] = model_variables
 
