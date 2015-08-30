@@ -113,13 +113,13 @@ class Fritz2006(CreationModule):
         fracAGN = self.parameters["fracAGN"]
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('r_ratio', self.parameters["r_ratio"])
-        sed.add_info('tau', self.parameters["tau"])
-        sed.add_info('beta', self.parameters["beta"])
-        sed.add_info('gamma', self.parameters["gamma"])
-        sed.add_info('opening_angle', self.parameters["opening_angle"])
-        sed.add_info('psy', self.parameters["psy"])
-        sed.add_info('fracAGN', self.parameters["fracAGN"])
+        sed.add_info('agn.r_ratio', self.parameters["r_ratio"])
+        sed.add_info('agn.tau', self.parameters["tau"])
+        sed.add_info('agn.beta', self.parameters["beta"])
+        sed.add_info('agn.gamma', self.parameters["gamma"])
+        sed.add_info('agn.opening_angle', self.parameters["opening_angle"])
+        sed.add_info('agn.psy', self.parameters["psy"])
+        sed.add_info('agn.fracAGN', self.parameters["fracAGN"])
 
         # Compute the AGN luminosity
         if fracAGN < 1.:
