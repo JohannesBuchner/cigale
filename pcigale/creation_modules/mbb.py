@@ -8,11 +8,11 @@
 Modified Black Body module
 ======================================
 
-This module implements a modified black body (MBB). This MMB can be 
-a stand-alone IR emission or it can come as an additional component. 
-The energy balance can be set to check the presence of a component 
-or not to account for the emission of a region completely embedded 
-in dust and not visible in the wavelength range.
+This module implements a modified black body (MBB). This MMB can be a
+stand-alone IR emission or it can come as an additional component. The energy
+balance can be set to check the presence of a component or not to account for
+the emission of a region completely embedded in dust and not visible in the
+wavelength range.
 
 """
 
@@ -62,11 +62,11 @@ class MBB(CreationModule):
         epsilon = float(self.parameters["epsilon_mbb"])
         T = float(self.parameters["t_mbb"])
         beta = float(self.parameters["beta_mbb"])
-        
+
         if epsilon < 0:
-           epsilon = 0.
-           print("epsilon_mbb must >= 0, we set epsilon_mbb = 0.0")
-        
+            epsilon = 0.
+            print("epsilon_mbb must >= 0, we set epsilon_mbb = 0.0")
+
         # We define various constants necessary to compute the model. For
         # consistency, we define the speed of light in nm s¯¹ rather than in
         # m s¯¹.
@@ -77,8 +77,8 @@ class MBB(CreationModule):
         conv = c / (self.wave * self.wave)
 
         self.lumin_mbb = (conv * (1. - np.exp(-(lambda_0 / self.wave)
-                                ** beta)) * (c / self.wave) ** 3. / (np.exp(
-                                cst.h * c / (self.wave * cst.k * T)) - 1.))
+                          ** beta)) * (c / self.wave) ** 3. / (np.exp(
+                          cst.h * c / (self.wave * cst.k * T)) - 1.))
 
         # TODO, save the right normalisation factor to retrieve the dust mass
         norm = np.trapz(self.lumin_mbb, x=self.wave)
@@ -104,25 +104,28 @@ class MBB(CreationModule):
         energy_balance = (self.parameters["energy_balance"].lower() == "true")
 
         if energy_balance:
-           # Since we can have another contribution to L_dust and the modified black body
-           # enters into the energy budget, energy balance, we have to save a new negative 
-           # component for each one, previously existing as:
-           # luminosity_other_balance = -luminosity_other * (1-epsilon); 
-           # epsilon being the contribution of the present MBB to L_dust.             
-           other_dust_contributions = [contrib for contrib in sed.contribution_names 
-                                       if "dust" in contrib]
-           for item in other_dust_contributions:
-              item_balance = item + '_balance'
-              lumin = sed.get_lumin_contribution(item)
-              wavelength = sed.wavelength_grid
-              sed.add_info(item_balance, 1., True)
-              sed.add_contribution(item_balance, wavelength, -lumin * epsilon)
+            # Since we can have another contribution to L_dust and the modified
+            # black body enters into the energy budget, energy balance, we have
+            # to save a new negative  component for each one, previously
+            # existing as:
+            # luminosity_other_balance = -luminosity_other * (1-epsilon);
+            # epsilon being the contribution of the present MBB to L_dust.
+            other_dust_contributions = [contrib for contrib in
+                                        sed.contribution_names if
+                                        "dust" in contrib]
+            for item in other_dust_contributions:
+                item_balance = item + '_balance'
+                lumin = sed.get_lumin_contribution(item)
+                wavelength = sed.wavelength_grid
+                sed.add_info(item_balance, 1., True)
+                sed.add_contribution(item_balance, wavelength, -lumin *
+                                     epsilon)
 
-        # If the modified black body does not enter into the energy budget, 
+        # If the modified black body does not enter into the energy budget,
         # we do not change the luminosity of other dust contributions.
-        # The luminosity of the modified black body L_MBB = epsilon * L_dust. 
-        # The total dust luminosity will be : L_dust(inside energy budget) + L_MBB.
-         
+        # Luminosity of the modified black body: L_MBB = epsilon * L_dust.
+        # Total dust luminosity: L_dust(inside energy budget) + L_MBB.
+
         # We add the contribution of the MBB to L_dust.
         sed.add_contribution('dust.mbb', self.wave,
                              luminosity * epsilon * self.lumin_mbb)
