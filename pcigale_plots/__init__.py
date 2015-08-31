@@ -11,6 +11,7 @@ from astropy.table import Table
 from itertools import product, repeat
 from collections import OrderedDict
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np
@@ -25,7 +26,6 @@ import matplotlib.gridspec as gridspec
 
 __version__ = "0.1-alpha"
 
-matplotlib.use('Agg')
 
 # Name of the file containing the best models information
 BEST_MODEL_FILE = "best_models.txt"
