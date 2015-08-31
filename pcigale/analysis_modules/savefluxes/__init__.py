@@ -15,9 +15,6 @@ The data file is used only to get the list of fluxes to be computed.
 
 """
 import ctypes
-from datetime import datetime
-from itertools import product, repeat
-import os
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
 import time
