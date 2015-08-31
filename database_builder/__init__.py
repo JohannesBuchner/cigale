@@ -248,7 +248,6 @@ def build_m2005(base):
         lambda_grid = np.hstack([lambda_grid[:argmin+1], lambda_grid_resamp])
         flux_age = np.vstack([flux_age[:argmin+1, :], flux_age_resamp])
 
-
         # Use Z value for metallicity, not log([Z/H])
         metallicity = {-1.35: 0.001,
                        -0.33: 0.01,
@@ -407,8 +406,8 @@ def build_dl2007(base):
                 "20.0", "25.0"]
 
     # Mdust/MH used to retrieve the dust mass as models as given per atom of H
-    MdMH = {"00":0.0100, "10":0.0100, "20":0.0101, "30":0.0102, "40":0.0102,
-            "50":0.0103, "60":0.0104}
+    MdMH = {"00": 0.0100, "10": 0.0100, "20": 0.0101, "30": 0.0102,
+            "40": 0.0102, "50": 0.0103, "60": 0.0104}
 
     # Here we obtain the wavelength beforehand to avoid reading it each time.
     datafile = open(dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umaximum[0],
@@ -466,9 +465,9 @@ def build_dl2007(base):
 def build_dl2014(base):
     dl2014_dir = os.path.join(os.path.dirname(__file__), 'dl2014/')
 
-    qpah = {"000":0.47, "010":1.12, "020":1.77, "030":2.50, "040":3.19,
-            "050":3.90, "060":4.58, "070":5.26, "080":5.95, "090":6.63,
-            "100":7.32}
+    qpah = {"000": 0.47, "010": 1.12, "020": 1.77, "030": 2.50, "040": 3.19,
+            "050": 3.90, "060": 4.58, "070": 5.26, "080": 5.95, "090": 6.63,
+            "100": 7.32}
 
     uminimum = ["0.100", "0.120", "0.150", "0.170", "0.200", "0.250", "0.300",
                 "0.350", "0.400", "0.500", "0.600", "0.700", "0.800", "1.000",
@@ -482,9 +481,9 @@ def build_dl2014(base):
              "2.8", "2.9", "3.0"]
 
     # Mdust/MH used to retrieve the dust mass as models as given per atom of H
-    MdMH = {"000":0.0100, "010":0.0100, "020":0.0101, "030":0.0102,
-            "040":0.0102, "050":0.0103, "060":0.0104, "070":0.0105,
-            "080":0.0106, "090":0.0107, "100":0.0108}
+    MdMH = {"000": 0.0100, "010": 0.0100, "020": 0.0101, "030": 0.0102,
+            "040": 0.0102, "050": 0.0103, "060": 0.0104, "070": 0.0105,
+            "080": 0.0106, "090": 0.0107, "100": 0.0108}
 
     # Here we obtain the wavelength beforehand to avoid reading it each time.
     datafile = open(dl2014_dir + "U{}_{}_MW3.1_{}/spec_1.0.dat"
@@ -554,7 +553,7 @@ def build_fritz2006(base):
     datafile.close()
     wave = np.genfromtxt(io.BytesIO(data.encode()), usecols=(0))
     wave *= 1e3
-    #Number of wavelength: 178; Number of comments lines: 28
+    # Number of wavelengths: 178; Number of comments lines: 28
     nskip = 28
     blocksize = 178
 
@@ -597,7 +596,7 @@ def build_fritz2006(base):
 
             base.add_fritz2006(Fritz2006(params[4], params[3], params[2],
                                          params[1], params[0], psy[n], wave,
-                                         lumin_therm, lumin_scatt,lumin_agn))
+                                         lumin_therm, lumin_scatt, lumin_agn))
 
 
 def build_nebular(base):
@@ -701,7 +700,7 @@ def build_base():
     build_dale2014(base)
     print("\nDONE\n")
     print('#' * 78)
-    
+
     print("8- Importing nebular lines and continuum\n")
     build_nebular(base)
     print("\nDONE\n")
