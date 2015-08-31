@@ -23,7 +23,7 @@ from scipy.constants import parsec
 from scipy.misc import factorial
 
 from ..creation_modules import CreationModule
-from pcigale.sed.cosmology import cosmology
+from astropy.cosmology import WMAP7 as cosmology
 
 
 def igm_transmission(wavelength, redshift):

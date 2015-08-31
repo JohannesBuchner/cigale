@@ -14,7 +14,6 @@ from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
 from . import CreationModule
-from pcigale.sed.cosmology import cosmology
 
 
 class Fritz2006(CreationModule):

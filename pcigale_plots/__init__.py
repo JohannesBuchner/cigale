@@ -18,7 +18,6 @@ import numpy as np
 import os
 import pkg_resources
 from scipy.constants import c, parsec
-from pcigale.sed.cosmology import cosmology
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
