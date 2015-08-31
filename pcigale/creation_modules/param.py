@@ -56,9 +56,9 @@ class Param(CreationModule):
         # Luminosity is is W/nm.
         luminosity = sed.luminosity
 
-        # Attenuated (observed) UV slopes beta
-        # as defined in Calzetti et al. (1994, ApJ 429, 582, Tab. 2)
-        # that excludes the 217.5 nm bump wavelength range and other spectral features
+        # Attenuated (observed) UV slopes beta as defined in Calzetti et al.
+        # (1994, ApJ 429, 582, Tab. 2) that excludes the 217.5 nm bump
+        # wavelength range and other spectral features
 
         w_calz94 = np.where((wavelength >= 126.8 * (1. + redshift)) &
                             (wavelength <= 128.4 * (1. + redshift)) |
@@ -85,11 +85,12 @@ class Param(CreationModule):
         # i.e., lambda_eff = 152.8 nm and effective bandwidth = 11.4 nm
 
         w_FUV = np.where((wavelength >= (152.8 - 11.4) * (1. + redshift)) &
-                         (wavelength <= (152.8 + 11.4) * (1. + redshift)) )
+                         (wavelength <= (152.8 + 11.4) * (1. + redshift)))
 
-        # Strength of the D_4000 break using Balogh et al. (1999, ApJ 527, 54), i.e.,
-        # ratio of the flux in the red continuum to that in the blue continuum:
-        # Blue continuum: 385.0-395.0 nm& red continuum: 410.0-410.0 nm.
+        # Strength of the D_4000 break using Balogh et al. (1999, ApJ 527, 54),
+        # i.e., ratio of the flux in the red continuum to that in the blue
+        # continuum: Blue continuum: 385.0-395.0 nm & red continuum:
+        # 410.0-410.0 nm.
 
         w_D4000blue = np.where((wavelength >= 385.0 * (1. + redshift)) &
                                (wavelength <= 395.0 * (1. + redshift)))
@@ -97,12 +98,14 @@ class Param(CreationModule):
                                (wavelength <= 410.0 * (1. + redshift)))
 
         regression_calz94 = np.polyfit(np.log10(10.*wavelength[w_calz94]),
-                                       np.log10(1e7/10.*luminosity[w_calz94]), 1)
+                                       np.log10(1e7/10.*luminosity[w_calz94]),
+                                       1)
         beta_calz94 = regression_calz94[0]
 
         L_FUV = 152.8*(1. + redshift)*np.mean(luminosity[w_FUV])
 
-        D_4000 = np.mean(luminosity[w_D4000red]) / np.mean(luminosity[w_D4000blue])
+        D_4000 = (np.mean(luminosity[w_D4000red]) /
+                  np.mean(luminosity[w_D4000blue]))
 
         sed.add_info("param.beta_calz94", beta_calz94)
         sed.add_info("param.FUV_luminosity", L_FUV, True)
