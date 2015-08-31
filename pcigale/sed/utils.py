@@ -5,7 +5,6 @@
 
 import numpy as np
 from scipy.constants import c, pi
-from scipy.interpolate import interp1d
 
 # Cache of dx for integrate(y,dx) done by flux_trapz
 dx_cache = {}
