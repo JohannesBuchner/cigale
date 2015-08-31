@@ -11,7 +11,6 @@ This module reads the star formation history in a file.
 
 """
 
-from astropy.table import Table
 from collections import OrderedDict
 import numpy as np
 from ..utils import read_table
