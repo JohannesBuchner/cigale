@@ -6,7 +6,6 @@
 
 from importlib import import_module
 import numpy as np
-from scipy import stats
 from astropy.table import Column
 
 
