@@ -155,7 +155,7 @@ def get_module(name, **kwargs):
 
     Parameters
     ----------
-    module_name: string
+    name: string
         The name of the module we want to get the class. This name can be
         prefixed by anything using a dot, then the part before the dot is
         used to determine the module to load (e.g. 'dl2014.1' will return
@@ -170,5 +170,5 @@ def get_module(name, **kwargs):
         module = import_module("." + name, 'pcigale.creation_modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
-        print('Module ' + module_name + ' does not exists!')
+        print('Module ' + name + ' does not exist!')
         raise
