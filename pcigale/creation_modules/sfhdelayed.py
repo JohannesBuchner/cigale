@@ -34,13 +34,13 @@ class SFHDelayed(CreationModule):
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
-            None
+            2000.
         )),
         ("age", (
             "integer",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
-            None
+            5000.
         )),
         ("sfr_A", (
             "float",

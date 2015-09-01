@@ -44,13 +44,13 @@ class SfhBuat08(CreationModule):
             "float",
             "Rotational velocity of the galaxy in km/s. Must be between 80 "
             "and 360 (included).",
-            None
+            200.
         )),
         ("age", (
             "integer",
             "Age of the oldest stars in the galaxy. The precision "
             "is 1 Myr.",
-            None
+            5000.
         )),
         ("normalise", (
             "boolean",

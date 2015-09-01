@@ -35,7 +35,7 @@ class DL2014(CreationModule):
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
             "2.50, 3.19, 3.90, 4.58, 5.26, 5.95, 6.63, 7.32.",
-            None
+            2.50
         )),
         ('umin', (
             'float',
@@ -44,20 +44,20 @@ class DL2014(CreationModule):
             "0.700, 0.800, 1.000, 1.200, 1.500, 1.700, 2.000, 2.500, 3.000, "
             "3.500, 4.000, 5.000, 6.000, 7.000, 8.000, 10.00, 12.00, 15.00, "
             "17.00, 20.00, 25.00, 30.00, 35.00, 40.00, 50.00.",
-            None
+            1.0
         )),
         ('alpha', (
             'float',
             "Powerlaw slope dU/dM propto U^alpha. Possible values are: 1.0, "
             "1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, "
             "2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0.",
-            None
+            2.0
         )),
         ('gamma', (
             'float',
             "Fraction illuminated from Umin to Umax. Possible values between "
             "0 and 1.",
-            None
+            0.1
         ))
     ])
 
