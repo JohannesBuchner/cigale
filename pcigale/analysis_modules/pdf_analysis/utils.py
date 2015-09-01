@@ -182,7 +182,7 @@ def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes,
                            delimiter=None)
 
 
-def dchi2_over_ds2(s):
+def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
     """Function used to estimate the normalization factor in the SED fitting
     process when upper limits are included in the dataset to fit (from Eq. A11
     in Sawicki M. 2012, PASA, 124, 1008).
@@ -214,17 +214,17 @@ def dchi2_over_ds2(s):
     # The mask "lim" selects the filter(s) for which upper limits are given
     # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
 
-    wlim = np.where((gbl_obs_errors >= -9990.) & (gbl_obs_errors < 0.))
-    wdata = np.where(gbl_obs_errors >= 0.)
+    wlim = np.where((obs_errors >= -9990.) & (obs_errors < 0.))
+    wdata = np.where(obs_errors >= 0.)
 
-    mod_fluxes_data = gbl_mod_fluxes[wdata]
-    mod_fluxes_lim = gbl_mod_fluxes[wlim]
+    mod_fluxes_data = mod_fluxes[wdata]
+    mod_fluxes_lim = mod_fluxes[wlim]
 
-    obs_fluxes_data = gbl_obs_fluxes[wdata]
-    obs_fluxes_lim = gbl_obs_fluxes[wlim]
+    obs_fluxes_data = obs_fluxes[wdata]
+    obs_fluxes_lim = obs_fluxes[wlim]
 
-    obs_errors_data = gbl_obs_errors[wdata]
-    obs_errors_lim = -gbl_obs_errors[wlim]
+    obs_errors_data = obs_errors[wdata]
+    obs_errors_lim = -obs_errors[wlim]
 
     dchi2_over_ds_data = np.sum(
         (obs_fluxes_data-s*mod_fluxes_data) *

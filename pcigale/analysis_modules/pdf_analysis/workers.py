@@ -259,7 +259,7 @@ def analysis(idx, obs):
         np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
     )
 
-    if lim_flag is True:
+    if lim_flag == True:
         for imod in range(len(model_fluxes)):
             norm_facts[imod] = optimize.newton(dchi2_over_ds2,
                                                norm_facts[imod], tol=1e-16,
