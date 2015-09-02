@@ -233,16 +233,16 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                                         obs_fluxes_err > -9990. * k_corr_SED)
             if not mask_uplim.any() == False:
                 ax1.errorbar(filters_wl[mask_uplim], obs_fluxes[mask_uplim],
-                             uplims=obs_fluxes_err[mask_uplim], ls='',
+                             yerr=obs_fluxes_err[mask_uplim]*3, ls='',
                              marker='v', label='Observed upper limits',
                              markerfacecolor='None', markersize=6,
-                             markeredgecolor='b', capsize=0.)
+                             markeredgecolor='g', capsize=0.)
             mask_noerr = np.logical_and(obs_fluxes > 0.,
                                         obs_fluxes_err < -9990. * k_corr_SED)
             if not mask_noerr.any() == False:
                 ax1.errorbar(filters_wl[mask_noerr], obs_fluxes[mask_noerr],
                              ls='', marker='s', markerfacecolor='None',
-                             markersize=6, markeredgecolor='g',
+                             markersize=6, markeredgecolor='r',
                              label='Observed fluxes, no errors', capsize=0.)
             mask = np.where(obs_fluxes > 0.)
             ax2.errorbar(filters_wl[mask],
