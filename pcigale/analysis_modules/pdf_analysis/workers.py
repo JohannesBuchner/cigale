@@ -261,10 +261,9 @@ def analysis(idx, obs):
 
     if lim_flag == True:
         for imod in range(len(model_fluxes)):
-            norm_facts[imod] = optimize.newton(dchi2_over_ds2,
-                                               norm_facts[imod], tol=1e-16,
+            norm_facts[imod] = optimize.root(dchi2_over_ds2, norm_facts[imod],
                                                args=(obs_fluxes, obs_errors,
-                                                     model_fluxes[imod, :]))
+                                                     model_fluxes[imod, :])).x
     model_fluxes *= norm_facts[:, np.newaxis]
 
     # χ² of the comparison of each model to each observation.
