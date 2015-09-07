@@ -10,11 +10,11 @@ Fritz et al. (2006) AGN dust torus emission module
 This module implements the Fritz et al. (2006) models.
 
 """
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from pcigale.data import Database
 from . import CreationModule
-from pcigale.sed.cosmology import cosmology
+
 
 class Fritz2006(CreationModule):
     """Fritz et al. (2006) AGN dust torus emission
@@ -70,9 +70,9 @@ class Fritz2006(CreationModule):
         ('psy', (
             'float',
             "Angle between equatorial axis and line of sight. "
-            "Psy = 90◦ for type 1 and Psy = 0° for type 2. Possible values are: "
-            "0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, 70.100, "
-            "80.100, 89.990.",
+            "Psy = 90◦ for type 1 and Psy = 0° for type 2. Possible values "
+            "are: 0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, "
+            "70.100, 80.100, 89.990.",
             50.100
         )),
         ('fracAGN', (
@@ -80,14 +80,6 @@ class Fritz2006(CreationModule):
             "AGN fraction.",
             0.1
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ('fracAGN', 'Contribution of the AGN'),
-        ('agn.therm_luminosity', 'Luminosity of the AGN contribution due to the dust torus'),
-        ('agn.scatt_luminosity', 'Luminosity of the AGN contribution due to the photon scattering'),
-        ('agn.agn_luminosity', 'Luminosity of the AGN contribution due to the central source'),
-        ('agn.luminosity', 'Total luminosity of the AGN contribution')
     ])
 
     def _init_code(self):
@@ -113,30 +105,31 @@ class Fritz2006(CreationModule):
 
         """
 
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
         fracAGN = self.parameters["fracAGN"]
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('r_ratio', self.parameters["r_ratio"])
-        sed.add_info('tau', self.parameters["tau"])
-        sed.add_info('beta', self.parameters["beta"])
-        sed.add_info('gamma', self.parameters["gamma"])
-        sed.add_info('opening_angle', self.parameters["opening_angle"])
-        sed.add_info('psy', self.parameters["psy"])
-        sed.add_info('fracAGN', self.parameters["fracAGN"])
+        sed.add_info('agn.r_ratio', self.parameters["r_ratio"])
+        sed.add_info('agn.tau', self.parameters["tau"])
+        sed.add_info('agn.beta', self.parameters["beta"])
+        sed.add_info('agn.gamma', self.parameters["gamma"])
+        sed.add_info('agn.opening_angle', self.parameters["opening_angle"])
+        sed.add_info('agn.psy', self.parameters["psy"])
+        sed.add_info('agn.fracAGN', self.parameters["fracAGN"])
 
         # Compute the AGN luminosity
         if fracAGN < 1.:
             agn_power = luminosity * (1./(1.-fracAGN) - 1.)
             l_agn_therm = agn_power
-            l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt, x=self.fritz2006.wave)
-            l_agn_agn = np.trapz(agn_power * self.fritz2006.lumin_agn, x=self.fritz2006.wave)
+            l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt,
+                                   x=self.fritz2006.wave)
+            l_agn_agn = np.trapz(agn_power * self.fritz2006.lumin_agn,
+                                 x=self.fritz2006.wave)
             l_agn_total = l_agn_therm + l_agn_scatt + l_agn_agn
-        
-        
+
         else:
             raise Exception("AGN fraction is exactly 1. Behaviour "
                             "undefined.")

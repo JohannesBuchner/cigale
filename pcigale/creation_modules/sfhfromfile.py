@@ -11,9 +11,8 @@ This module reads the star formation history in a file.
 
 """
 
-from astropy.table import Table
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from ..utils import read_table
 from . import CreationModule
 
@@ -82,7 +81,7 @@ class SfhFromFile(CreationModule):
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.trapz(sfr * 1e6, time_grid)
+        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
         if normalise:
             sfr = sfr / galaxy_mass
             galaxy_mass = 1.

@@ -16,8 +16,7 @@ SqlAlchemy ORM to store the data in a unique SQLite3 database.
 """
 
 import pkg_resources
-from sqlalchemy import (create_engine, exc, Column, String, Text,
-                        Float, PickleType)
+from sqlalchemy import create_engine, exc, Column, String,  Float, PickleType
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np

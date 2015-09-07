@@ -11,8 +11,8 @@ This module implements the Maraston (2005) Single Stellar Populations.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from . import CreationModule
 from ..data import Database
 
@@ -57,43 +57,6 @@ class M2005(CreationModule):
             "0 not to differentiate ages (only an old population).",
             10
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ('sfr', 'Instantaneous Star Formation Rate in solar mass per year, '
-                'at the age of the galaxy.'),
-        ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
-                        'galaxy history.'),
-        ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
-                        'galaxy history.'),
-        ('mass_total', 'Total stellar mass of the galaxy in solar mass.'),
-        ('mass_alive', 'Mass of alive stars in solar mass.'),
-        ('mass_white_dwarf', 'Mass of white dwarf stars in solar mass.'),
-        ('mass_neutron', 'Mass of neutron stars in solar mass.'),
-        ('mass_black_hole', 'Mass of black holes in solar mass.'),
-        ('old_young_separation_age', 'Age (in Myr) separating the old and '
-                                     'the young star populations (0 if there '
-                                     'is only one population).'),
-        ('mass_total_old', 'Total stellar mass of the old population in solar '
-                           'mass.'),
-        ('mass_alive_old', 'Mass of alive stars in solar mass (old '
-                           'population).'),
-        ('mass_white_dwarf_old', 'Mass of white dwarf stars in solar mass '
-                                 '(old population).'),
-        ('mass_neutron_old', 'Mass of neutron stars in solar mass '
-                              '(old population).'),
-        ('mass_black_hole_old', 'Mass of black holes in solar mass '
-                                '(old population).'),
-        ('mass_total_young', 'Total stellar mass of the young population '
-                             'in solar mass.'),
-        ('mass_alive_young', 'Mass of alive stars in solar mass '
-                             '(young population).'),
-        ('mass_white_dwarf_young', 'Mass of white dwarf stars in solar mass '
-                                   '(young population).'),
-        ('mass_neutron_young', 'Mass of neutron stars in solar mass '
-                                '(young population).'),
-        ('mass_black_hole_young', 'Mass of black holes in solar mass '
-                                  '(young population).')
     ])
 
     def _init_code(self):

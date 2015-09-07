@@ -13,8 +13,8 @@ rise of the SFR up to a maximum, followed by an exponential decrease.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -34,15 +34,15 @@ class SFHDelayed(CreationModule):
         ("tau_main", (
             "float",
             "e-folding time of the main stellar population model in Myr.",
-            None
+            2000.
         )),
         ("age", (
             "integer",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
-            None
+            5000.
         )),
-         ("sfr_A", (
+        ("sfr_A", (
             "float",
             "Multiplicative factor controlling the amplitude of SFR.",
             1.
@@ -52,13 +52,6 @@ class SFHDelayed(CreationModule):
             "Normalise the SFH to produce one solar mass.",
             "True"
         ))
-   ])
-
-    out_parameter_list = OrderedDict([
-        ("tau_main", "e-folding time of the main stellar population model "
-                     "in Myr."),
-        ("age", "Age of the oldest stars in the galaxy in Myr."),
-        ("sfr_A", "Multiplicative factor controlling the amplitude of SFR.")
     ])
 
     def process(self, sed):
@@ -77,14 +70,17 @@ class SFHDelayed(CreationModule):
         time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
 
         # Main SFR
-        sfr = sfr_A * time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
+        sfr = time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.trapz(sfr * 1e6, time_grid)
+        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
         if normalise:
             sfr = sfr / galaxy_mass
             galaxy_mass = 1.
+        else:
+            sfr *= sfr_A
+            galaxy_mass *= sfr_A
 
         sed.add_module(self.name, self.parameters)
 

@@ -35,7 +35,7 @@ class DL2014(CreationModule):
             'float',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
             "2.50, 3.19, 3.90, 4.58, 5.26, 5.95, 6.63, 7.32.",
-            None
+            2.50
         )),
         ('umin', (
             'float',
@@ -44,57 +44,53 @@ class DL2014(CreationModule):
             "0.700, 0.800, 1.000, 1.200, 1.500, 1.700, 2.000, 2.500, 3.000, "
             "3.500, 4.000, 5.000, 6.000, 7.000, 8.000, 10.00, 12.00, 15.00, "
             "17.00, 20.00, 25.00, 30.00, 35.00, 40.00, 50.00.",
-            None
+            1.0
         )),
         ('alpha', (
             'float',
             "Powerlaw slope dU/dM propto U^alpha. Possible values are: 1.0, "
             "1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, "
             "2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0.",
-            None
+            2.0
         )),
         ('gamma', (
             'float',
             "Fraction illuminated from Umin to Umax. Possible values between "
             "0 and 1.",
-            None
+            0.1
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ('qpah', 'Mass fraction of PAH'),
-        ('umin', 'Minimum radiation field'),
-        ('alpha', 'Power law slope dU/dM∝U¯ᵅ'),
-        ('gamma', 'Fraction illuminated from Umin to Umax')
     ])
 
     def _init_code(self):
         """Get the model out of the database"""
 
-        qpah = self.parameters["qpah"]
-        umin = self.parameters["umin"]
-        alpha = self.parameters["alpha"]
-        gamma = self.parameters["gamma"]
-        umax = 1e7
+        self.qpah = self.parameters["qpah"]
+        self.umin = self.parameters["umin"]
+        self.alpha = self.parameters["alpha"]
+        self.gamma = self.parameters["gamma"]
+        self.umax = 1e7
 
         with Database() as database:
-            self.model_minmin = database.get_dl2014(qpah, umin, umin, 1.)
-            self.model_minmax = database.get_dl2014(qpah, umin, umax, alpha)
+            self.model_minmin = database.get_dl2014(self.qpah, self.umin,
+                                                    self.umin, 1.)
+            self.model_minmax = database.get_dl2014(self.qpah, self.umin,
+                                                    self.umax, self.alpha)
 
         # The models in memory are in W/nm for 1 kg of dust. At the same time
         # we need to normalize them to 1 W here to easily scale them from the
         # power absorbed in the UV-optical. If we want to retrieve the dust
         # mass at a later point, we have to save their "emissivity" per unit
-        # mass in W kg¯¹, The gamma parameter does not affect the fact that it
-        # is for 1 kg because it represents a mass fraction of each component.
-        self.emissivity = np.trapz((1. - gamma) * self.model_minmin.lumin +
-                                   gamma * self.model_minmax.lumin,
+        # mass in W (kg of dust)¯¹, The gamma parameter does not affect the
+        # fact that it is for 1 kg because it represents a mass fraction of
+        # each component.
+        self.emissivity = np.trapz((1.-self.gamma) * self.model_minmin.lumin +
+                                   self.gamma * self.model_minmax.lumin,
                                    x=self.model_minmin.wave)
 
         # We want to be able to display the respective contributions of both
         # components, therefore we keep they separately.
-        self.model_minmin.lumin *= (1. - gamma) / self.emissivity
-        self.model_minmax.lumin *= gamma / self.emissivity
+        self.model_minmin.lumin *= (1. - self.gamma) / self.emissivity
+        self.model_minmax.lumin *= self.gamma / self.emissivity
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -105,15 +101,18 @@ class DL2014(CreationModule):
         parameters: dictionary containing the parameters
 
         """
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('dust.qpah', self.parameters["qpah"])
-        sed.add_info('dust.umin', self.parameters["umin"])
-        sed.add_info('dust.alpha', self.parameters["alpha"])
-        sed.add_info('dust.gamma', self.parameters["gamma"])
+        sed.add_info('dust.qpah', self.qpah)
+        sed.add_info('dust.umin', self.umin)
+        sed.add_info('dust.alpha', self.alpha)
+        sed.add_info('dust.gamma', self.gamma)
+        # To compute the dust mass we simply divide the luminosity in W by the
+        # emissivity in W/kg of dust.
+        sed.add_info('dust.mass', luminosity / self.emissivity, True)
 
         sed.add_contribution('dust.Umin_Umin', self.model_minmin.wave,
                              luminosity * self.model_minmin.lumin)

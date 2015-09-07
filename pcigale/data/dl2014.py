@@ -1,4 +1,4 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013 Centre de données Astrophysiques de Marseille
 # Copyright (C) 2013 Institute of Astronomy, University of Cambridge
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
@@ -6,7 +6,7 @@
 
 
 class DL2014(object):
-    """2014 update of the Draine and Li (2007) dust models, 
+    """2014 update of the Draine and Li (2007) dust models,
 
     This class holds the data associated with the updated Draine and Li (2007)
     dust models.

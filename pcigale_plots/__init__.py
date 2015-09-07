@@ -6,8 +6,6 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
-__version__ = "0.1-alpha"
-
 import argparse
 from astropy.table import Table
 from itertools import product, repeat
@@ -20,11 +18,13 @@ import numpy as np
 import os
 import pkg_resources
 from scipy.constants import c, parsec
-from pcigale.sed.cosmology import cosmology
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
 import matplotlib.gridspec as gridspec
+
+__version__ = "0.1-alpha"
+
 
 # Name of the file containing the best models information
 BEST_MODEL_FILE = "best_models.txt"
@@ -32,7 +32,7 @@ BEST_MODEL_FILE = "best_models.txt"
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
 PLOT_L_MIN = 0.1
-PLOT_L_MAX = 2e6
+PLOT_L_MAX = 5e5
 
 
 def _chi2_worker(obj_name, var_name):
@@ -122,8 +122,8 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
         obs_fluxes_err = np.array([obs[filt+'_err']
                                    for filt in filters.keys()])
         mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
-        z = obs['redshift']
-        DL = max(10, cosmology.luminosity_distance(z).value * 1e6) * parsec
+        z = np.around(obs['redshift'], decimals=2)
+        DL = mod['universe.luminosity_distance']
 
         if sed_type == 'lum':
             xmin = PLOT_L_MIN
@@ -175,6 +175,19 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                         sed['stellar.young'][wsed]),
                        label="Stellar unattenuated", color='b', marker=None,
                        nonposy='clip', linestyle='--', linewidth=0.5)
+            # Nebular emission
+            if 'nebular.lines_young' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['nebular.lines_young'][wsed] +
+                            sed['nebular.lines_old'][wsed] +
+                            sed['nebular.continuum_young'][wsed] +
+                            sed['nebular.continuum_old'][wsed] +
+                            sed['attenuation.nebular.lines_young'][wsed] +
+                            sed['attenuation.nebular.lines_old'][wsed] +
+                            sed['attenuation.nebular.continuum_young'][wsed] +
+                            sed['attenuation.nebular.continuum_old'][wsed]),
+                           label="Nebular emission", color='y', marker=None,
+                           nonposy='clip', linewidth=.5)
             # Dust emission Draine & Li
             if 'dust.Umin_Umin' in sed.columns:
                 ax1.loglog(wavelength_spec[wsed],
@@ -209,7 +222,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
 
             ax1.set_autoscale_on(False)
             ax1.scatter(filters_wl, mod_fluxes, marker='o', color='r', s=8,
-                        label="Model fluxes")
+                        zorder=3, label="Model fluxes")
             mask_ok = np.logical_and(obs_fluxes > 0., obs_fluxes_err > 0.)
             ax1.errorbar(filters_wl[mask_ok], obs_fluxes[mask_ok],
                          yerr=obs_fluxes_err[mask_ok]*3, ls='', marker='s',
@@ -220,16 +233,16 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                                         obs_fluxes_err > -9990. * k_corr_SED)
             if not mask_uplim.any() == False:
                 ax1.errorbar(filters_wl[mask_uplim], obs_fluxes[mask_uplim],
-                             uplims=obs_fluxes_err[mask_uplim], ls='',
+                             yerr=obs_fluxes_err[mask_uplim]*3, ls='',
                              marker='v', label='Observed upper limits',
                              markerfacecolor='None', markersize=6,
-                             markeredgecolor='b', capsize=0.)
+                             markeredgecolor='g', capsize=0.)
             mask_noerr = np.logical_and(obs_fluxes > 0.,
                                         obs_fluxes_err < -9990. * k_corr_SED)
             if not mask_noerr.any() == False:
                 ax1.errorbar(filters_wl[mask_noerr], obs_fluxes[mask_noerr],
                              ls='', marker='s', markerfacecolor='None',
-                             markersize=6, markeredgecolor='g',
+                             markersize=6, markeredgecolor='r',
                              label='Observed fluxes, no errors', capsize=0.)
             mask = np.where(obs_fluxes > 0.)
             ax2.errorbar(filters_wl[mask],
@@ -247,11 +260,13 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ymin = min(np.min(obs_fluxes[mask_ok]),
                        np.min(mod_fluxes[mask_ok]))
             if not mask_uplim.any() == False:
-              ymax = max(max(np.max(obs_fluxes[mask_ok]),np.max(obs_fluxes[mask_uplim])),
-                         max(np.max(mod_fluxes[mask_ok]),np.max(mod_fluxes[mask_uplim])))
+                ymax = max(max(np.max(obs_fluxes[mask_ok]),
+                               np.max(obs_fluxes[mask_uplim])),
+                           max(np.max(mod_fluxes[mask_ok]),
+                               np.max(mod_fluxes[mask_uplim])))
             else:
-              ymax = max(np.max(obs_fluxes[mask_ok]),
-                         np.max(mod_fluxes[mask_ok]))
+                ymax = max(np.max(obs_fluxes[mask_ok]),
+                           np.max(mod_fluxes[mask_ok]))
             ax1.set_ylim(1e-1*ymin, 1e1*ymax)
             ax2.set_xlim(xmin, xmax)
             ax2.set_ylim(-1.0, 1.0)

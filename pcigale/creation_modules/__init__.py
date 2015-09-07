@@ -6,7 +6,6 @@
 import os
 import inspect
 from importlib import import_module
-from collections import OrderedDict
 
 
 def complete_parameters(given_parameters, parameter_list):
@@ -24,12 +23,12 @@ def complete_parameters(given_parameters, parameter_list):
     ----------
     given_parameters: dictionary
         Parameter dictionary used to configure the module.
-    parameter_list: OrderedDict
+    parameter_list: dictionary
         Parameter list from the module.
 
     Returns
     -------
-    parameters: OrderedDict
+    parameters: dict
         Ordered dictionary combining the given parameters with the default
         values for the missing ones.
 
@@ -40,7 +39,7 @@ def complete_parameters(given_parameters, parameter_list):
     """
     # Complete the given parameters with default values when needed.
     for key in parameter_list:
-        if (not key in given_parameters) and (
+        if (key not in given_parameters) and (
                 parameter_list[key][2] is not None):
             given_parameters[key] = parameter_list[key][2]
     # Check parameter consistency between the parameter list and the given
@@ -61,7 +60,7 @@ def complete_parameters(given_parameters, parameter_list):
                        "expected one. " + message)
 
     # We want the result to be ordered as the parameter_list of the module is.
-    result = OrderedDict()
+    result = dict()
     for key in parameter_list:
         result[key] = given_parameters[key]
 
@@ -72,21 +71,13 @@ class CreationModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 
-    # parameter_list is an ordered dictionary containing all the parameters
+    # parameter_list is a dictionary containing all the parameters
     # used by the module. Each parameter name is associate to a tuple
     # (variable type, description [string], default value). Each module must
     # define its parameter list, unless it does not use any parameter. Using
     # None means that there is no description or default value. If None should
     # be the default value, use the 'None' string instead.
-    parameter_list = OrderedDict()
-
-    # out_parameter_list is an ordered dictionary containing all the SED
-    # parameters that are added to the SED info dictionary and for which a
-    # statistical analysis may be done. Each parameter name is associated with
-    # its description. In the SED info dictionary, the parameter name in
-    # is postfixed with a same postfix used in the module name, to allow
-    # the use of repeated modules.
-    out_parameter_list = OrderedDict()
+    parameter_list = dict()
 
     # comments is the text that is used to comment the module section in
     # the configuration file. For instance, it can be used to give special
@@ -164,7 +155,7 @@ def get_module(name, **kwargs):
 
     Parameters
     ----------
-    module_name: string
+    name: string
         The name of the module we want to get the class. This name can be
         prefixed by anything using a dot, then the part before the dot is
         used to determine the module to load (e.g. 'dl2014.1' will return
@@ -174,12 +165,10 @@ def get_module(name, **kwargs):
     -------
     a pcigale.creation_modules.Module instance
     """
-    # Determine the real module name by removing the dotted prefix.
-    module_name = name.split('.')[0]
 
     try:
-        module = import_module("." + module_name, 'pcigale.creation_modules')
+        module = import_module("." + name, 'pcigale.creation_modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
-        print('Module ' + module_name + ' does not exists!')
+        print('Module ' + name + ' does not exist!')
         raise

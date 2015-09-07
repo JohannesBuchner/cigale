@@ -61,7 +61,7 @@ class BC03(object):
         self.color_table = color_table
         self.lumin_table = lumin_table
 
-    def convolve(self, sfh_time, sfh_sfr, norm=False):
+    def convolve(self, sfh_time, sfh_sfr):
         """Convolve the SSP with a Star Formation History
 
         Given a SFH (an time grid and the corresponding star formation rate
@@ -79,8 +79,6 @@ class BC03(object):
             the SSP time.
         sfh_sfr: array of floats
             Star Formation Rates in Msun/yr at each time of the SFH time grid.
-        norm: boolean
-            If true, the sfh will be normalised to 1 solar mass produced.
 
         Returns
         -------
@@ -117,17 +115,12 @@ class BC03(object):
         # Step between two item in the time grid in Myr
         step = self.time_grid[1] - self.time_grid[0]
 
-        # If needed, we normalise the SFH to 1 solar mass produced.
-        if norm:
-            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1.e6,
-                                         self.time_grid[:idx + 1])
-
         # As both the SFH and the SSP (limited to the age of the SFH) data now
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        color_table = self.color_table[:,:idx + 1]
-        lumin_table = self.lumin_table[:,:idx + 1]
+        color_table = self.color_table[:, :idx + 1]
+        lumin_table = self.lumin_table[:, :idx + 1]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         color_info = 1.e6 * step * np.dot(color_table, sfh_sfr[::-1])

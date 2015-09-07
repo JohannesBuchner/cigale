@@ -14,11 +14,7 @@ parameters.
 The data file is used only to get the list of fluxes to be computed.
 
 """
-from collections import OrderedDict
 import ctypes
-from datetime import datetime
-from itertools import product, repeat
-import os
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
 import time
@@ -26,7 +22,6 @@ import time
 import numpy as np
 
 from .. import AnalysisModule
-from ...data import Database
 from ..utils import ParametersHandler, backup_dir, save_fluxes
 from ...utils import read_table
 from ...warehouse import SedWarehouse
@@ -45,11 +40,11 @@ class SaveFluxes(AnalysisModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("output_file", (
             "string",
-            "Name of the output file that contains the parameters of the model(s) "
-            "and the flux densities in the bands",
+            "Name of the output file that contains the parameters of the "
+            "model(s) and the flux densities in the bands",
             "computed_fluxes.txt"
         )),
         ("save_sed", (
@@ -98,14 +93,7 @@ class SaveFluxes(AnalysisModule):
         out_format = parameters["output_format"]
         save_sed = parameters["save_sed"].lower() == "true"
 
-        # Get the needed filters in the pcigale database. We use an ordered
-        # dictionary because we need the keys to always be returned in the
-        # same order. We also put the filters in the shared modules as they
-        # are needed to compute the fluxes during the models generation.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                   for name in column_list
-                                   if not name.endswith('_err')])
+        filters = [name for name in column_list if not name.endswith('_err')]
         n_filters = len(filters)
 
         w_redshifting = creation_modules.index('redshifting')
@@ -127,7 +115,8 @@ class SaveFluxes(AnalysisModule):
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = sed.info
+        info = list(sed.info.keys())
+        info.sort()
         n_info = len(sed.info)
         del warehouse, sed
 
@@ -136,7 +125,7 @@ class SaveFluxes(AnalysisModule):
                         (n_params, n_filters))
         model_parameters = (RawArray(ctypes.c_double,
                                      n_params * n_info),
-                        (n_params, n_info))
+                            (n_params, n_info))
 
         initargs = (params, filters, save_sed, model_fluxes,
                     model_parameters, time.time(), mp.Value('i', 0))

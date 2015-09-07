@@ -12,8 +12,8 @@ Populations.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from . import CreationModule
 from ..data import Database
 
@@ -45,24 +45,6 @@ class BC03(CreationModule):
             "to 0 not to differentiate ages (only an old population).",
             10
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ("sfr", "Instantaneous Star Formation Rate in solar mass per year, "
-                "at the age of the galaxy."),
-        ('sfr10Myrs', 'Average SFR in the last 10 Myr (default) of the '
-                        'galaxy history.'),
-        ('sfr100Myrs', 'Average SFR in the last 100 Myr (default) of the '
-                        'galaxy history.'),
-        ("ssp_m_star", "Total mass in stars in Solar mass."),
-        ("ssp_m_gas", "Mass returned to the ISM by evolved stars in Solar "
-                      "mass."),
-        ("ssp_n_ly", "rate of H-ionizing photons in s^-1, per Solar mass "
-                     "of galaxy."),
-        ("ssp_b_4000", "Amplitude of 4000 Å break (Bruzual 2003)"),
-        ("ssp_b4_vn", "Amplitude of 4000 Å narrow break (Balogh et al. 1999)"),
-        ("ssp_b4_sdss", "Amplitude of 4000 Å break (Stoughton et al. 2002)"),
-        ("ssp_b_912", "Amplitude of Lyman discontinuity")
     ])
 
     def _init_code(self):
@@ -105,6 +87,12 @@ class BC03(CreationModule):
         old_sfh[sfh_age <= separation_age] = 0
         old_wave, old_lumin, old_info = ssp.convolve(sfh_time, old_sfh)
 
+        # We compute the Lyman continuum luminosity as it is important to
+        # compute the energy absorbed by the dust before ionising gas.
+        w = np.where(young_wave <= 91.1)
+        lum_ly_young = np.trapz(young_lumin[w], young_wave[w])
+        lum_ly_old = np.trapz(old_lumin[w], old_wave[w])
+
         sed.add_module(self.name, self.parameters)
 
         sed.add_info("stellar.imf", imf)
@@ -114,6 +102,7 @@ class BC03(CreationModule):
         sed.add_info("stellar.m_star_young", young_info["m_star"], True)
         sed.add_info("stellar.m_gas_young", young_info["m_gas"], True)
         sed.add_info("stellar.n_ly_young", young_info["n_ly"], True)
+        sed.add_info("stellar.lum_ly_young", lum_ly_young, True)
         sed.add_info("stellar.b_400_young", young_info["b_4000"])
         sed.add_info("stellar.b4_vn_young", young_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_young", young_info["b4_sdss"])
@@ -122,6 +111,7 @@ class BC03(CreationModule):
         sed.add_info("stellar.m_star_old", old_info["m_star"], True)
         sed.add_info("stellar.m_gas_old", old_info["m_gas"], True)
         sed.add_info("stellar.n_ly_old", old_info["n_ly"], True)
+        sed.add_info("stellar.lum_ly_old", lum_ly_old, True)
         sed.add_info("stellar.b_400_old", old_info["b_4000"])
         sed.add_info("stellar.b4_vn_old", old_info["b4_vn"])
         sed.add_info("stellar.b4_sdss_old", old_info["b4_sdss"])

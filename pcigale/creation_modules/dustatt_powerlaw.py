@@ -13,10 +13,9 @@ in Charlot and Fall (2000) with a UV bump added.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from . import CreationModule
-from ..data import Database
 
 
 def power_law(wavelength, delta):
@@ -58,8 +57,8 @@ def uv_bump(wavelength, central_wave, gamma, ebump):
 
     """
     return (ebump * wavelength ** 2 * gamma ** 2 /
-            ((wavelength ** 2 - central_wave ** 2) ** 2
-             + wavelength ** 2 * gamma ** 2))
+            ((wavelength ** 2 - central_wave ** 2) ** 2 +
+             wavelength ** 2 * gamma ** 2))
 
 
 def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
@@ -98,7 +97,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
 class PowerLawAtt(CreationModule):
     """Power law attenuation module
 
-    This module computes the attenuation using a power law 
+    This module computes the attenuation using a power law
     as defined in Charlot and Fall (2000).
 
     The attenuation can be computed on the whole spectrum or on a specific
@@ -147,28 +146,9 @@ class PowerLawAtt(CreationModule):
         ))
     ])
 
-    out_parameter_list = OrderedDict([
-        ("Av", "V-band attenuation."),
-        ("Av_old_factor", "Reduction factor for the V-band attenuation "
-                          "of  the old population compared to the young "
-                          "one (<1)."),
-        ("attenuation", "Amount of luminosity attenuated in W for each "
-                        "component and in total."),
-        ("uv_bump_wavelength", "Central wavelength of UV bump in nm."),
-        ("uv_bump_width", "Width of the UV bump in nm."),
-        ("uv_bump_amplitude", "Amplitude of the UV bump in nm."),
-        ("powerlaw_slope", "Slope of the power law."),
-        ("FILTER_attenuation", "Attenuation in the FILTER filter.")
-    ])
-
     def _init_code(self):
-        """Get the filters from the database"""
-        filter_list = [item.strip() for item in
-                       self.parameters["filters"].split("&")]
-        self.filters = {}
-        with Database() as base:
-            for filter_name in filter_list:
-                self.filters[filter_name] = base.get_filter(filter_name)
+        self.filter_list = [item.strip() for item in
+                            self.parameters["filters"].split("&")]
         # We cannot compute the attenuation until we know the wavelengths. Yet,
         # we reserve the object.
         self.sel_attenuation = None
@@ -189,27 +169,22 @@ class PowerLawAtt(CreationModule):
         uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
         powerlaw_slope = float(self.parameters["powerlaw_slope"])
-        filters = self.filters
 
         # Fλ fluxes (only from continuum)) in each filter before attenuation.
-        flux_noatt = OrderedDict()
-        for filter_name, filter_ in filters.items():
-            flux_noatt[filter_name] = sed.compute_fnu(
-                filter_.trans_table,
-                filter_.effective_wavelength)
+        flux_noatt = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
             self.sel_attenuation = alambda_av(wavelength, powerlaw_slope,
-                                     uv_bump_wavelength, uv_bump_width,
-                                     uv_bump_amplitude)
-  
+                                              uv_bump_wavelength,
+                                              uv_bump_width, uv_bump_amplitude)
+
         attenuation_total = 0.
         for contrib in list(sed.contribution_names):
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **
-                                    (av[age] * self.sel_attenuation / -2.5))
+                                     (av[age] * self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
@@ -217,10 +192,8 @@ class PowerLawAtt(CreationModule):
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.Av.stellar"+
-                         contrib[contrib.find('_'):], av[age])
-            sed.add_info("attenuation.stellar"+
-                         contrib[contrib.find('_'):], attenuation, True)
+            sed.add_info("attenuation.Av." + contrib, av[age])
+            sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
@@ -229,20 +202,20 @@ class PowerLawAtt(CreationModule):
         sed.add_info("attenuation.powerlaw_slope", powerlaw_slope)
 
         # Total attenuation
-        sed.add_info("dust.luminosity", attenuation_total, True)
+        if 'dust.luminosity' in sed.info:
+            sed.add_info("dust.luminosity",
+                         sed.info["dust.luminosity"]+attenuation_total, True,
+                         True)
+        else:
+            sed.add_info("dust.luminosity", attenuation_total, True)
 
         # Fλ fluxes (only in continuum) in each filter after attenuation.
-        flux_att = {}
-        for filter_name, filter_ in filters.items():
-            flux_att[filter_name] = sed.compute_fnu(
-                filter_.trans_table,
-                filter_.effective_wavelength)
+        flux_att = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Attenuation in each filter
-        for filter_name in filters:
-            sed.add_info("attenuation." + filter_name,
-                         -2.5 * np.log10(flux_att[filter_name] /
-                                         flux_noatt[filter_name]))
+        for filt in self.filter_list:
+            sed.add_info("attenuation." + filt,
+                         -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
 # CreationModule to be returned by get_module
 Module = PowerLawAtt

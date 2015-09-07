@@ -15,8 +15,9 @@ import shutil
 
 import numpy as np
 from astropy import log
-log.setLevel('ERROR')
 from astropy.table import Table, Column
+
+log.setLevel('ERROR')
 
 # Directory where the output files are stored
 OUT_DIR = "out/"
@@ -33,8 +34,8 @@ class ParametersHandler(object):
         ----------
         modules: list
             Contains the modules in the order they are called
-        params: OrderedDict
-            Contains a list of parameters for each module
+        params: list of dictionaries
+            Contains a dictionary of parameters for each module
 
         """
         self.modules = modules
@@ -60,7 +61,7 @@ class ParametersHandler(object):
 
         """
         # We make a copy of the dictionary as we are modifying it.
-        dictionary = collections.OrderedDict(dictionary)
+        dictionary = dict(dictionary)
 
         # First, we must ensure that all values are lists; when a value is a
         # single element, we put it in a list.
@@ -71,11 +72,11 @@ class ParametersHandler(object):
                     isinstance(value, str)):
                 dictionary[key] = [value]
 
-        # We use itertools.product to make all the possible combinations from the
-        # value lists.
+        # We use itertools.product to make all the possible combinations from
+        # the value lists.
         key_list = dictionary.keys()
         value_array_list = [dictionary[key] for key in key_list]
-        combination_list = [collections.OrderedDict(zip(key_list, combination))
+        combination_list = [dict(zip(key_list, combination))
                             for combination in
                             itertools.product(*value_array_list)]
 
@@ -150,8 +151,8 @@ def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
         Contains the fluxes of each model.
     model_parameters: RawArray
         Contains the parameters associated to each model.
-    filters: OrderedDict
-        Contains the filters.
+    filters: list
+        Contains the filter names.
     names: List
         Contains the parameters names.
     filename: str
@@ -169,7 +170,7 @@ def save_fluxes(model_fluxes, model_parameters, filters, names, filename,
     out_params = out_params.reshape(model_parameters[1])
 
     out_table = Table(np.hstack((out_fluxes, out_params)),
-                      names=list(filters.keys()) + list(names))
+                      names=filters + list(names))
 
     out_table.add_column(Column(np.arange(model_fluxes[1][0]), name='id'),
                          index=0)

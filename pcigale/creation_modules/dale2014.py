@@ -31,8 +31,8 @@ class Dale2014(CreationModule):
     parameter_list = OrderedDict([
         ('fracAGN', (
             'float',
-            "AGN fraction "
-            "[it is not recommended to combine this AGN emission with that of Fritz et al. (2006)]",
+            "AGN fraction. It is not recommended to combine this AGN emission "
+            "with the of Fritz et al. (2006) models.",
             0.0
         )),
         ('alpha', (
@@ -48,12 +48,6 @@ class Dale2014(CreationModule):
             "3.7500, 3.8125, 3.8750, 3.9375, 4.0000",
             2.
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ('fracAGN', 'Contribution of the AGN'),
-        ('alpha', 'Alpha slope'),
-        ('lir', 'Total IR luminosity between 8 and 1000 microns (AGN + SB)')
     ])
 
     def _init_code(self):
@@ -80,12 +74,12 @@ class Dale2014(CreationModule):
         parameters: dictionary containing the parameters
 
         """
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
         frac_agn = self.parameters["fracAGN"]
-        
+
         if frac_agn < 1.:
             L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
         else:
@@ -100,7 +94,7 @@ class Dale2014(CreationModule):
                              luminosity * self.model_sb.lumin)
         if frac_agn != 0.:
             sed.add_contribution('agn', self.model_quasar.wave,
-                                L_AGN * self.model_quasar.lumin)
+                                 L_AGN * self.model_quasar.lumin)
 
 # CreationModule to be returned by get_module
 Module = Dale2014

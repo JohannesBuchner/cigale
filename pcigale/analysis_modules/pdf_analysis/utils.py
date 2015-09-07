@@ -6,15 +6,18 @@
 # Author: Yannick Roehlly & Médéric Boquien
 
 from astropy import log
-log.setLevel('ERROR')
 from astropy.table import Table, Column
 import numpy as np
+from scipy.special import erf
 from scipy.stats import scoreatpercentile
 
 from ..utils import OUT_DIR
 
+log.setLevel('ERROR')
+
 # Number of points in the PDF
 PDF_NB_POINTS = 1000
+
 
 def save_best_sed(obsid, sed, norm):
     """Save the best SED to a VO table.
@@ -129,8 +132,8 @@ def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,
                        delimiter=None)
 
 
-def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes, filters,
-                    info_keys):
+def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes,
+                    filters, info_keys):
     """Save the values corresponding to the best fit
 
     Parameters
@@ -147,7 +150,7 @@ def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes, filters,
         All variables corresponding to a SED
     fluxes: RawArray
         Fluxes in all bands for each object
-    filters: OrderedDict
+    filters: list
         Filters used to compute the fluxes
     info_keys: list
         Parameters names
@@ -176,11 +179,11 @@ def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes, filters,
         column = Column(np_fluxes[:, index], name=name, unit='mJy')
         best_model_table.add_column(column)
 
-    best_model_table.write(OUT_DIR + filename,format='ascii.fixed_width',
+    best_model_table.write(OUT_DIR + filename, format='ascii.fixed_width',
                            delimiter=None)
 
 
-def dchi2_over_ds2(s):
+def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
     """Function used to estimate the normalization factor in the SED fitting
     process when upper limits are included in the dataset to fit (from Eq. A11
     in Sawicki M. 2012, PASA, 124, 1008).
@@ -212,17 +215,17 @@ def dchi2_over_ds2(s):
     # The mask "lim" selects the filter(s) for which upper limits are given
     # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
 
-    wlim = np.where((gbl_obs_errors >= -9990.)&(gbl_obs_errors < 0.))
-    wdata = np.where(gbl_obs_errors>=0.)
+    wlim = np.where((obs_errors >= -9990.) & (obs_errors < 0.))
+    wdata = np.where(obs_errors >= 0.)
 
-    mod_fluxes_data = gbl_mod_fluxes[wdata]
-    mod_fluxes_lim = gbl_mod_fluxes[wlim]
+    mod_fluxes_data = mod_fluxes[wdata]
+    mod_fluxes_lim = mod_fluxes[wlim]
 
-    obs_fluxes_data = gbl_obs_fluxes[wdata]
-    obs_fluxes_lim = gbl_obs_fluxes[wlim]
+    obs_fluxes_data = obs_fluxes[wdata]
+    obs_fluxes_lim = obs_fluxes[wlim]
 
-    obs_errors_data = gbl_obs_errors[wdata]
-    obs_errors_lim = -gbl_obs_errors[wlim]
+    obs_errors_data = obs_errors[wdata]
+    obs_errors_lim = -obs_errors[wlim]
 
     dchi2_over_ds_data = np.sum(
         (obs_fluxes_data-s*mod_fluxes_data) *
@@ -246,6 +249,7 @@ def dchi2_over_ds2(s):
 
     return func
 
+
 def analyse_chi2(chi2):
     """Function to analyse the best chi^2 and find out whether what fraction of
     objects seem to be overconstrainted.
@@ -260,5 +264,5 @@ def analyse_chi2(chi2):
     # If low values of reduced chi^2, it means that the data are overfitted
     # Errors might be under-estimated or not enough valid data.
     print("\n{}% of the objects have chi^2_red~0 and {}% chi^2_red<0.5"
-        .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
-                np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
+          .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
+                  np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))

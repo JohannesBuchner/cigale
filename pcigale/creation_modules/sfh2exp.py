@@ -12,8 +12,8 @@ decreasing exponentials.
 
 """
 
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from . import CreationModule
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
@@ -56,7 +56,7 @@ class Sfh2Exp(CreationModule):
             "Age of the late burst in Myr. Precision is 1 Myr.",
             20.
         )),
-         ("sfr_0", (
+        ("sfr_0", (
             "float",
             "Value of SFR at t = 0 in M_sun/yr.",
             1.
@@ -66,17 +66,6 @@ class Sfh2Exp(CreationModule):
             "Normalise the SFH to produce one solar mass.",
             "True"
         )),
-    ])
-
-    out_parameter_list = OrderedDict([
-        ("tau_main", "e-folding time of the main stellar population model "
-                     "in Myr."),
-        ("tau_burst", "e-folding time of the late starburst population model "
-                      "in Myr."),
-        ("f_burst", "Produced mass fraction of the late burst population."),
-        ("age", "Age of the main stellar population in the galaxy in Myr."),
-        ("burst_age", "Age of the late burst in Myr."),
-        ("sfr_0", "SFR at t = 0 in M_sun/yr.")
     ])
 
     def process(self, sed):
@@ -100,12 +89,13 @@ class Sfh2Exp(CreationModule):
         age = np.max(time_grid)
 
         # Main exponential
-        sfr = sfr_0 * np.exp(-time_grid / tau_main)
+        sfr = np.exp(-time_grid / tau_main)
 
         # Height of the late burst to have the desired produced mass fraction
         # (assuming that the main burst as a height of 1).
         burst_height = (f_burst/(1-f_burst) * tau_main/tau_burst *
-            (1-np.exp(-age/tau_main))/(1-np.exp(-burst_age/tau_burst)))
+                        (1-np.exp(-age/tau_main)) /
+                        (1-np.exp(-burst_age/tau_burst)))
 
         # We add the age burst exponential for ages superior to age -
         # burst_age
@@ -115,10 +105,13 @@ class Sfh2Exp(CreationModule):
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.trapz(sfr * 1e6, time_grid)
+        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
         if normalise:
             sfr = sfr / galaxy_mass
             galaxy_mass = 1.
+        else:
+            sfr *= sfr_0
+            galaxy_mass *= sfr_0
 
         sed.add_module(self.name, self.parameters)
 

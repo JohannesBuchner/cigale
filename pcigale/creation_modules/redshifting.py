@@ -18,14 +18,13 @@ is changed, this module may need to be adapted.
 
 """
 
-from collections import OrderedDict
-
 import numpy as np
 from scipy.constants import parsec
 from scipy.misc import factorial
 
 from ..creation_modules import CreationModule
-from pcigale.sed.cosmology import cosmology
+from astropy.cosmology import WMAP7 as cosmology
+
 
 def igm_transmission(wavelength, redshift):
     """Intergalactic transmission (Meiksin, 2006)
@@ -56,8 +55,8 @@ def igm_transmission(wavelength, redshift):
     for n in range(2, n_transitions_max):
         lambda_n[n] = lambda_limit / (1. - 1. / float(n*n))
         z_n[n, :] = (wavelength / lambda_n[n]) - 1.
- 
-    # From Table 1 in Meiksin (2006), only n >= 3 are relevant. 
+
+    # From Table 1 in Meiksin (2006), only n >= 3 are relevant.
     # fact has a length equal to n_transitions_low.
     fact = np.array([1., 1., 1., 0.348, 0.179, 0.109, 0.0722, 0.0508, 0.0373,
                      0.0283])
@@ -66,10 +65,10 @@ def igm_transmission(wavelength, redshift):
     # Here n = 2 => tau_2 = tau_alpha
     tau_n = np.zeros((n_transitions_max, len(wavelength)))
     if redshift <= 4:
-        tau_a =       0.00211 * np.power(1. + redshift,  3.7)
+        tau_a = 0.00211 * np.power(1. + redshift,  3.7)
         tau_n[2, :] = 0.00211 * np.power(1. + z_n[2, :], 3.7)
     elif redshift > 4:
-        tau_a =       0.00058 * np.power(1. + redshift,  4.5)
+        tau_a = 0.00058 * np.power(1. + redshift,  4.5)
         tau_n[2, :] = 0.00058 * np.power(1. + z_n[2, :], 4.5)
 
     # Then, tau_n is the mean optical depth value for transitions
@@ -92,7 +91,7 @@ def igm_transmission(wavelength, redshift):
     for n in range(2, n_transitions_max):
         w = np.where(z_n[n, :] >= redshift)
         tau_n[n, w] = 0.
-    
+
     z_l = wavelength / lambda_limit - 1.
     w = np.where(z_l < redshift)
 
@@ -119,7 +118,7 @@ def igm_transmission(wavelength, redshift):
     tau_l_lls[w] = n0 * ((term1 - term2) * term3 - term4)
 
     tau_taun = np.sum(tau_n[2:n_transitions_max, :], axis=0.)
-     
+
     lambda_min_igm = (1+redshift)*70.
     w = np.where(wavelength < lambda_min_igm)
 
@@ -127,7 +126,7 @@ def igm_transmission(wavelength, redshift):
     weight[w] = np.power(wavelength[w]/lambda_min_igm, 2.)
     # Another weight using erf function can be used.
     # However, you would need to add: from scipy.special import erf
-    #weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
+    # weight[w] = 0.5*(1.+erf(0.05*(wavelength[w]-lambda_min_igm)))
 
     igm_transmission = np.exp(-tau_taun-tau_l_igm-tau_l_lls) * weight
 
@@ -142,7 +141,7 @@ class Redshifting(CreationModule):
 
     """
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("redshift", (
             "float",
             "Redshift to apply to the galaxy. Leave empty to use the redshifts"
@@ -167,7 +166,6 @@ class Redshifting(CreationModule):
         # will be assigned on the first call.
         self.igm_attenuation = {}
 
-
     def process(self, sed):
         """Redshift the SED
 
@@ -179,9 +177,10 @@ class Redshifting(CreationModule):
         redshift = self.redshift
 
         # If the SED is already redshifted, raise an error.
-        if 'redshift' in sed.info.keys() and sed.info['redshift'] > 0.:
+        if ('universe.redshift' in sed.info and
+            sed.info['universe.redshift'] > 0.):
             raise Exception("The SED is already redshifted <z={}>."
-                            .format(sed.info['redshift']))
+                            .format(sed.info['universe.redshift']))
 
         # Raise an error when applying a negative redshift. This module is
         # not for blue-shifting.
@@ -197,7 +196,7 @@ class Redshifting(CreationModule):
             sed.luminosities /= 1. + redshift
             sed.luminosity /= 1. + redshift
 
-        sed.add_info("redshift", redshift)
+        sed.add_info("universe.redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)
         sed.add_info("universe.age", self.universe_age)
 
@@ -207,7 +206,7 @@ class Redshifting(CreationModule):
         # This is the case for instance if some but not all models have an AGN
         # fraction of 0.
         key = sed.wavelength_grid.size
-        if  key not in self.igm_attenuation.keys():
+        if key not in self.igm_attenuation:
             self.igm_attenuation[key] = igm_transmission(sed.wavelength_grid,
                                                          redshift) - 1.
         sed.add_contribution('igm', sed.wavelength_grid,

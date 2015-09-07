@@ -1,4 +1,4 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
@@ -70,7 +70,7 @@ class M2005(object):
         self.mass_table = mass_table
         self.spec_table = spec_table
 
-    def convolve(self, sfh_time, sfh_sfr, norm=False):
+    def convolve(self, sfh_time, sfh_sfr):
         """Convolve the SSP with a Star Formation History
 
         Given a SFH (an time grid and the corresponding star formation rate
@@ -89,8 +89,6 @@ class M2005(object):
             compatible, i.e. with a precision limited to 1 Myr.
         sfh_sfr: array of floats
             Star Formation Rates in Msun/yr at each time of the SFH time grid.
-        norm: boolean
-            If true, the sfh will be normalised to 1 solar mass produced.
 
         Returns
         -------
@@ -123,17 +121,12 @@ class M2005(object):
                             sfh_time, sfh_sfr,
                             left=0., right=0.)
 
-        # If needed, we normalise the SFH to 1 solar mass produced.
-        if norm:
-            sfh_sfr = sfh_sfr / np.trapz(sfh_sfr * 1.e6,
-                                         self.time_grid[:nb_steps])
-
         # As both the SFH and the SSP (limited to the age of the SFH) data now
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:,:nb_steps]
-        spec_table = self.spec_table[:,:nb_steps]
+        mass_table = self.mass_table[:, :nb_steps]
+        spec_table = self.spec_table[:, :nb_steps]
 
         # The 1.e6 * step is because the SFH is in solar mass per year.
         masses = 1.e6 * step * np.dot(mass_table, sfh_sfr[::-1])

@@ -9,7 +9,7 @@ import pkgutil
 import collections
 import multiprocessing as mp
 import numpy as np
-from glob import glob # To allow the use of glob() in "eval..."
+from glob import glob  # To allow the use of glob() in "eval..."
 from textwrap import wrap
 from ..data import Database
 from ..utils import read_table
@@ -127,8 +127,8 @@ class Configuration(object):
 
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules:"
-            "SFH: sfh2exp, sfhdelayed, sfhfromfile ; "
+            "Order of the modules use for SED creation. Available modules: "
+            "SFH: sfh2exp, sfhdelayed, sfhfromfile, sfhperiodic ; "
             "SSP: bc03, m2005 ; "
             "Nebular: nebular ; "
             "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
@@ -182,10 +182,11 @@ class Configuration(object):
             # Check that we don't have an error column without the associated
             # flux
             for column in column_list:
-                if column.endswith('_err') and (column[:-4] not in column_list):
+                if column.endswith('_err') and (column[:-4]
+                                                not in column_list):
                     raise Exception("The observation table as a {} column "
                                     "but no {} column.".format(column,
-                                                            column[:-4]))
+                                                               column[:-4]))
 
             self.config['column_list'] = column_list
         else:
@@ -262,7 +263,7 @@ class Configuration(object):
         # Parsing the SED modules parameters
         configuration['creation_modules_params'] = []
         for module in self.config['creation_modules']:
-            module_params = collections.OrderedDict()
+            module_params = {}
             for key, value in \
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)

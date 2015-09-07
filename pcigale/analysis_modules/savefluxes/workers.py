@@ -13,6 +13,7 @@ from ...warehouse import SedWarehouse
 
 from ..utils import OUT_DIR
 
+
 def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
@@ -22,8 +23,8 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     ----------
     params: ParametersHandler
         Handles the parameters from a 1D index.
-    filters: OrderedDict
-        Contains filters to compute the fluxes.
+    filters: List
+        Contains the names of the filters to compute the fluxes.
     save_sed: boolean
         Indicates whether the SED should be saved.
     fluxes: RawArray and tuple containing the shape
@@ -36,7 +37,7 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """
     global gbl_model_fluxes, gbl_model_info, gbl_n_computed, gbl_t_begin
     global gbl_params, gbl_previous_idx, gbl_filters, gbl_save_sed
-    global gbl_warehouse
+    global gbl_warehouse, gbl_keys
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -57,6 +58,7 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
 
     gbl_warehouse = SedWarehouse()
 
+    gbl_keys = None
 
 def fluxes(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
@@ -69,7 +71,7 @@ def fluxes(idx):
         handler.
 
     """
-    global gbl_previous_idx
+    global gbl_previous_idx, gbl_keys
     if gbl_previous_idx > -1:
         gbl_warehouse.partial_clear_cache(
             gbl_params.index_module_changed(gbl_previous_idx, idx))
@@ -78,23 +80,25 @@ def fluxes(idx):
     sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index(idx))
 
-    if gbl_save_sed == True:
+    if gbl_save_sed is True:
         sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
 
-    if 'age' in sed.info and sed.info['age'] > sed.info['universe.age']:
+    if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
         model_fluxes = -99. * np.ones(len(gbl_filters))
     else:
-        model_fluxes = np.array([sed.compute_fnu(filter_.trans_table,
-                                                 filter_.effective_wavelength)
-                                 for filter_ in gbl_filters.values()])
+        model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
+                                 gbl_filters])
 
     gbl_model_fluxes[idx, :] = model_fluxes
-    gbl_model_info[idx, :] = list(sed.info.values())
+    if gbl_keys is None:
+        gbl_keys = list(sed.info.keys())
+        gbl_keys.sort()
+    gbl_model_info[idx, :] = np.array([sed.info[k] for k in gbl_keys])
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
-    if n_computed % 100 == 0 or n_computed == gbl_params.size:
+    if n_computed % 250 == 0 or n_computed == gbl_params.size:
         t_elapsed = time.time() - gbl_t_begin
         print("{}/{} models computed in {} seconds ({} models/s)".
               format(n_computed, gbl_params.size,

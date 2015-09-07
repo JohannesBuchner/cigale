@@ -17,9 +17,9 @@ This module implements the radio emission of galaxies, taking into account only
 
 """
 
+from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -43,11 +43,6 @@ class Radio(CreationModule):
             "The slope of the power-law synchrotron emission.",
             0.8
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ("qir", "The value of the FIR/radio correlation coefficient."),
-        ("alpha", "The slope of the power-law synchrotron emission.")
     ])
 
     def _init_code(self):
@@ -78,7 +73,7 @@ class Radio(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 

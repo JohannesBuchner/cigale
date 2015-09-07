@@ -41,19 +41,11 @@ class NebularEmission(CreationModule):
             "Fraction of Lyman continuum photons absorbed by dust",
             0.
         )),
-        ('nebular_lines_width', (
+        ('lines_width', (
             'float',
             "Line width in km/s",
             300.
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ('logU', "Ionisation parameter"),
-        ('f_esc', "Fraction of Lyman continuum photons escaping "
-         "the galaxy"),
-        ('f_dust', "Fraction of Lyman continuum photons absorbed by dust"),
-        ('nebular_lines_width', "Width of the nebular lines")
     ])
 
     def _init_code(self):
@@ -90,24 +82,22 @@ class NebularEmission(CreationModule):
                                   ['metallicity']
                                   }
 
-        lines_width = self.parameters['nebular_lines_width'] * 1e3
+        lines_width = self.parameters['lines_width'] * 1e3
         for lines in self.lines_template.values():
             new_wave = np.array([])
             for line_wave in lines.wave:
                 width = line_wave * lines_width / cst.c
-                new_wave = np.concatenate((new_wave, np.linspace(line_wave -
-                                                                 3. * width,
-                                                                 line_wave
-                                                                 + 3. *
-                                                                 width,
-                                                                 19)))
+                new_wave = np.concatenate((new_wave,
+                                           np.linspace(line_wave - 3. * width,
+                                                       line_wave + 3. * width,
+                                                       9)))
             new_wave.sort()
             new_flux = np.zeros_like(new_wave)
             for line_flux, line_wave in zip(lines.ratio, lines.wave):
                 width = line_wave * lines_width / cst.c
                 new_flux += (line_flux * np.exp(- 4. * np.log(2.) *
-                            (new_wave - line_wave) ** 2. / (width * width)) /
-                            (width * np.sqrt(np.pi / np.log(2.)) / 2.))
+                             (new_wave - line_wave) ** 2. / (width * width)) /
+                             (width * np.sqrt(np.pi / np.log(2.)) / 2.))
             lines.wave = new_wave
             lines.ratio = new_flux
 
@@ -134,26 +124,29 @@ class NebularEmission(CreationModule):
         parameters: dictionary containing the parameters
 
         """
-        f_esc = self.parameters['f_esc']
-        f_dust = self.parameters['f_dust']
         NLy_old = sed.info['stellar.n_ly_old']
         NLy_young = sed.info['stellar.n_ly_young']
         lines = self.lines_template[sed.info['stellar.metallicity']]
         cont = self.cont_template[sed.info['stellar.metallicity']]
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('nebular.f_esc', f_esc)
-        sed.add_info('nebular.f_dust', f_dust)
+        sed.add_info('nebular.logU', self.parameters['logU'])
+        sed.add_info('nebular.f_esc', self.parameters['f_esc'])
+        sed.add_info('nebular.f_dust', self.parameters['f_dust'])
+        sed.add_info('nebular.lines_width', self.parameters['lines_width'])
+        sed.add_info('dust.luminosity', (sed.info['stellar.lum_ly_young'] +
+                     sed.info['stellar.lum_ly_old']) *
+                     self.parameters['f_dust'], True)
 
-        sed.add_contribution('nebular.lines_old', lines.wave, lines.ratio *
-                             NLy_old * self.conv_line)
-        sed.add_contribution('nebular.lines_young', lines.wave, lines.ratio *
-                             NLy_young * self.conv_line)
+        sed.add_contribution('nebular.lines_old', lines.wave,
+                             lines.ratio * NLy_old * self.conv_line)
+        sed.add_contribution('nebular.lines_young', lines.wave,
+                             lines.ratio * NLy_young * self.conv_line)
 
-        sed.add_contribution('nebular.continuum_old', cont.wave, cont.lumin *
-                             NLy_old * self.conv_cont)
-        sed.add_contribution('nebular.continuum_young', cont.wave, cont.lumin *
-                             NLy_young * self.conv_cont)
+        sed.add_contribution('nebular.continuum_old', cont.wave,
+                             cont.lumin * NLy_old * self.conv_cont)
+        sed.add_contribution('nebular.continuum_young', cont.wave,
+                             cont.lumin * NLy_young * self.conv_cont)
 
 # CreationModule to be returned by get_module
 Module = NebularEmission

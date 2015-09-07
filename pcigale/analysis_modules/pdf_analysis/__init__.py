@@ -25,7 +25,6 @@ reduced χ²) is given for each observation.
 
 """
 
-from collections import OrderedDict
 import ctypes
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -37,7 +36,6 @@ from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
 from .utils import save_table_analysis, save_table_best, analyse_chi2
 from ...warehouse import SedWarehouse
-from ...data import Database
 from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
 from .workers import init_analysis as init_worker_analysis
@@ -55,12 +53,12 @@ REDSHIFT_DECIMALS = 2
 class PdfAnalysis(AnalysisModule):
     """PDF analysis module"""
 
-    parameter_list = OrderedDict([
+    parameter_list = dict([
         ("analysed_variables", (
             "array of strings",
             "List of the variables (in the SEDs info dictionaries) for which "
             "the statistical analysis will be done.",
-            ["sfr", "sfr10Myrs", "sfr100Myrs"]
+            ["sfh.sfr", "sfh.sfr10Myrs", "sfh.sfr100Myrs"]
         )),
         ("save_best_sed", (
             "boolean",
@@ -134,14 +132,7 @@ class PdfAnalysis(AnalysisModule):
         lim_flag = config["lim_flag"].lower() == "true"
         mock_flag = config["mock_flag"].lower() == "true"
 
-        # Get the needed filters in the pcigale database. We use an ordered
-        # dictionary because we need the keys to always be returned in the
-        # same order. We also put the filters in the shared modules as they
-        # are needed to compute the fluxes during the models generation.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                   for name in column_list
-                                   if not name.endswith('_err')])
+        filters = [name for name in column_list if not name.endswith('_err')]
         n_filters = len(filters)
 
         # Read the observation table and complete it by adding error where
@@ -168,8 +159,9 @@ class PdfAnalysis(AnalysisModule):
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
         sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = sed.info
-        n_info = len(sed.info)
+        info = list(sed.info.keys())
+        info.sort()
+        n_info = len(info)
         del warehouse, sed
 
         print("Computing the models fluxes...")
@@ -235,55 +227,59 @@ class PdfAnalysis(AnalysisModule):
 
         print("\nSaving results...")
 
-        save_table_analysis('analysis_results.txt', obs_table['id'], 
-                            analysed_variables, analysed_averages, analysed_std)
-        save_table_best('best_models.txt', obs_table['id'], best_chi2, 
-                     best_chi2_red, best_parameters, best_fluxes, filters, info)
+        save_table_analysis('analysis_results.txt', obs_table['id'],
+                            analysed_variables, analysed_averages,
+                            analysed_std)
+        save_table_best('best_models.txt', obs_table['id'], best_chi2,
+                        best_chi2_red, best_parameters, best_fluxes, filters,
+                        info)
 
         if mock_flag is True:
 
             print("\nMock analysis...")
 
             obs_fluxes = np.array([obs_table[name] for name in filters]).T
-            obs_errors = np.array([obs_table[name + "_err"] for name in filters]).T
+            obs_errors = np.array([obs_table[name + "_err"] for name in
+                                   filters]).T
             mock_fluxes = np.empty_like(obs_fluxes)
             mock_errors = np.empty_like(obs_errors)
             bestmod_fluxes = np.ctypeslib.as_array(best_fluxes[0])
             bestmod_fluxes = bestmod_fluxes.reshape(best_fluxes[1])
 
-            wdata =   np.where((obs_fluxes > 0.)&(obs_errors > 0.))
-            wlim =    np.where((obs_fluxes > 0.)&
-                               (obs_errors >= -9990.)&(obs_errors < 0.))
-            wnodata = np.where((obs_fluxes <= -9990.)&(obs_errors <= -9990.))
-            
+            wdata = np.where((obs_fluxes > 0.) & (obs_errors > 0.))
+            wlim = np.where((obs_fluxes > 0.) & (obs_errors >= -9990.) &
+                            (obs_errors < 0.))
+            wnodata = np.where((obs_fluxes <= -9990.) &
+                               (obs_errors <= -9990.))
+
             mock_fluxes[wdata] = np.random.normal(
-                           bestmod_fluxes[wdata], 
-                           obs_errors[wdata], 
+                           bestmod_fluxes[wdata],
+                           obs_errors[wdata],
                            len(bestmod_fluxes[wdata]))
             mock_errors[wdata] = obs_errors[wdata]
-                
+
             mock_fluxes[wlim] = obs_fluxes[wlim]
             mock_errors[wlim] = obs_errors[wlim]
 
             mock_fluxes[wnodata] = obs_fluxes[wnodata]
             mock_errors[wnodata] = obs_errors[wnodata]
-                
+
             mock_table = obs_table.copy()
             mock_table['id'] = obs_table['id']
             mock_table['redshift'] = obs_table['redshift']
-            
+
             indx = 0
             for name in filters:
                 mock_table[name] = mock_fluxes[:, indx]
                 mock_table[name + "_err"] = mock_errors[:, indx]
                 indx += 1
-                                       
+
             phase = 2
             initargs = (params, filters, analysed_variables, model_redshifts,
-                    model_fluxes, model_variables, time.time(),
-                    mp.Value('i', 0), analysed_averages, analysed_std,
-                    best_fluxes, best_parameters, best_chi2,
-                    best_chi2_red, save, lim_flag, n_obs, phase)
+                        model_fluxes, model_variables, time.time(),
+                        mp.Value('i', 0), analysed_averages, analysed_std,
+                        best_fluxes, best_parameters, best_chi2,
+                        best_chi2_red, save, lim_flag, n_obs, phase)
             if cores == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):
@@ -295,11 +291,12 @@ class PdfAnalysis(AnalysisModule):
 
             print("\nSaving results...")
 
-            save_table_analysis('analysis_mock_results.txt', mock_table['id'], 
-                  analysed_variables, analysed_averages, analysed_std)
-            save_table_best('best_mock_models.txt', mock_table['id'], 
-                        best_chi2, best_chi2_red,
-                        best_parameters, best_fluxes, filters, info)
+            save_table_analysis('analysis_mock_results.txt', mock_table['id'],
+                                analysed_variables, analysed_averages,
+                                analysed_std)
+            save_table_best('best_mock_models.txt', mock_table['id'],
+                            best_chi2, best_chi2_red, best_parameters,
+                            best_fluxes, filters, info)
 
         print("Run completed!")
 

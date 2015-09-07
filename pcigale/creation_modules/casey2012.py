@@ -12,9 +12,9 @@ This module implements the Casey (2012) infra-red models.
 
 """
 
+from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
-from collections import OrderedDict
 from . import CreationModule
 
 
@@ -43,12 +43,6 @@ class Casey2012(CreationModule):
             "Mid-infrared powerlaw slope.",
             2.
         ))
-    ])
-
-    out_parameter_list = OrderedDict([
-        ("temperature", "Temperature of the dust in K."),
-        ("beta", "Emissivity index of the dust."),
-        ("alpha", "Mid-infrared powerlaw slope.")
     ])
 
     def _init_code(self):
@@ -95,7 +89,7 @@ class Casey2012(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        if 'dust.luminosity' not in sed.info.keys():
+        if 'dust.luminosity' not in sed.info:
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
