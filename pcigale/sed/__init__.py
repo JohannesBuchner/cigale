@@ -107,9 +107,12 @@ class SED(object):
         """
 
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(self.luminosity,
-                                            self.info
-                                            ['universe.luminosity_distance'])
+        if 'universe.luminosity_distance' in self.info:
+            f_lambda = utils.luminosity_to_flux(self.luminosity,
+                                                self.info
+                                                ['universe.luminosity_distance'])
+        else:
+            f_lambda = utils.luminosity_to_flux(self.luminosity, 10. * parsec)
 
         # Fν flux density in mJy
         f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
