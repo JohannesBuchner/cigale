@@ -19,7 +19,8 @@ class custom_build(build):
 
 entry_points = {
     'console_scripts': ['pcigale = pcigale:main',
-                        'pcigale-plots = pcigale_plots:main']
+                        'pcigale-plots = pcigale_plots:main',
+                        'pcigale-filters = pcigale_filters:main']
 }
 
 setup(

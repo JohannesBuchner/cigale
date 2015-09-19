@@ -160,7 +160,7 @@ class Configuration(object):
 
         # Getting the list of the filters available in pcigale database
         with Database() as base:
-            filter_list = base.get_filter_list()[0]
+            filter_list = base.get_filter_names()
 
         if self.config['data_file'] != '':
             obs_table = read_table(self.config['data_file'])

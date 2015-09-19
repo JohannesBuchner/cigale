@@ -817,6 +817,26 @@ class Database(object):
         else:
             raise Exception('The database is not writable.')
 
+    def del_filter(self, name):
+        """
+        Delete a filter from the pcigale database.
+
+        Parameters
+        ----------
+        name: name of the filter to be deleted
+        """
+        if self.is_writable:
+            if name in self.get_filter_names():
+                (self.session.query(_Filter).
+                 filter(_Filter.name == name).delete())
+                try:
+                    self.session.commit()
+                except exc.IntegrityError:
+                    raise Exception('The database is not writable.')
+        else:
+            raise DatabaseLookupError(
+                "The filter <{0}> is not in the database".format(name))
+
     def get_filter(self, name):
         """
         Get a specific filter from the collection
@@ -847,20 +867,15 @@ class Database(object):
             raise DatabaseLookupError(
                 "The filter <{0}> is not in the database".format(name))
 
-    def get_filter_list(self):
-        """Get the list of the filters in the database.
+    def get_filter_names(self):
+        """Get the list of the name of the filters in the database.
 
         Returns
         -------
-        names, lambda_eff: array, dictionary
-            names is the list of the filter names and lambda_eff is a
-            dictionary associating the effective wavelength (in nm) to the
-            filter name
+        names: list
+            list of the filter names
         """
-        result = self.session.query(_Filter.name,
-                                    _Filter.effective_wavelength).all()
-        result = dict(result)
-        return result.keys(), result
+        return [n[0] for n in self.session.query(_Filter.name).all()]
 
     def parse_filters(self):
         """Generator to parse the filter database."""
