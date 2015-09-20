@@ -15,14 +15,16 @@ __version__ = "0.1-alpha"
 
 
 def init(config):
-    "Create a blank configuration file."
+    """Create a blank configuration file.
+    """
     config.create_blank_conf()
     print("The initial configuration file was created. Please complete it "
           "with the data file name and the pcigale modules to use.")
 
 
 def genconf(config):
-    "Generate the full configuration."
+    """Generate the full configuration.
+    """
     config.generate_conf()
     print("The configuration file has been updated. Please complete the "
           "various module parameters and the data file columns to use in "
@@ -30,7 +32,8 @@ def genconf(config):
 
 
 def check(config):
-    "Check the configuration."
+    """Check the configuration.
+    """
     # TODO: Check if all the parameters that don't have default values are
     # given for each module.
     print("With this configuration, pcigale must compute {} "
@@ -41,7 +44,8 @@ def check(config):
 
 
 def run(config):
-    "Run the analysis."
+    """Run the analysis.
+    """
     data_file = config.configuration['data_file']
     column_list = config.configuration['column_list']
     creation_modules = config.configuration['creation_modules']
