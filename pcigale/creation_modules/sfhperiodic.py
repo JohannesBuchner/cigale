@@ -98,7 +98,7 @@ class SfhPeriodic(CreationModule):
         # produced if asked to.
         self.galaxy_mass = np.trapz(self.sfr, self.time_grid) * 1e6
         if normalise:
-            self.sfr = self.sfr / self.galaxy_mass
+            self.sfr /= self.galaxy_mass
             self.galaxy_mass = 1.
         else:
             self.sfr *= sfr_A

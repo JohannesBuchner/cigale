@@ -90,8 +90,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     wave = np.array(wavelength)
 
     attenuation = power_law(wave, delta)
-    attenuation = attenuation + uv_bump(wavelength, bump_wave,
-                                        bump_width, bump_ampl)
+    attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
 
     return attenuation
 

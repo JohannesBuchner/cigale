@@ -79,7 +79,7 @@ class SFHDelayed(CreationModule):
         # produced if asked to.
         galaxy_mass = np.trapz(sfr, time_grid) * 1e6
         if normalise:
-            sfr = sfr / galaxy_mass
+            sfr /= galaxy_mass
             galaxy_mass = 1.
         else:
             sfr *= sfr_A

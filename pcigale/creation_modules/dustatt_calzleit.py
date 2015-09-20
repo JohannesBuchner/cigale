@@ -162,10 +162,9 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     mask = (attenuation < 0)
     attenuation[mask] = 0
     # Power law
-    attenuation = attenuation * power_law(wavelength, power_slope)
+    attenuation *= power_law(wavelength, power_slope)
     # UV bump
-    attenuation = attenuation + uv_bump(wavelength, bump_wave,
-                                        bump_width, bump_ampl)
+    attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
 
     return attenuation
 
