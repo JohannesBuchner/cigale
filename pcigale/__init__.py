@@ -87,18 +87,21 @@ def main():
     run_parser = subparsers.add_parser('run', help=run.__doc__)
     run_parser.set_defaults(parser='run')
 
-    args = parser.parse_args()
-
-    if args.config_file:
-        config = Configuration(args.config_file)
+    if len(sys.argv) == 1:
+        parser.print_usage()
     else:
-        config = Configuration()
+        args = parser.parse_args()
 
-    if args.parser == 'init':
-        init(config)
-    elif args.parser == 'genconf':
-        genconf(config)
-    elif args.parser == 'check':
-        check(config)
-    elif args.parser == 'run':
-        run(config)
+        if args.config_file:
+            config = Configuration(args.config_file)
+        else:
+            config = Configuration()
+
+        if args.parser == 'init':
+            init(config)
+        elif args.parser == 'genconf':
+            genconf(config)
+        elif args.parser == 'check':
+            check(config)
+        elif args.parser == 'run':
+            run(config)
