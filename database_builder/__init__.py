@@ -137,6 +137,7 @@ def read_bc03_ssp(filename):
 
 
 def build_filters(base):
+    filters = []
     filters_dir = os.path.join(os.path.dirname(__file__), 'filters/')
     for filter_file in glob.glob(filters_dir + '*.dat'):
         with open(filter_file, 'r') as filter_file_read:
@@ -165,8 +166,9 @@ def build_filters(base):
             new_filter.effective_wavelength = np.mean(
                 filter_table[0][filter_table[1] > 0]
             )
+        filters.append(new_filter)
 
-        base.add_filter(new_filter)
+    base.add_filters(filters)
 
 
 def build_m2005(base):
@@ -329,6 +331,7 @@ def build_bc2003(base):
 
 
 def build_dale2014(base):
+    models = []
     dale2014_dir = os.path.join(os.path.dirname(__file__), 'dale2014/')
 
     # Getting the alpha grid for the templates
@@ -371,8 +374,7 @@ def build_dale2014(base):
         norm = np.trapz(lumin, x=wave)
         lumin /= norm
 
-        base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave, lumin))
-
+        models.append(Dale2014(fraction, alpha_grid[al-1], wave, lumin))
     # Emission from dust heated by AGN - Quasar template
     filename = dale2014_dir + "shi_agn.regridded.extended.dat"
     print("Importing {}...".format(filename))
@@ -383,10 +385,13 @@ def build_dale2014(base):
     norm = np.trapz(lumin_quasar, x=wave)
     lumin_quasar /= norm
 
-    base.add_dale2014(Dale2014(1.0, 0.0, wave, lumin_quasar))
+    models.append(Dale2014(1.0, 0.0, wave, lumin_quasar))
+
+    base.add_dale2014(models)
 
 
 def build_dl2007(base):
+    models = []
     dl2007_dir = os.path.join(os.path.dirname(__file__), 'dl2007/')
 
     qpah = {
@@ -442,7 +447,7 @@ def build_dl2007(base):
             # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
             lumin *= conv/MdMH[model]
 
-            base.add_dl2007(DL2007(qpah[model], umin, umin, wave, lumin))
+            models.append(DL2007(qpah[model], umin, umin, wave, lumin))
             for umax in umaximum:
                 filename = dl2007_dir + "U{}/U{}_{}_MW3.1_{}.txt".format(umin,
                                                                          umin,
@@ -459,10 +464,12 @@ def build_dl2007(base):
                 # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
                 lumin *= conv/MdMH[model]
 
-                base.add_dl2007(DL2007(qpah[model], umin, umax, wave, lumin))
+                models.append(DL2007(qpah[model], umin, umax, wave, lumin))
+    base.add_dl2007(models)
 
 
 def build_dl2014(base):
+    models = []
     dl2014_dir = os.path.join(os.path.dirname(__file__), 'dl2014/')
 
     qpah = {"000": 0.47, "010": 1.12, "020": 1.77, "030": 2.50, "040": 3.19,
@@ -515,7 +522,7 @@ def build_dl2014(base):
             # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
             lumin *= conv/MdMH[model]
 
-            base.add_dl2014(DL2014(qpah[model], umin, umin, 1.0, wave, lumin))
+            models.append(DL2014(qpah[model], umin, umin, 1.0, wave, lumin))
             for al in alpha:
                 filename = (dl2014_dir + "U{}_1e7_MW3.1_{}/spec_{}.dat"
                             .format(umin, model, al))
@@ -529,11 +536,12 @@ def build_dl2014(base):
                 # Conversion from Jy cm² sr¯¹ H¯¹to W nm¯¹ (kg of dust)¯¹
                 lumin *= conv/MdMH[model]
 
-                base.add_dl2014(DL2014(qpah[model], umin, 1e7, al, wave,
-                                       lumin))
+                models.append(DL2014(qpah[model], umin, 1e7, al, wave, lumin))
 
+    base.add_dl2014(models)
 
 def build_fritz2006(base):
+    models = []
     fritz2006_dir = os.path.join(os.path.dirname(__file__), 'fritz2006/')
 
     # Parameters of Fritz+2006
@@ -594,12 +602,15 @@ def build_fritz2006(base):
             lumin_scatt /= norm
             lumin_agn /= norm
 
-            base.add_fritz2006(Fritz2006(params[4], params[3], params[2],
+            models.append(Fritz2006(params[4], params[3], params[2],
                                          params[1], params[0], psy[n], wave,
                                          lumin_therm, lumin_scatt, lumin_agn))
 
+    base.add_fritz2006(models)
 
 def build_nebular(base):
+    models_lines = []
+    models_cont = []
     lines_dir = os.path.join(os.path.dirname(__file__), 'nebular/')
 
     # Number of Lyman continuum photon to normalize the nebular continuum
@@ -628,14 +639,9 @@ def build_nebular(base):
         ratio2 = ratio2/ratio2[w]
         ratio3 = ratio3/ratio3[w]
 
-        lines = NebularLines(np.float(Z), -3., wave, ratio1)
-        base.add_nebular_lines(lines)
-
-        lines = NebularLines(np.float(Z), -2., wave, ratio2)
-        base.add_nebular_lines(lines)
-
-        lines = NebularLines(np.float(Z), -1., wave, ratio3)
-        base.add_nebular_lines(lines)
+        models_lines.append(NebularLines(np.float(Z), -3., wave, ratio1))
+        models_lines.append(NebularLines(np.float(Z), -2., wave, ratio2))
+        models_lines.append(NebularLines(np.float(Z), -1., wave, ratio3))
 
         filename = "{}continuum_{}.dat".format(lines_dir, Z)
         print("Importing {}...".format(filename))
@@ -651,15 +657,12 @@ def build_nebular(base):
         cont2 *= conv
         cont3 *= conv
 
-        cont = NebularContinuum(np.float(Z), -3., wave, cont1)
-        base.add_nebular_continuum(cont)
+        models_cont.append(NebularContinuum(np.float(Z), -3., wave, cont1))
+        models_cont.append(NebularContinuum(np.float(Z), -2., wave, cont2))
+        models_cont.append(NebularContinuum(np.float(Z), -1., wave, cont3))
 
-        cont = NebularContinuum(np.float(Z), -2., wave, cont2)
-        base.add_nebular_continuum(cont)
-
-        cont = NebularContinuum(np.float(Z), -1., wave, cont3)
-        base.add_nebular_continuum(cont)
-
+    base.add_nebular_continuum(models_cont)
+    base.add_nebular_lines(models_lines)
 
 def build_base():
     base = Database(writable=True)

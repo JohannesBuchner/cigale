@@ -404,17 +404,18 @@ class Database(object):
         """
         return self._get_parameters(_BC03)
 
-    def add_dl2007(self, model):
+    def add_dl2007(self, models):
         """
-        Add a Draine and Li (2007) model to the database.
+        Add a list of Draine and Li (2007) models to the database.
 
         Parameters
         ----------
-        model: pcigale.data.DL2007
+        models: list of pcigale.data.DL2007 objects
 
         """
         if self.is_writable:
-            self.session.add(_DL2007(model))
+            for model in models:
+                self.session.add(_DL2007(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -423,6 +424,7 @@ class Database(object):
                     'The DL07 model is already in the base.')
         else:
             raise Exception('The database is not writable.')
+
 
     def get_dl2007(self, qpah, umin, umax):
         """
@@ -471,17 +473,18 @@ class Database(object):
         """
         return self._get_parameters(_DL2007)
 
-    def add_dl2014(self, model):
+    def add_dl2014(self, models):
         """
-        Add an updated Draine and Li (2007) model to the database.
+        Add a list of updated Draine and Li (2007) models to the database.
 
         Parameters
         ----------
-        model: pcigale.data.DL2014
+        models: list of pcigale.data.DL2014 objects
 
         """
         if self.is_writable:
-            self.session.add(_DL2014(model))
+            for model in models:
+                self.session.add(_DL2014(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -542,19 +545,19 @@ class Database(object):
         """
         return self._get_parameters(_DL2014)
 
-    def add_dale2014(self, iragn):
+    def add_dale2014(self, models):
         """
         Add Dale et al (2014) templates the collection.
 
         Parameters
         ----------
-        iragn: pcigale.data.Dale2014
+        models: list of pcigale.data.Dale2014 objects
 
         """
 
         if self.is_writable:
-            template = _Dale2014(iragn)
-            self.session.add(template)
+            for model in models:
+                self.session.add(_Dale2014(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -609,17 +612,18 @@ class Database(object):
         """
         return self._get_parameters(_Dale2014)
 
-    def add_fritz2006(self, agn):
+    def add_fritz2006(self, models):
         """
         Add a Fritz et al. (2006) AGN model to the database.
 
         Parameters
         ----------
-        agn: pcigale.data.Fritz2006
+        models: list of pcigale.data.Fritz2006 objects
 
         """
         if self.is_writable:
-            self.session.add(_Fritz2006(agn))
+            for model in models:
+                self.session.add(_Fritz2006(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -695,12 +699,13 @@ class Database(object):
         """
         return self._get_parameters(_Fritz2006)
 
-    def add_nebular_lines(self, nebular_lines):
+    def add_nebular_lines(self, models):
         """
         Add ultraviolet and optical line templates to the database.
         """
         if self.is_writable:
-            self.session.add(_NebularLines(nebular_lines))
+            for model in models:
+                self.session.add(_NebularLines(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -740,12 +745,13 @@ class Database(object):
         """
         return self._get_parameters(_NebularLines)
 
-    def add_nebular_continuum(self, nebular_continuum):
+    def add_nebular_continuum(self, models):
         """
         Add nebular continuum templates to the database.
         """
         if self.is_writable:
-            self.session.add(_NebularContinuum(nebular_continuum))
+            for model in models:
+                self.session.add(_NebularContinuum(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -809,6 +815,25 @@ class Database(object):
         """
         if self.is_writable:
             self.session.add(_Filter(pcigale_filter))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError('The filter is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def add_filters(self, pcigale_filters):
+        """
+        Add a list of filters to the pcigale database.
+
+        Parameters
+        ----------
+        pcigale_filters: list of pcigale.data.Filter objects
+        """
+        if self.is_writable:
+            for pcigale_filter in pcigale_filters:
+                self.session.add(_Filter(pcigale_filter))
             try:
                 self.session.commit()
             except exc.IntegrityError:
