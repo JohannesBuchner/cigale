@@ -117,17 +117,17 @@ def read_bc03_ssp(filename):
 
     # The time grid is in year, we want Myr.
     time_grid = np.array(time_grid, dtype=float)
-    time_grid = time_grid * 1.e-6
+    time_grid *= 1.e-6
 
     # The first "long" vector encountered is the wavelength grid. The value
     # are in Ångström, we convert it to nano-meter.
     wavelength = np.array(full_table.pop(0), dtype=float)
-    wavelength = wavelength * 0.1
+    wavelength *= 0.1
 
     # The luminosities are in Solar luminosity (3.826.10^33 ergs.s-1) per
     # Ångström, we convert it to W/nm.
     luminosity = np.array(full_table, dtype=float)
-    luminosity = luminosity * 3.826e27
+    luminosity *= 3.826e27
     # Transposition to have the time in the second axis.
     luminosity = luminosity.transpose()
 
@@ -226,7 +226,7 @@ def build_m2005(base):
             [age_grid_orig, lambda_grid_orig, flux_orig] = \
                 spec_table[:, spec_table[1, :] == wavelength]
             flux_orig = flux_orig * 10 * 1.e-7  # From erg/s^-1/Å to W/nm
-            age_grid_orig = age_grid_orig * 1000  # Gyr to Myr
+            age_grid_orig *= 1000  # Gyr to Myr
             flux_regrid = interpolate.interp1d(age_grid_orig,
                                                flux_orig)(age_grid)
 
@@ -369,7 +369,7 @@ def build_dale2014(base):
         lumin[lumin < 0] = 0
         lumin[wave < 2E3] = 0
         norm = np.trapz(lumin, x=wave)
-        lumin = lumin/norm
+        lumin /= norm
 
         base.add_dale2014(Dale2014(fraction, alpha_grid[al-1], wave, lumin))
 
@@ -381,7 +381,7 @@ def build_dale2014(base):
     wave *= 1e3
     lumin_quasar = 10**lumin_quasar / wave
     norm = np.trapz(lumin_quasar, x=wave)
-    lumin_quasar = lumin_quasar / norm
+    lumin_quasar /= norm
 
     base.add_dale2014(Dale2014(1.0, 0.0, wave, lumin_quasar))
 
@@ -590,9 +590,9 @@ def build_fritz2006(base):
             lumin_agn *= 1e-4
             # Normalization of the lumin_therm to 1W
             norm = np.trapz(lumin_therm, x=wave)
-            lumin_therm = lumin_therm / norm
-            lumin_scatt = lumin_scatt / norm
-            lumin_agn = lumin_agn / norm
+            lumin_therm /= norm
+            lumin_scatt /= norm
+            lumin_agn /= norm
 
             base.add_fritz2006(Fritz2006(params[4], params[3], params[2],
                                          params[1], params[0], psy[n], wave,
