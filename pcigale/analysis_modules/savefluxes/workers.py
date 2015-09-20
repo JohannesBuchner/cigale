@@ -10,7 +10,6 @@ import time
 import numpy as np
 
 from ...warehouse import SedWarehouse
-
 from ..utils import OUT_DIR
 
 

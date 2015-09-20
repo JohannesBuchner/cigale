@@ -4,13 +4,15 @@
 # Author: Médéric Boquien
 
 import argparse
+import multiprocessing as mp
+import sys
+
 from astropy.table import Table, Column
 import astropy.units as u
 import matplotlib.pyplot as plt
-import multiprocessing as mp
 import numpy as np
+
 from pcigale.data import Database, Filter
-import sys
 
 __version__ = "0.1-alpha"
 

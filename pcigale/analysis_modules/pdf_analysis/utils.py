@@ -9,7 +9,6 @@ from astropy import log
 from astropy.table import Table, Column
 import numpy as np
 from scipy.special import erf
-from scipy.stats import scoreatpercentile
 
 from ..utils import OUT_DIR
 

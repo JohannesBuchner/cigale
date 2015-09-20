@@ -13,7 +13,9 @@ Populations.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 from ..data import Database
 

@@ -7,17 +7,19 @@
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
 import argparse
-from astropy.table import Table
 from itertools import product, repeat
 from collections import OrderedDict
+
+from astropy.table import Table
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np
 import os
 import pkg_resources
-from scipy.constants import c, parsec
+from scipy.constants import c
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration

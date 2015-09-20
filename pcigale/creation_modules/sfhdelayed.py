@@ -14,8 +14,11 @@ rise of the SFR up to a maximum, followed by an exponential decrease.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
+
 
 # Time lapse used in the age grid in Myr. If should be consistent with the
 # time lapse in the SSP modules.

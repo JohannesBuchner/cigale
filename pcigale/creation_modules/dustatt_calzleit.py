@@ -14,7 +14,9 @@ attenuation formulae, adding an UV-bump and a power law.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 
 

@@ -42,7 +42,6 @@ from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
 from ..utils import ParametersHandler, backup_dir
 
-from ..utils import OUT_DIR
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12

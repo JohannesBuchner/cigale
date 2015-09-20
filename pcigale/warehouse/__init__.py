@@ -4,6 +4,7 @@
 # Author: Yannick Roehlly
 
 import marshal
+
 from ..sed import SED
 from .. import creation_modules
 

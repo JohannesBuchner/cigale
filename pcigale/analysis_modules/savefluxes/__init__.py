@@ -28,6 +28,7 @@ from ...warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
 
+
 # Limit the redshift to this number of decimals
 REDSHIFT_DECIMALS = 2
 

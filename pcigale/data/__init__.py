@@ -20,6 +20,7 @@ from sqlalchemy import create_engine, exc, Column, String,  Float, PickleType
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np
+
 from .filters import Filter
 from .m2005 import M2005
 from .bc03 import BC03
@@ -29,7 +30,6 @@ from .dl2014 import DL2014
 from .fritz2006 import Fritz2006
 from .nebular_continuum import NebularContinuum
 from .nebular_lines import NebularLines
-
 
 DATABASE_FILE = pkg_resources.resource_filename(__name__, 'data.db')
 

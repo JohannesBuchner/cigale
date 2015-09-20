@@ -5,6 +5,7 @@
 # Author: Yannick Roehlly & Denis Burgarella
 
 from importlib import import_module
+
 import numpy as np
 from astropy.table import Column
 

@@ -3,14 +3,16 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-import configobj
-import pkg_resources
 import pkgutil
 import collections
 import multiprocessing as mp
-import numpy as np
-from glob import glob  # To allow the use of glob() in "eval..."
 from textwrap import wrap
+
+import configobj
+from glob import glob  # To allow the use of glob() in "eval..."
+import pkg_resources
+import numpy as np
+
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules

@@ -12,7 +12,9 @@ This module reads the star formation history in a file.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from ..utils import read_table
 from . import CreationModule
 

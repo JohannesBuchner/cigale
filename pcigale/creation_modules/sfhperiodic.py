@@ -15,7 +15,9 @@ decaying exponential, or "delayed".
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 
 

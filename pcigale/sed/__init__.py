@@ -31,10 +31,12 @@ Such SED is characterised by:
 """
 
 import numpy as np
+from scipy.constants import c, parsec
+
 from . import utils
 from .io.vo import save_sed_to_vo
-from scipy.constants import c, parsec
 from ..data import Database
+
 
 
 # Time lapse used to compute the average star formation rate. We use a

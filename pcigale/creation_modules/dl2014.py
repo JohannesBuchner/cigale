@@ -13,7 +13,9 @@ This module implements the updated Draine and Li (2007) infrared models.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from pcigale.data import Database
 from . import CreationModule
 

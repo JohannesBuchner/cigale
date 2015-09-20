@@ -12,6 +12,7 @@ This module implements the Dale (2014) infra-red models.
 """
 
 from collections import OrderedDict
+
 from pcigale.data import Database
 from . import CreationModule
 

@@ -4,9 +4,11 @@
 # Author: Médéric Boquien <mboquien@ast.cam.ac.uk>
 
 from collections import OrderedDict
+
 import numpy as np
-from pcigale.data import Database
 import scipy.constants as cst
+
+from pcigale.data import Database
 from . import CreationModule
 
 
