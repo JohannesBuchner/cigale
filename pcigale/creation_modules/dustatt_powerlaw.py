@@ -67,6 +67,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     """Compute the complete attenuation curve A(λ)/Av
 
     The continuum is a power law (λ / λv) ** δ to which is added a UV bump.
+    Over the Lyman continuum, there is no attenuation.
 
     Parameters
     ----------
@@ -91,6 +92,9 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
 
     attenuation = power_law(wave, delta)
     attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
+
+    # Lyman continuum not attenuated.
+    attenuation[wavelength <= 91.2] = 0.
 
     return attenuation
 
