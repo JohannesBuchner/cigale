@@ -75,7 +75,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
 def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
                   best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
-                  lim_flag, n_obs, phase):
+                  lim_flag, n_obs):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -115,8 +115,6 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         to given models.
     n_obs: int
         Number of observations.
-    phase: int
-        Phase of the analysis (data or mock).
 
     """
     init_sed(params, filters, analysed, redshifts, fluxes, variables,
@@ -124,7 +122,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
     global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
     global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
-    global gbl_lim_flag, gbl_phase, gbl_keys
+    global gbl_lim_flag, gbl_keys
 
     gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
     gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
@@ -150,7 +148,6 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     gbl_lim_flag = lim_flag
 
     gbl_n_obs = n_obs
-    gbl_phase = phase
     gbl_keys = None
 
 
@@ -391,15 +388,13 @@ def analysis(idx, obs):
         gbl_best_chi2[idx] = chi2_[best_index]
         gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
 
-        # If observed SED analysis
-        if gbl_phase == 1:
-            if gbl_save['best_sed']:
-                save_best_sed(obs['id'], sed, norm_facts[best_index])
-            if gbl_save['chi2']:
-                save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                          chi2_ / obs_fluxes.size)
-            if gbl_save['pdf']:
-                save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
+        if gbl_save['best_sed']:
+            save_best_sed(obs['id'], sed, norm_facts[best_index])
+        if gbl_save['chi2']:
+            save_chi2(obs['id'], gbl_analysed_variables, model_variables,
+                        chi2_ / obs_fluxes.size)
+        if gbl_save['pdf']:
+            save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
