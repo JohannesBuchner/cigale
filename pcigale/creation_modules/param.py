@@ -133,7 +133,8 @@ class Param(CreationModule):
         for filter_ in filter_list:
             sed.add_info(
                 "param.{}".format(filter_),
-                sed.compute_fnu(filter_)
+                sed.compute_fnu(filter_),
+                True
             )
 
 # CreationModule to be returned by get_module
