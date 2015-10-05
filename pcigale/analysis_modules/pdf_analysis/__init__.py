@@ -243,8 +243,8 @@ class PdfAnalysis(AnalysisModule):
             obs_fluxes = np.array([obs_table[name] for name in filters]).T
             obs_errors = np.array([obs_table[name + "_err"] for name in
                                    filters]).T
-            mock_fluxes = np.empty_like(obs_fluxes)
-            mock_errors = np.empty_like(obs_errors)
+            mock_fluxes = np.zeros_like(obs_fluxes)
+            mock_errors = np.zeros_like(obs_errors)
             bestmod_fluxes = np.ctypeslib.as_array(best_fluxes[0])
             bestmod_fluxes = bestmod_fluxes.reshape(best_fluxes[1])
 
