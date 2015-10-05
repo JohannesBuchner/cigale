@@ -234,7 +234,7 @@ def analysis(idx, obs):
     model_variables = model_variables[wvalid[0], :]
 
 
-    chi2_, norm_facts = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
+    chi2, scaling = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
                                      gbl_lim_flag)
 
     ##################################################################
@@ -243,7 +243,7 @@ def analysis(idx, obs):
 
     # We define the best fitting model for each observation as the one
     # with the least χ².
-    if chi2_.size == 0:
+    if chi2.size == 0:
         # It sometimes happen because models are older than the Universe's age
         print("No suitable model found for the object {}. One possible origin "
               "is that models are older than the Universe.".format(obs['id']))
@@ -251,14 +251,14 @@ def analysis(idx, obs):
         # We select only models that have at least 0.1% of the probability of
         # the best model to reproduce the observations. It helps eliminating
         # very bad models.
-        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2_), obs_fluxes.size-1) *
+        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), obs_fluxes.size-1) *
                               1e-3, obs_fluxes.size-1)
-        wlikely = np.where(chi2_ < maxchi2)
+        wlikely = np.where(chi2 < maxchi2)
         # We use the exponential probability associated with the χ² as
         # likelihood function.
-        likelihood = np.exp(-chi2_[wlikely]/2)
+        likelihood = np.exp(-chi2[wlikely]/2)
 
-        best_index = chi2_.argmin()
+        best_index = chi2.argmin()
 
         # We compute once again the best sed to obtain its info
         global gbl_previous_idx
@@ -273,10 +273,10 @@ def analysis(idx, obs):
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
-            sed.info[key] *= norm_facts[best_index]
+            sed.info[key] *= scaling[best_index]
         for index, variable in enumerate(gbl_analysed_variables):
             if variable in sed.mass_proportional_info:
-                model_variables[:, index] *= norm_facts
+                model_variables[:, index] *= scaling
 
         # We compute the weighted average and standard deviation using the
         # likelihood as weight.
@@ -327,20 +327,20 @@ def analysis(idx, obs):
         gbl_analysed_std[idx, :] = analysed_std
 
         gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :] \
-                      *norm_facts[best_index]
+                      *scaling[best_index]
 
         if gbl_keys is None:
             gbl_keys = list(sed.info.keys())
             gbl_keys.sort()
         gbl_best_parameters[idx, :] = np.array([sed.info[k] for k in gbl_keys])
-        gbl_best_chi2[idx] = chi2_[best_index]
-        gbl_best_chi2_red[idx] = chi2_[best_index] / obs_fluxes.size
+        gbl_best_chi2[idx] = chi2[best_index]
+        gbl_best_chi2_red[idx] = chi2[best_index] / obs_fluxes.size
 
         if gbl_save['best_sed']:
-            save_best_sed(obs['id'], sed, norm_facts[best_index])
+            save_best_sed(obs['id'], sed, scaling[best_index])
         if gbl_save['chi2']:
             save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                        chi2_ / obs_fluxes.size)
+                        chi2 / obs_fluxes.size)
         if gbl_save['pdf']:
             save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
