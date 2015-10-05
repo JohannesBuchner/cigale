@@ -9,11 +9,10 @@
 import time
 
 import numpy as np
-from scipy import optimize
 from scipy.special import erf
 import scipy.stats as st
 
-from .utils import (save_best_sed, save_pdf, save_chi2, dchi2_over_ds2)
+from .utils import save_best_sed, save_pdf, save_chi2, compute_chi2
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
@@ -234,60 +233,9 @@ def analysis(idx, obs):
     model_fluxes = model_fluxes[wvalid[0], :]
     model_variables = model_variables[wvalid[0], :]
 
-    # Some observations may not have flux values in some filter(s), but
-    # they can have upper limit(s). To process upper limits, the user
-    # is asked to put the upper limit as flux value and an error value with
-    # (obs_errors>=-9990. and obs_errors<0.).
-    # Next, the user has two options:
-    # 1) s/he puts True in the boolean lim_flag
-    # and the limits are processed as upper limits below.
-    # 2) s/he puts False in the boolean lim_flag
-    # and the limits are processed as no-data below.
 
-    lim_flag = gbl_lim_flag and np.any((obs_errors >= -9990.) &
-                                       (obs_errors < tolerance))
-
-    # Normalisation factor to be applied to a model fluxes to best fit
-    # an observation fluxes. Normalised flux of the models. χ² and
-    # likelihood of the fitting. Reduced χ² (divided by the number of
-    # filters to do the fit).
-    norm_facts = (
-        np.sum(model_fluxes * obs_fluxes / (obs_errors * obs_errors), axis=1) /
-        np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
-    )
-
-    if lim_flag == True:
-        for imod in range(len(model_fluxes)):
-            norm_facts[imod] = optimize.root(dchi2_over_ds2, norm_facts[imod],
-                                               args=(obs_fluxes, obs_errors,
-                                                     model_fluxes[imod, :])).x
-    model_fluxes *= norm_facts[:, np.newaxis]
-
-    # χ² of the comparison of each model to each observation.
-    if lim_flag is True:
-        # This mask selects the filter(s) for which measured fluxes are given
-        # i.e., when (obs_flux is >=0. and obs_errors>=0.) and lim_flag=True
-        mask_data = (obs_errors >= tolerance)
-        # This mask selects the filter(s) for which upper limits are given
-        # i.e., when (obs_flux is >=0. (and obs_errors>=-9990., obs_errors<0.))
-        # and lim_flag=True
-        mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
-        chi2_ = np.sum(np.square(
-            (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
-            obs_errors[mask_data]), axis=1)
-
-        chi2_ += -2. * np.sum(
-            np.log(
-                np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
-                    1.+erf(
-                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
-                        (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
-    else:
-        mask_data = np.logical_and(obs_fluxes > tolerance,
-                                   obs_errors > tolerance)
-        chi2_ = np.sum(np.square(
-            (obs_fluxes[mask_data] - model_fluxes[:, mask_data]) /
-            obs_errors[mask_data]), axis=1)
+    chi2_, norm_facts = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
+                                     gbl_lim_flag)
 
     ##################################################################
     # Variable analysis                                              #

@@ -8,6 +8,7 @@
 from astropy import log
 from astropy.table import Table, Column
 import numpy as np
+from scipy import optimize
 from scipy.special import erf
 
 from ..utils import OUT_DIR
@@ -265,3 +266,70 @@ def analyse_chi2(chi2):
     print("\n{}% of the objects have chi^2_red~0 and {}% chi^2_red<0.5"
           .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
                   np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
+
+
+def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
+    """Fit a grid of models to the observations using a χ² minimisation. The
+    models are scaled using an analytic formula to minimise the χ². The
+    algorithm also handle missing data and the presence of upper limits.
+
+    Parameters
+    ----------
+    model_fluxes: array
+        2D grid containing the fluxes of the models
+    obs_fluxes: array
+        Fluxes of the observed object
+    obs_errors: array
+        Uncertainties on the fluxes of the observed object
+    lim_flag: boolean
+        Boolean indicated whether upper limits should be treated (True) or
+        discarded (False)
+
+    Returns
+    -------
+    chi2: array
+        χ² for all the models in the grid
+    scaling: array
+        scaling of the models to obtain the minimum χ²
+
+    """
+
+    # Some observations may not have fluxes in some filters, but they can have
+    # upper limits, indicated with 0.>obs_errors≥-9990. To treat them as such,
+    # lim_flag has to be set to True.
+    tolerance = 1e-12
+    limits = lim_flag and np.any((obs_errors >= -9990.) &
+                                 (obs_errors < tolerance))
+
+    # Scaling factor to be applied to a model fluxes to minimise the χ².
+    scaling = (
+        np.sum(model_fluxes * obs_fluxes / (obs_errors * obs_errors), axis=1) /
+        np.sum(model_fluxes * model_fluxes / (obs_errors * obs_errors), axis=1)
+    )
+    if limits == True:
+        for imod in range(len(model_fluxes)):
+            scaling[imod] = optimize.root(dchi2_over_ds2, scaling[imod],
+                                          args=(obs_fluxes, obs_errors,
+                                                model_fluxes[imod, :])).x
+
+    # Scale the models and we compute the χ² on the entire grid
+    model_fluxes *= scaling[:, np.newaxis]
+
+    # Mask to select the bands with measured fluxes
+    mask_data = np.logical_and(obs_fluxes > tolerance,
+                               obs_errors > tolerance)
+    chi2 = np.sum(np.square(
+        (obs_fluxes[mask_data]-model_fluxes[:, mask_data]) /
+        obs_errors[mask_data]), axis=1)
+    if limits == True:
+        # This mask selects the filter(s) for which upper limits are given
+        # i.e., when (obs_flux≥0. (and obs_errors≥-9990., obs_errors<0.))
+        mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
+        chi2 += -2. * np.sum(
+            np.log(
+                np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
+                    1.+erf(
+                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]) /
+                        (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
+
+    return chi2, scaling
