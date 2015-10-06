@@ -15,9 +15,6 @@ from ..utils import OUT_DIR
 
 log.setLevel('ERROR')
 
-# Number of points in the PDF
-PDF_NB_POINTS = 1000
-
 
 def save_best_sed(obsid, sed, norm):
     """Save the best SED to a VO table.
