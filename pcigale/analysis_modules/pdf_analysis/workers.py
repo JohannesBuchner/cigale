@@ -334,13 +334,13 @@ def analysis(idx, obs):
             gbl_keys.sort()
         gbl_best_parameters[idx, :] = np.array([sed.info[k] for k in gbl_keys])
         gbl_best_chi2[idx] = chi2[best_index]
-        gbl_best_chi2_red[idx] = chi2[best_index] / obs_fluxes.size
+        gbl_best_chi2_red[idx] = chi2[best_index] / (obs_fluxes.size - 1.)
 
         if gbl_save['best_sed']:
             save_best_sed(obs['id'], sed, scaling[best_index])
         if gbl_save['chi2']:
             save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                        chi2 / obs_fluxes.size)
+                        chi2 / (obs_fluxes.size) - 1.)
         if gbl_save['pdf']:
             save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
 
