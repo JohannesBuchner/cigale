@@ -184,7 +184,9 @@ class CalzLeit(CreationModule):
         ("E_BVs_young", (
             "float",
             "E(B-V)*, the colour excess of the stellar continuum light for "
-            "the young population.",
+            "the young population. BEWARE that if you add a power law with "
+            "a slope different from 0, this E(B-V)* no longer equals "
+            "A(B) - A(V).",
             0.3
         )),
         ("E_BVs_old_factor", (
@@ -218,7 +220,7 @@ class CalzLeit(CreationModule):
             "Filters for which the attenuation will be computed and added to "
             "the SED information dictionary. You can give several filter "
             "names separated by a & (don't use commas).",
-            "V_B90 & FUV"
+            "B_B90 & V_B90 & FUV"
         ))
     ])
 
