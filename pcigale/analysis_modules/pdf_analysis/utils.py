@@ -32,13 +32,11 @@ def save_best_sed(obsid, sed, norm):
     sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
 
 
-def save_pdf(obsid, analysed_variables, model_variables, likelihood):
-    """Save the PDF to a FITS file
+def save_pdf(obsid, analysed_variables, model_variables, likelihood, wlikely):
+    """Compute and save the PDF to a FITS file
 
-    We estimate the probability density functions (PDF) of the parameters using
-    a weighted kernel density estimation. This part should definitely be
-    improved as we simulate the weight by adding as many value as their
-    probability * 100.
+    We estimate the probability density functions (PDF) of the parameters from
+    a likelihood-weighted hisogram.
 
     Parameters
     ----------
@@ -47,14 +45,38 @@ def save_pdf(obsid, analysed_variables, model_variables, likelihood):
     analysed_variables: list
         Analysed variables names
     model_variables: 2D array
-        Analysed variables values for all models
-    likelihood: 2D array
-        Likelihood for all models
+        Values of the model variables
+    likelihood: 1D array
+        Likelihood of the "likely" models
+    wlikely: 1D array
+        Indices of of the likely models to select them from the model_variables
+        array
 
     """
-    for var_index, var_name in enumerate(analysed_variables):
-        pdf_grid = model_variables[:, var_index]
-        pdf_prob = likelihood[:, var_index]
+
+    # We check how many unique parameter values are analysed and if
+    # less than Npdf (= 100), the PDF is initally built assuming a
+    # number of bins equal to the number of unique values for a given
+    # parameter
+    Npdf = 100
+    for i, var_name in enumerate(analysed_variables):
+        min_hist = np.min(model_variables[wlikely[0], i])
+        max_hist = np.max(model_variables[wlikely[0], i])
+        Nhist = min(Npdf, len(np.unique(model_variables[:, i])))
+
+        if min_hist == max_hist:
+            pdf_grid = np.array([min_hist, max_hist])
+            pdf_prob = np.array([1., 1.])
+        else:
+            pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
+                                              Nhist,
+                                              (min_hist, max_hist),
+                                              weights=likelihood, density=True)
+            pdf_x = (pdf_grid[1:]+pdf_grid[:-1]) / 2.
+
+            pdf_grid = np.linspace(min_hist, max_hist, Npdf)
+            pdf_prob = np.interp(pdf_grid, pdf_x, pdf_prob)
+
         if pdf_prob is None:
             # TODO: use logging
             print("Can not compute PDF for observation <{}> and "
@@ -330,3 +352,28 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
 
     return chi2, scaling
+
+
+def weighted_param(param, weights):
+    """Compute the weighted mean and standard deviation of an array of data.
+
+    Parameters
+    ----------
+    param: array
+        Values of the parameters for the entire grid of models
+    weights: array
+        Weights by which to weight the parameter values
+
+    Returns
+    -------
+    mean: float
+        Weighted mean of the parameter values
+    std: float
+        Weighted standard deviation of the parameter values
+
+    """
+
+    mean = np.average(param, weights=weights)
+    std = np.sqrt(np.average((param-mean)**2, weights=weights))
+
+    return (mean, std)

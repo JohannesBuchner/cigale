@@ -12,7 +12,8 @@ import numpy as np
 from scipy.special import erf
 import scipy.stats as st
 
-from .utils import save_best_sed, save_pdf, save_chi2, compute_chi2
+from .utils import (save_best_sed, save_pdf, save_chi2, compute_chi2,
+                    weighted_param)
 from ...warehouse import SedWarehouse
 
 # Probability threshold: models with a lower probability  are excluded from the
@@ -283,46 +284,12 @@ def analysis(idx, obs):
         analysed_averages = np.empty(len(gbl_analysed_variables))
         analysed_std = np.empty_like(analysed_averages)
 
-        # We check how many unique parameter values are analysed and if less
-        # than Npdf (= 100), the PDF is initally built assuming a number of
-        # bins equal to the number of unique values for a given parameter
-        # (e.g., sfr, age, attenuation.uv_bump_amplitude,
-        # dust.luminosity, attenuation.FUV, etc.).
-        Npdf = 100
-        var = np.empty((Npdf, len(analysed_averages)))
-        pdf = np.empty((Npdf, len(analysed_averages)))
-        min_hist = np.min(model_variables, axis=0)
-        max_hist = np.max(model_variables, axis=0)
+        for i in range(len(analysed_averages)):
+            mean, std = weighted_param(model_variables[wlikely[0], i],
+                                       likelihood)
+            analysed_averages[i] = mean
+            analysed_std[i] = max(0.05 * mean, std)
 
-        for i, val in enumerate(analysed_averages):
-            Nhist = min(Npdf, len(np.unique(model_variables[:, i])))
-
-            if min_hist[i] == max_hist[i]:
-                analysed_averages[i] = model_variables[0, i]
-                analysed_std[i] = 0.
-
-                var[:, i] = max_hist[i]
-                pdf[:, i] = 1.
-            else:
-                pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
-                                              Nhist,
-                                              (min_hist[i], max_hist[i]),
-                                              weights=likelihood, density=True)
-                pdf_x = (pdf_grid[1:]+pdf_grid[:-1])/2
-                pdf_y = pdf_x * pdf_prob
-                analysed_averages[i] = np.sum(pdf_y) / np.sum(pdf_prob)
-                analysed_std[i] = np.sqrt(
-                                     np.sum(
-                                    np.square(pdf_x-analysed_averages[i]) * pdf_prob
-                                           ) / np.sum(pdf_prob)
-                                         )
-                analysed_std[i] = max(0.05*analysed_averages[i],
-                                      analysed_std[i])
-
-                var[:, i] = np.linspace(min_hist[i], max_hist[i], Npdf)
-                pdf[:, i] = np.interp(var[:, i], pdf_x, pdf_prob)
-
-        # TODO Merge with above computation after checking it is fine with a MA
         gbl_analysed_averages[idx, :] = analysed_averages
         gbl_analysed_std[idx, :] = analysed_std
 
@@ -342,7 +309,8 @@ def analysis(idx, obs):
             save_chi2(obs['id'], gbl_analysed_variables, model_variables,
                         chi2 / (obs_fluxes.size - 1.))
         if gbl_save['pdf']:
-            save_pdf(obs['id'], gbl_analysed_variables, var, pdf)
+            save_pdf(obs['id'], gbl_analysed_variables, model_variables,
+                     likelihood, wlikely)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
