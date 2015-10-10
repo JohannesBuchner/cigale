@@ -264,12 +264,11 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
             if name_err not in obs_table.columns:
                 obs_table.add_column(Column(
                     name=name_err,
-                    data=np.ones(len(obs_table), dtype=float))*-9999.,
+                    data=np.full(len(obs_table), -9999.)),
                     index=obs_table.colnames.index(name)+1
                 )
             else:
-                obs_table[name_err] = np.ones(len(obs_table),
-                                              dtype=float)*-9999.
+                obs_table[name_err] = np.full(len(obs_table), -9999.)
 
         obs_table[name_err] = adjust_errors(obs_table[name],
                                             obs_table[name_err],
