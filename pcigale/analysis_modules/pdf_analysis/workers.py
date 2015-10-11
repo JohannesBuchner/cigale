@@ -171,8 +171,8 @@ def sed(idx):
                                 gbl_params.from_index(idx))
 
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
-        model_fluxes = np.full(len(gbl_filters), -99.)
-        model_variables = np.full(len(gbl_analysed_variables), -99.)
+        model_fluxes = np.full(len(gbl_filters), np.nan)
+        model_variables = np.full(len(gbl_analysed_variables), np.nan)
     else:
         model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
                                  gbl_filters])
@@ -207,6 +207,8 @@ def analysis(idx, obs):
         Input data for an individual object
 
     """
+    np.seterr(invalid='ignore')
+
     # Tolerance threshold under which any flux or error is considered as 0.
     global gbl_keys
     tolerance = 1e-12
@@ -223,17 +225,17 @@ def analysis(idx, obs):
     wz = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                        gbl_redshifts).argmin()]])
 
-    # We only keep model with fluxes >= -90. If not => no data
-    # Probably because age > age of the universe (see function sed(idx) above).
+    # We only keep models with finite fluxes. Otherwise it means the models are
+    # invalid. This is probably because age > age of the universe (see function
+    # sed() above).
     model_fluxes = gbl_model_fluxes[wz[0], :]
 
     model_fluxes = model_fluxes[:, wobs[0]]
     model_variables = gbl_model_variables[wz[0], :]
 
-    wvalid = np.where(model_variables[:, 0] >= -90.)
-    model_fluxes = model_fluxes[wvalid[0], :]
-    model_variables = model_variables[wvalid[0], :]
-
+    wvalid = np.isfinite(model_variables[:, 0])
+    model_fluxes = model_fluxes[wvalid, :]
+    model_variables = model_variables[wvalid, :]
 
     chi2, scaling = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
                                      gbl_lim_flag)
@@ -266,11 +268,11 @@ def analysis(idx, obs):
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
                 gbl_params.index_module_changed(gbl_previous_idx,
-                                                wz[0][wvalid[0][best_index]]))
-        gbl_previous_idx = wz[0][wvalid[0][best_index]]
+                                                wz[0][wvalid][best_index]))
+        gbl_previous_idx = wz[0][wvalid][best_index]
 
         sed = gbl_warehouse.get_sed(gbl_params.modules,
-                                    gbl_params.from_index([wz[0][wvalid[0][best_index]]]))
+                                    gbl_params.from_index([wz[0][wvalid][best_index]]))
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
@@ -293,7 +295,7 @@ def analysis(idx, obs):
         gbl_analysed_averages[idx, :] = analysed_averages
         gbl_analysed_std[idx, :] = analysed_std
 
-        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid[0][best_index]], :] \
+        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid][best_index], :] \
                       *scaling[best_index]
 
         if gbl_keys is None:

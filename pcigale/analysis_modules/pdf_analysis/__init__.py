@@ -117,6 +117,7 @@ class PdfAnalysis(AnalysisModule):
             Number of cores to run the analysis on
 
         """
+        np.seterr(invalid='ignore')
 
         print("Initialising the analysis module... ")
 

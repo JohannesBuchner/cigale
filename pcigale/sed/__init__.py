@@ -262,7 +262,7 @@ class SED(object):
         Fν is computed in W/m²/Hz and then converted to mJy.
 
         If the SED spectrum does not cover all the filter response table,
-        -99 is returned.
+        NaN is returned.
 
         Parameters
         ----------
@@ -306,7 +306,7 @@ class SED(object):
             # Test if the filter covers all the spectrum extent. If not then
             # the flux is not defined
             if ((wavelength[0] > lambda_min) or (wavelength[-1] < lambda_max)):
-                return -99.
+                return np.nan
 
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low

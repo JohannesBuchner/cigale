@@ -232,9 +232,9 @@ def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
     # The mask "data" selects the filter(s) for which measured fluxes are given
     # i.e., when obs_fluxes is >=0. and obs_errors >=0.
     # The mask "lim" selects the filter(s) for which upper limits are given
-    # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
+    # i.e., when obs_errors < 0
 
-    wlim = np.where((obs_errors >= -9990.) & (obs_errors < 0.))
+    wlim = np.where(np.isfinite(obs_errors) & (obs_errors < 0.))
     wdata = np.where(obs_errors >= 0.)
 
     mod_fluxes_data = mod_fluxes[wdata]
@@ -314,10 +314,10 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
     """
 
     # Some observations may not have fluxes in some filters, but they can have
-    # upper limits, indicated with 0.>obs_errors≥-9990. To treat them as such,
+    # upper limits, indicated with obs_errors≤0. To treat them as such,
     # lim_flag has to be set to True.
     tolerance = 1e-12
-    limits = lim_flag and np.any((obs_errors >= -9990.) &
+    limits = lim_flag and np.any(np.isfinite(obs_errors) &
                                  (obs_errors < tolerance))
 
     # Scaling factor to be applied to a model fluxes to minimise the χ².
@@ -342,8 +342,9 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
         obs_errors[mask_data]), axis=1)
     if limits == True:
         # This mask selects the filter(s) for which upper limits are given
-        # i.e., when (obs_flux≥0. (and obs_errors≥-9990., obs_errors<0.))
-        mask_lim = np.logical_and(obs_errors >= -9990., obs_errors < tolerance)
+        # i.e., when obs_errors<0.
+        mask_lim = np.logical_and(np.isfinite(obs_errors),
+                                  obs_errors < tolerance)
         chi2 += -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
