@@ -233,10 +233,6 @@ def analysis(idx, obs):
     model_fluxes = model_fluxes[:, wobs[0]]
     model_variables = gbl_model_variables[wz[0], :]
 
-    wvalid = np.isfinite(model_variables[:, 0])
-    model_fluxes = model_fluxes[wvalid, :]
-    model_variables = model_variables[wvalid, :]
-
     chi2, scaling = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
                                      gbl_lim_flag)
 
@@ -244,23 +240,30 @@ def analysis(idx, obs):
     # Variable analysis                                              #
     ##################################################################
 
-    # We define the best fitting model for each observation as the one
-    # with the least χ².
-    if chi2.size == 0:
+    # We select only models that have at least 0.1% of the probability of
+    # the best model to reproduce the observations. It helps eliminating
+    # very bad models.
+    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), obs_fluxes.size-1) *
+                            1e-3, obs_fluxes.size-1)
+    wlikely = np.where(chi2 < maxchi2)
+
+    if wlikely[0].size == 0:
         # It sometimes happen because models are older than the Universe's age
         print("No suitable model found for the object {}. One possible origin "
               "is that models are older than the Universe.".format(obs['id']))
+        gbl_analysed_averages[idx, :] = np.nan
+        gbl_analysed_std[idx, :] = np.nan
+        gbl_best_fluxes[idx, :] = np.nan
+        gbl_best_parameters[idx, :] = np.nan
+        gbl_best_chi2[idx] = np.nan
+        gbl_best_chi2_red[idx] = np.nan
     else:
-        # We select only models that have at least 0.1% of the probability of
-        # the best model to reproduce the observations. It helps eliminating
-        # very bad models.
-        maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), obs_fluxes.size-1) *
-                              1e-3, obs_fluxes.size-1)
-        wlikely = np.where(chi2 < maxchi2)
         # We use the exponential probability associated with the χ² as
         # likelihood function.
         likelihood = np.exp(-chi2[wlikely]/2)
 
+        # We define the best fitting model for each observation as the one
+        # with the least χ².
         best_index = chi2.argmin()
 
         # We compute once again the best sed to obtain its info
@@ -268,11 +271,11 @@ def analysis(idx, obs):
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
                 gbl_params.index_module_changed(gbl_previous_idx,
-                                                wz[0][wvalid][best_index]))
-        gbl_previous_idx = wz[0][wvalid][best_index]
+                                                wz[0][best_index]))
+        gbl_previous_idx = wz[0][best_index]
 
         sed = gbl_warehouse.get_sed(gbl_params.modules,
-                                    gbl_params.from_index([wz[0][wvalid][best_index]]))
+                                    gbl_params.from_index([wz[0][best_index]]))
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
@@ -295,7 +298,7 @@ def analysis(idx, obs):
         gbl_analysed_averages[idx, :] = analysed_averages
         gbl_analysed_std[idx, :] = analysed_std
 
-        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][wvalid][best_index], :] \
+        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][best_index], :] \
                       *scaling[best_index]
 
         if gbl_keys is None:
