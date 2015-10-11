@@ -243,38 +243,17 @@ class PdfAnalysis(AnalysisModule):
             obs_fluxes = np.array([obs_table[name] for name in filters]).T
             obs_errors = np.array([obs_table[name + "_err"] for name in
                                    filters]).T
-            mock_fluxes = np.zeros_like(obs_fluxes)
-            mock_errors = np.zeros_like(obs_errors)
+            mock_fluxes = obs_fluxes.copy()
             bestmod_fluxes = np.ctypeslib.as_array(best_fluxes[0])
             bestmod_fluxes = bestmod_fluxes.reshape(best_fluxes[1])
-
-            wdata = np.where((obs_fluxes > 0.) & (obs_errors > 0.))
-            wlim = np.where((obs_fluxes > 0.) & (obs_errors >= -9990.) &
-                            (obs_errors < 0.))
-            wnodata = np.where((obs_fluxes <= -9990.) &
-                               (obs_errors <= -9990.))
-
-            mock_fluxes[wdata] = np.random.normal(
-                           bestmod_fluxes[wdata],
-                           obs_errors[wdata],
-                           len(bestmod_fluxes[wdata]))
-            mock_errors[wdata] = obs_errors[wdata]
-
-            mock_fluxes[wlim] = obs_fluxes[wlim]
-            mock_errors[wlim] = obs_errors[wlim]
-
-            mock_fluxes[wnodata] = obs_fluxes[wnodata]
-            mock_errors[wnodata] = obs_errors[wnodata]
+            wdata = np.where((obs_fluxes > TOLERANCE) &
+                             (obs_errors > TOLERANCE))
+            mock_fluxes[wdata] = np.random.normal(bestmod_fluxes[wdata],
+                                                  obs_errors[wdata])
 
             mock_table = obs_table.copy()
-            mock_table['id'] = obs_table['id']
-            mock_table['redshift'] = obs_table['redshift']
-
-            indx = 0
-            for name in filters:
-                mock_table[name] = mock_fluxes[:, indx]
-                mock_table[name + "_err"] = mock_errors[:, indx]
-                indx += 1
+            for idx, name in enumerate(filters):
+                mock_table[name] = mock_fluxes[:, idx]
 
             initargs = (params, filters, analysed_variables, model_redshifts,
                         model_fluxes, model_variables, time.time(),
