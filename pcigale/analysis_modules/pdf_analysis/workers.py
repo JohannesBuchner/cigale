@@ -215,22 +215,13 @@ def analysis(idx, obs):
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
-
-    wobs = np.where(obs_fluxes > tolerance)
-    obs_fluxes = obs_fluxes[wobs]
-    obs_errors = obs_errors[wobs]
+    nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
     # We pick the indices of the models with closest redshift assuming we have
     # limited the number of decimals (usually set to 2 decimals).
     wz = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
                                                        gbl_redshifts).argmin()]])
-
-    # We only keep models with finite fluxes. Otherwise it means the models are
-    # invalid. This is probably because age > age of the universe (see function
-    # sed() above).
     model_fluxes = gbl_model_fluxes[wz[0], :]
-
-    model_fluxes = model_fluxes[:, wobs[0]]
     model_variables = gbl_model_variables[wz[0], :]
 
     chi2, scaling = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
@@ -243,8 +234,7 @@ def analysis(idx, obs):
     # We select only models that have at least 0.1% of the probability of
     # the best model to reproduce the observations. It helps eliminating
     # very bad models.
-    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), obs_fluxes.size-1) *
-                            1e-3, obs_fluxes.size-1)
+    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), nobs - 1) * 1e-3, nobs - 1)
     wlikely = np.where(chi2 < maxchi2)
 
     if wlikely[0].size == 0:
@@ -306,13 +296,13 @@ def analysis(idx, obs):
             gbl_keys.sort()
         gbl_best_parameters[idx, :] = np.array([sed.info[k] for k in gbl_keys])
         gbl_best_chi2[idx] = chi2[best_index]
-        gbl_best_chi2_red[idx] = chi2[best_index] / (obs_fluxes.size - 1.)
+        gbl_best_chi2_red[idx] = chi2[best_index] / (nobs - 1)
 
         if gbl_save['best_sed']:
             save_best_sed(obs['id'], sed, scaling[best_index])
         if gbl_save['chi2']:
             save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                        chi2 / (obs_fluxes.size - 1.))
+                        chi2 / (nobs - 1))
         if gbl_save['pdf']:
             save_pdf(obs['id'], gbl_analysed_variables, model_variables,
                      likelihood, wlikely)
