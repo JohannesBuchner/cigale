@@ -164,17 +164,17 @@ def sed(idx):
                                 gbl_params.from_index(idx))
 
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
-        model_fluxes = np.full(len(gbl_filters), np.nan)
-        model_variables = np.full(len(gbl_analysed_variables), np.nan)
+        gbl_model_fluxes[idx, :] = np.full(len(gbl_filters), np.nan)
+        gbl_model_variables[idx, :] = np.full(len(gbl_analysed_variables),
+                                              np.nan)
     else:
-        model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
-                                 gbl_filters])
-        model_variables = np.array([sed.info[name]
-                                    for name in gbl_analysed_variables])
+        gbl_model_fluxes[idx, :] = np.array([sed.compute_fnu(filter_) for
+                                             filter_ in gbl_filters])
+        gbl_model_variables[idx, :] = np.array([sed.info[name]
+                                                for name in
+                                                gbl_analysed_variables])
 
     gbl_model_redshifts[idx] = sed.info['universe.redshift']
-    gbl_model_fluxes[idx, :] = model_fluxes
-    gbl_model_variables[idx, :] = model_variables
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
