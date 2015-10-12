@@ -32,25 +32,22 @@ def save_best_sed(obsid, sed, norm):
     sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
 
 
-def save_pdf(obsid, analysed_variables, model_variables, likelihood, wlikely):
+def save_pdf(obsid, name, model_variable, likelihood):
     """Compute and save the PDF to a FITS file
 
-    We estimate the probability density functions (PDF) of the parameters from
-    a likelihood-weighted hisogram.
+    We estimate the probability density functions (PDF) of the parameter from
+    a likelihood-weighted histogram.
 
     Parameters
     ----------
     obsid: string
         Name of the object. Used to prepend the output file name
-    analysed_variables: list
-        Analysed variables names
-    model_variables: 2D array
-        Values of the model variables
+    name: string
+        Analysed variable name
+    model_variable: array
+        Values of the model variable
     likelihood: 1D array
         Likelihood of the "likely" models
-    wlikely: 1D array
-        Indices of of the likely models to select them from the model_variables
-        array
 
     """
 
@@ -59,57 +56,51 @@ def save_pdf(obsid, analysed_variables, model_variables, likelihood, wlikely):
     # number of bins equal to the number of unique values for a given
     # parameter
     Npdf = 100
-    for i, var_name in enumerate(analysed_variables):
-        min_hist = np.min(model_variables[wlikely[0], i])
-        max_hist = np.max(model_variables[wlikely[0], i])
-        Nhist = min(Npdf, len(np.unique(model_variables[:, i])))
+    min_hist = np.min(model_variable)
+    max_hist = np.max(model_variable)
+    Nhist = min(Npdf, len(np.unique(model_variable)))
 
-        if min_hist == max_hist:
-            pdf_grid = np.array([min_hist, max_hist])
-            pdf_prob = np.array([1., 1.])
-        else:
-            pdf_prob, pdf_grid = np.histogram(model_variables[wlikely[0], i],
-                                              Nhist,
-                                              (min_hist, max_hist),
-                                              weights=likelihood, density=True)
-            pdf_x = (pdf_grid[1:]+pdf_grid[:-1]) / 2.
+    if min_hist == max_hist:
+        pdf_grid = np.array([min_hist, max_hist])
+        pdf_prob = np.array([1., 1.])
+    else:
+        pdf_prob, pdf_grid = np.histogram(model_variable, Nhist,
+                                          (min_hist, max_hist),
+                                          weights=likelihood, density=True)
+        pdf_x = (pdf_grid[1:]+pdf_grid[:-1]) / 2.
 
-            pdf_grid = np.linspace(min_hist, max_hist, Npdf)
-            pdf_prob = np.interp(pdf_grid, pdf_x, pdf_prob)
+        pdf_grid = np.linspace(min_hist, max_hist, Npdf)
+        pdf_prob = np.interp(pdf_grid, pdf_x, pdf_prob)
 
-        if pdf_prob is None:
-            # TODO: use logging
-            print("Can not compute PDF for observation <{}> and "
-                  "variable <{}>.".format(obsid, var_name))
-        else:
-            table = Table((
-                Column(pdf_grid, name=var_name),
-                Column(pdf_prob, name="probability density")
-            ))
-            table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, var_name))
+    if pdf_prob is None:
+        print("Can not compute PDF for observation <{}> and variable <{}>."
+              "".format(obsid, name))
+    else:
+        table = Table((
+            Column(pdf_grid, name=name),
+            Column(pdf_prob, name="probability density")
+        ))
+        table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, name))
 
 
-def save_chi2(obsid, analysed_variables, model_variables, reduced_chi2):
-    """Save the best reduced Ç² versus the analysed variables
+def save_chi2(obsid, name, model_variable, chi2):
+    """Save the best reduced χ² versus an analysed variable
 
     Parameters
     ----------
     obsid: string
         Name of the object. Used to prepend the output file name
-    analysed_variables: list
-        Analysed variable names
-    model_variables: 2D array
-        Analysed variables values for all models
-    reduced_chi2:
-        Reduced Ç²
+    name: string
+        Analysed variable name
+    model_variable: array
+        Values of the model variable
+    chi2:
+        Reduced χ²
 
     """
-    for var_index, var_name in enumerate(analysed_variables):
-        table = Table((
-            Column(model_variables[:, var_index],
-                   name=var_name),
-            Column(reduced_chi2, name="chi2")))
-        table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, var_name))
+    table = Table((Column(model_variable, name=name),
+                   Column(chi2, name="chi2")))
+    table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, name))
 
 
 def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,

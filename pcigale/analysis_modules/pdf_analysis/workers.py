@@ -119,10 +119,9 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
     """
     init_sed(params, filters, analysed, redshifts, fluxes, variables,
              t_begin, n_computed)
-    global gbl_redshifts, gbl_w_redshifts, gbl_analysed_averages
-    global gbl_analysed_std, gbl_best_fluxes, gbl_best_parameters
-    global gbl_best_chi2, gbl_best_chi2_red, gbl_save, gbl_n_obs
-    global gbl_lim_flag, gbl_keys
+    global gbl_redshifts, gbl_analysed_averages, gbl_analysed_std
+    global gbl_best_fluxes, gbl_best_parameters, gbl_best_chi2
+    global gbl_best_chi2_red, gbl_save, gbl_n_obs, gbl_lim_flag, gbl_keys
 
     gbl_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
     gbl_analysed_averages = gbl_analysed_averages.reshape(analysed_averages[1])
@@ -140,9 +139,8 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
 
     gbl_best_chi2_red = np.ctypeslib.as_array(best_chi2_red[0])
 
-    gbl_redshifts = np.unique(gbl_model_redshifts)
-    gbl_w_redshifts = {redshift: gbl_model_redshifts == redshift
-                       for redshift in gbl_redshifts}
+    gbl_redshifts = gbl_model_redshifts[np.unique(gbl_model_redshifts,
+                                                  return_index=True)[1]]
 
     gbl_save = save
     gbl_lim_flag = lim_flag
@@ -217,15 +215,13 @@ def analysis(idx, obs):
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
-    # We pick the indices of the models with closest redshift assuming we have
-    # limited the number of decimals (usually set to 2 decimals).
-    wz = np.where(gbl_w_redshifts[gbl_redshifts[np.abs(obs['redshift'] -
-                                                       gbl_redshifts).argmin()]])
-    model_fluxes = gbl_model_fluxes[wz[0], :]
-    model_variables = gbl_model_variables[wz[0], :]
+    # We pick the the models with the closest redshift using a slice to work on
+    # views of the arrays and not on copies to save on RAM.
+    wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
+               gbl_redshifts.size)
 
-    chi2, scaling = compute_chi2(model_fluxes, obs_fluxes, obs_errors,
-                                     gbl_lim_flag)
+    chi2, scaling = compute_chi2(gbl_model_fluxes[wz, :], obs_fluxes,
+                                 obs_errors, gbl_lim_flag)
 
     ##################################################################
     # Variable analysis                                              #
@@ -254,58 +250,65 @@ def analysis(idx, obs):
 
         # We define the best fitting model for each observation as the one
         # with the least χ².
-        best_index = chi2.argmin()
+        best_index_z = chi2.argmin()  # index for models at given z
+        best_index = wz.start + best_index_z * wz.step  # index for all models
 
         # We compute once again the best sed to obtain its info
         global gbl_previous_idx
         if gbl_previous_idx > -1:
             gbl_warehouse.partial_clear_cache(
                 gbl_params.index_module_changed(gbl_previous_idx,
-                                                wz[0][best_index]))
-        gbl_previous_idx = wz[0][best_index]
+                                                best_index))
+        gbl_previous_idx = best_index
 
         sed = gbl_warehouse.get_sed(gbl_params.modules,
-                                    gbl_params.from_index([wz[0][best_index]]))
+                                    gbl_params.from_index(best_index))
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
-            sed.info[key] *= scaling[best_index]
-        for index, variable in enumerate(gbl_analysed_variables):
-            if variable in sed.mass_proportional_info:
-                model_variables[:, index] *= scaling
+            sed.info[key] *= scaling[best_index_z]
 
         # We compute the weighted average and standard deviation using the
         # likelihood as weight.
-        analysed_averages = np.empty(len(gbl_analysed_variables))
-        analysed_std = np.empty_like(analysed_averages)
+        for i, variable in enumerate(gbl_analysed_variables):
+            if variable in sed.mass_proportional_info:
+                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely]
+                                           * scaling[wlikely], likelihood)
+            else:
+                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely],
+                                           likelihood)
+            gbl_analysed_averages[idx, i] = mean
+            gbl_analysed_std[idx, i] = max(0.05 * mean, std)
 
-        for i in range(len(analysed_averages)):
-            mean, std = weighted_param(model_variables[wlikely[0], i],
-                                       likelihood)
-            analysed_averages[i] = mean
-            analysed_std[i] = max(0.05 * mean, std)
-
-        gbl_analysed_averages[idx, :] = analysed_averages
-        gbl_analysed_std[idx, :] = analysed_std
-
-        gbl_best_fluxes[idx, :] = gbl_model_fluxes[wz[0][best_index], :] \
-                      *scaling[best_index]
+        gbl_best_fluxes[idx, :] = gbl_model_fluxes[best_index, :] \
+            * scaling[best_index_z]
 
         if gbl_keys is None:
             gbl_keys = list(sed.info.keys())
             gbl_keys.sort()
         gbl_best_parameters[idx, :] = np.array([sed.info[k] for k in gbl_keys])
-        gbl_best_chi2[idx] = chi2[best_index]
-        gbl_best_chi2_red[idx] = chi2[best_index] / (nobs - 1)
+        gbl_best_chi2[idx] = chi2[best_index_z]
+        gbl_best_chi2_red[idx] = chi2[best_index_z] / (nobs - 1)
 
         if gbl_save['best_sed']:
-            save_best_sed(obs['id'], sed, scaling[best_index])
+            save_best_sed(obs['id'], sed, scaling[best_index_z])
         if gbl_save['chi2']:
-            save_chi2(obs['id'], gbl_analysed_variables, model_variables,
-                        chi2 / (nobs - 1))
+            for i, variable in enumerate(gbl_analysed_variables):
+                if variable in sed.mass_proportional_info:
+                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i] *
+                              scaling, chi2 / (nobs - 1))
+                else:
+                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i],
+                              chi2 / (nobs - 1))
         if gbl_save['pdf']:
-            save_pdf(obs['id'], gbl_analysed_variables, model_variables,
-                     likelihood, wlikely)
+            for i, variable in enumerate(gbl_analysed_variables):
+                if variable in sed.mass_proportional_info:
+                    save_pdf(obs['id'], variable,
+                             gbl_model_variables[wz, i][wlikely] *
+                             scaling[wlikely], likelihood)
+                else:
+                    save_pdf(obs['id'], variable,
+                             gbl_model_variables[wz, i][wlikely], likelihood)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
