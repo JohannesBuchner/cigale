@@ -277,6 +277,7 @@ def analyse_chi2(chi2):
           .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
                   np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
 
+
 def _compute_scaling(model_fluxes, obs_fluxes, obs_errors):
     """Compute the scaling factor to be applied to the model fluxes to best fit
     the observations. Note that we look over the bands to avoid the creation of
@@ -349,15 +350,15 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
     if (lim_flag and np.any(obs_errors <= 0.)) == True:
         for imod in range(len(model_fluxes)):
             scaling[imod] = optimize.root(dchi2_over_ds2, scaling[imod],
-                                               args=(obs_fluxes, obs_errors,
-                                                     model_fluxes[imod, :])).x
-        mask_data = (obs_errors > 0.)
+                                          args=(obs_fluxes, obs_errors,
+                                                model_fluxes[imod, :])).x
         mask_lim = (obs_errors <= 0.)
         chi2 += -2. * np.sum(
             np.log(
                 np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
                     1.+erf(
-                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim]*scaling[:, np.newaxis]) /
+                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim] *
+                         scaling[:, np.newaxis]) /
                         (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
 
     return chi2, scaling

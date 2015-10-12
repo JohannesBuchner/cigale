@@ -9,16 +9,11 @@
 import time
 
 import numpy as np
-from scipy.special import erf
 import scipy.stats as st
 
 from .utils import (save_best_sed, save_pdf, save_chi2, compute_chi2,
                     weighted_param)
 from ...warehouse import SedWarehouse
-
-# Probability threshold: models with a lower probability  are excluded from the
-# moments computation.
-MIN_PROBABILITY = 1e-20
 
 
 def init_sed(params, filters, analysed, redshifts, fluxes, variables,
@@ -207,10 +202,6 @@ def analysis(idx, obs):
     """
     np.seterr(invalid='ignore')
 
-    # Tolerance threshold under which any flux or error is considered as 0.
-    global gbl_keys
-    tolerance = 1e-12
-
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
@@ -283,6 +274,7 @@ def analysis(idx, obs):
         gbl_best_fluxes[idx, :] = gbl_model_fluxes[best_index, :] \
             * scaling[best_index_z]
 
+        global gbl_keys
         if gbl_keys is None:
             gbl_keys = list(sed.info.keys())
             gbl_keys.sort()
