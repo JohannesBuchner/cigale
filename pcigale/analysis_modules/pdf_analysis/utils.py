@@ -304,8 +304,7 @@ def _compute_scaling(model_fluxes, obs_fluxes, obs_errors):
         if np.isfinite(obs_fluxes[i]):
             num += (model_fluxes[:, i] * obs_fluxes[i] /
                     (obs_errors[i] * obs_errors[i]))
-            denom += (model_fluxes[:, i] * model_fluxes[:, i] /
-                      (obs_errors[i] * obs_errors[i]))
+            denom += np.square(model_fluxes[:, i] / obs_errors[i])
 
     return num/denom
 
