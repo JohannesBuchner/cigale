@@ -677,15 +677,15 @@ def build_schreiber2016(base):
     dust = Table.read(schreiber2016_dir + 'g15_dust.fits')
 
     # Getting the lambda grid for the templates and convert from μm to nm.
-    wave = dust['LAM'][0, 0, :] * 1e3
+    wave = dust['LAM'][0, 0, :].data * 1e3
 
     for td in np.arange(15., 100.):
         # Find the closest temperature in the model list of tdust
-        tsed = np.argmin(np.absolute(np.array(dust['TDUST'][0])-td))
+        tsed = np.argmin(np.absolute(dust['TDUST'][0].data-td))
 
         # The models are in νFν.  We convert this to W/nm.
-        lumin_dust = dust['SED'][0, tsed, :] / wave
-        lumin_pah = pah['SED'][0, tsed, :] / wave
+        lumin_dust = dust['SED'][0, tsed, :].data / wave
+        lumin_pah = pah['SED'][0, tsed, :].data / wave
 
         models.append(Schreiber2016(0, td, wave, lumin_dust))
         models.append(Schreiber2016(1, td, wave, lumin_pah))
