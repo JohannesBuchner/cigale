@@ -39,7 +39,7 @@ class Schreiber2016(CreationModule):
             'float',
             "Mass fraction of PAH. "
             "Between 0 and 1.",
-            0.1
+            0.05
         ))
     ])
 
@@ -54,8 +54,8 @@ class Schreiber2016(CreationModule):
         tdust = self.parameters["tdust"]
         fpah = self.parameters["fpah"]
         with Database() as database:
-            self.model_dust = database.get_schreiber2016(0,tdust)
-            self.model_pah = database.get_schreiber2016(1,tdust)
+            self.model_dust = database.get_schreiber2016(0, tdust)
+            self.model_pah = database.get_schreiber2016(1, tdust)
 
         # The models in memory are in W/nm/kg. At the same time we
         # need to normalize them to 1 W here to easily scale them from the
@@ -67,7 +67,7 @@ class Schreiber2016(CreationModule):
         self.emissivity = np.trapz((1. - fpah) * self.model_dust.lumin +
                                    fpah * self.model_pah.lumin,
                                    x=self.model_dust.wave)
-                                   
+
         # We want to be able to display the respective contributions of both
         # components, therefore we keep they separately.
         self.model_dust.lumin *= (1. - fpah) / self.emissivity

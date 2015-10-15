@@ -665,39 +665,33 @@ def build_nebular(base):
     base.add_nebular_continuum(models_cont)
     base.add_nebular_lines(models_lines)
 
+
 def build_schreiber2016(base):
     models = []
-    schreiber2016_dir = os.path.join(os.path.dirname(__file__), 'schreiber2016/')
+    schreiber2016_dir = os.path.join(os.path.dirname(__file__),
+                                     'schreiber2016/')
+
+    print("Importing {}...".format(schreiber2016_dir + 'g15_pah.fits'))
     pah = Table.read(schreiber2016_dir + 'g15_pah.fits')
+    print("Importing {}...".format(schreiber2016_dir + 'g15_dust.fits'))
     dust = Table.read(schreiber2016_dir + 'g15_dust.fits')
-    
-    # Getting the lambda grid for the templates and convert from microns to nm.
-    wave = dust[0][0][0] * 1E3
 
-    for td in range(15, 100, 1):
+    # Getting the lambda grid for the templates and convert from μm to nm.
+    wave = dust['LAM'][0, 0, :] * 1e3
+
+    for td in np.arange(15., 100.):
         # Find the closest temperature in the model list of tdust
-        tsed = np.where(np.absolute(np.array(dust[0][6])-td) == np.min(np.absolute(np.array(dust[0][6])-td)))[0]
-        
-        # The models are in nuFnu.
-        # We convert this to W/nm.
-        lumin_dust = dust[0][1][tsed] / wave
-        lumin_dust = lumin_dust[0]
-        #norm = np.trapz(lumin_dust, x=wave)
-        #lumin_dust /= norm
+        tsed = np.argmin(np.absolute(np.array(dust['TDUST'][0])-td))
 
-        models.append(Schreiber2016(0, np.float(td), wave, lumin_dust))
+        # The models are in νFν.  We convert this to W/nm.
+        lumin_dust = dust['SED'][0, tsed, :] / wave
+        lumin_pah = pah['SED'][0, tsed, :] / wave
 
-        # The models are in nuFnu.
-        # We convert this to W/nm.
-        lumin_pah = pah[0][1][tsed] / wave
-        lumin_pah = lumin_pah[0]
-        #norm = np.trapz(lumin_pah, x=wave)
-        #lumin_pah /= norm
+        models.append(Schreiber2016(0, td, wave, lumin_dust))
+        models.append(Schreiber2016(1, td, wave, lumin_pah))
 
-        models.append(Schreiber2016(1, np.float(td), wave, lumin_pah))
-
-                                        
     base.add_schreiber2016(models)
+
 
 def build_base():
     base = Database(writable=True)
