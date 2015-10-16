@@ -76,13 +76,13 @@ class SfhQuench(CreationModule):
 
             # Compute the galaxy mass and normalise the SFH to 1 solar mass
             # produced if asked to.
-            galaxy_mass = np.sum(sfr) * 1e6
+            sfr_integrated = np.sum(sfr) * 1e6
             if normalise:
-                sfr /= galaxy_mass
-                galaxy_mass = 1.
+                sfr /= sfr_integrated
+                sfr_integrated = 1.
 
             sed.sfh = (time, sfr)
-            sed.add_info("galaxy_mass", galaxy_mass, True, force=True)
+            sed.add_info("sfh.integrated", sfr_integrated, True, force=True)
 
         sed.add_module(self.name, self.parameters)
 

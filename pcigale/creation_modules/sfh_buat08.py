@@ -83,22 +83,21 @@ class SfhBuat08(CreationModule):
         c = np.interp(velocity, paper_velocities, paper_cs)
 
         # Main SFR
-        #
         t = time_grid / 1000  # The time is in Gyr in the formulae
         sfr = 10**(a + b * np.log10(t) + c * t**.5) / 1.e9
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.sum(sfr) * 1e6
+        sfr_integrated = np.sum(sfr) * 1e6
         if normalise:
-            sfr /= galaxy_mass
-            galaxy_mass = 1.
+            sfr /= sfr_integrated
+            sfr_integrated = 1.
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
-        sed.add_info("galaxy_mass", galaxy_mass, True)
+        sed.add_info("sfh.integrated", sfr_integrated, True)
         sed.add_info("sfh.velocity", velocity)
 
 # CreationModule to be returned by get_module

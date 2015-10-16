@@ -92,13 +92,13 @@ class Sfh2Exp(CreationModule):
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        self.galaxy_mass = np.sum(self.sfr) * 1e6
+        self.sfr_integrated = np.sum(self.sfr) * 1e6
         if normalise:
-            self.sfr /= self.galaxy_mass
-            self.galaxy_mass = 1.
+            self.sfr /= self.sfr_integrated
+            self.sfr_integrated = 1.
         else:
             self.sfr *= sfr_0
-            self.galaxy_mass *= sfr_0
+            self.sfr_integrated *= sfr_0
 
     def process(self, sed):
         """Add a double decreasing exponential Star Formation History.
@@ -113,7 +113,7 @@ class Sfh2Exp(CreationModule):
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (self.time_grid, self.sfr)
-        sed.add_info("galaxy_mass", self.galaxy_mass, True)
+        sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.tau_main", self.tau_main)
         sed.add_info("sfh.tau_burst", self.tau_burst)
         sed.add_info("sfh.f_burst", self.f_burst)
