@@ -20,11 +20,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class SFHDelayed(CreationModule):
     """Delayed tau model for Star Formation History
 
@@ -70,7 +65,7 @@ class SFHDelayed(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
+        time_grid = np.arange(1, age + 1)
 
         # Main SFR
         sfr = time_grid / tau_main**2 * np.exp(-time_grid / tau_main)

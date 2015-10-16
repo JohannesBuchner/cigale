@@ -19,11 +19,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class Sfh2Exp(CreationModule):
     """Double decreasing exponential Star Formation History
 
@@ -88,8 +83,8 @@ class Sfh2Exp(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
-        time_grid_burst = np.arange(AGE_LAPSE, burst_age + AGE_LAPSE, AGE_LAPSE)
+        time_grid = np.arange(1, age + 1)
+        time_grid_burst = np.arange(1, burst_age + 1)
 
         # SFR for each component
         sfr = np.exp(-time_grid / tau_main)

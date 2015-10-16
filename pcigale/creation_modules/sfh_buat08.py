@@ -28,11 +28,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class SfhBuat08(CreationModule):
     """Chemical evolution motivated Star Formation History
 
@@ -74,7 +69,7 @@ class SfhBuat08(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
+        time_grid = np.arange(1, age + 1)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])

@@ -21,11 +21,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class SfhQuench(CreationModule):
     """Star Formation History Quenching
 
