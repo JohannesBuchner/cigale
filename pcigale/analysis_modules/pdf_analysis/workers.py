@@ -221,7 +221,7 @@ def analysis(idx, obs):
     # We select only models that have at least 0.1% of the probability of
     # the best model to reproduce the observations. It helps eliminating
     # very bad models.
-    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), nobs - 1) * 1e-3, nobs - 1)
+    maxchi2 = st.chi2.isf(st.chi2.sf(np.nanmin(chi2), nobs-1) * 1e-3, nobs-1)
     wlikely = np.where(chi2 < maxchi2)
 
     if wlikely[0].size == 0:
@@ -241,7 +241,7 @@ def analysis(idx, obs):
 
         # We define the best fitting model for each observation as the one
         # with the least χ².
-        best_index_z = chi2.argmin()  # index for models at given z
+        best_index_z = np.nanargmin(chi2)  # index for models at given z
         best_index = wz.start + best_index_z * wz.step  # index for all models
 
         # We compute once again the best sed to obtain its info
