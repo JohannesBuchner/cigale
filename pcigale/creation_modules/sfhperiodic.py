@@ -96,7 +96,7 @@ class SfhPeriodic(CreationModule):
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        self.galaxy_mass = np.trapz(self.sfr, self.time_grid) * 1e6
+        self.galaxy_mass = np.sum(self.sfr) * 1e6
         if normalise:
             self.sfr /= self.galaxy_mass
             self.galaxy_mass = 1.
