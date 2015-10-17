@@ -206,10 +206,13 @@ def analysis(idx, obs):
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
-    # We pick the the models with the closest redshift using a slice to work on
-    # views of the arrays and not on copies to save on RAM.
-    wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
-               gbl_redshifts.size)
+    if obs['redshift'] >= 0.:
+        # We pick the the models with the closest redshift using a slice to
+        # work on views of the arrays and not on copies to save on RAM.
+        wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
+                   gbl_redshifts.size)
+    else:  # We do not know the redshift so we use the full grid
+        wz = slice(0, None, 1)
 
     chi2, scaling = compute_chi2(gbl_model_fluxes[wz, :], obs_fluxes,
                                  obs_errors, gbl_lim_flag)
