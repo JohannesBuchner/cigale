@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## Unreleased
 ### Added
 - The pcigale-mock utility has been added to generate plots comparing the exact and pcigale-estimated parameters. This requires pcigale to be run beforehand with the pdf_analysis module and the mock_flag option set to True. (Denis Burgarella and Médéric Boquien)
 - The pcigale-filter utility has been added to easily list, plot, add, and remove filters without having the rebuild the database entirely. (Médéric Boquien)
@@ -35,7 +35,7 @@
 - Each core copied the subset of models corresponding to the redshift of the object to be analysed. This is a problem as it can strongly increase memory usage with the number of cores, especially when there are many models and just one redshift. Rather than making a copy, we use a view, which not only saves a considerable amount of memory but is also faster as there is no need to allocate new, large arrays. This is made possible as models are regularly ordered with redshift. (Médéric Boquien)
 - Various minor optimisations. (Médéric Boquien)
 
-## [0.6.0] (2015-09-07)
+## 0.6.0 (2015-09-07)
 
 ### Added
 - New module to compute a star formation history as described in Buat et al. 2008. (Yannick Roehlly)
@@ -79,7 +79,7 @@
 - The output parameters of a model were stored in an ordered dictionary. While convenient to keep the order of insertion it is very slow as it is implemented in pure Python for versions up to 3.4. Rather we use a regular dictionary and we reorder the parameters alphabetically. (Médéric Boquien)
 - To store the SED in memory and retrieve them later, we index them with the list of parameters used to compute them. We serialise those using JSON. However JSON is slow. As these data are purely internal, rather use marshal, which is much faster than JSON. (Médéric Boquien)
 
-## [0.5.1] (2015-04-28)
+## 0.5.1 (2015-04-28)
 
 ### Changed
 - Set the default dale2014 AGN fraction to 0 to avoid the accidentl inclusion of AGN. (Denis Burgarella)
@@ -92,12 +92,12 @@
 - Correct the wavelength in the SCUBA 450 μm filter. (Denis Burgarella)
 - Install the ancillary data required to make plots. (Yannick Roehlly)
 
-## [0.5.0] (2015-04-02)
+## 0.5.0 (2015-04-02)
 
-## [0.4.0] (2014-10-09)
+## 0.4.0 (2014-10-09)
 
-## [0.3.0] (2014-07-06)
+## 0.3.0 (2014-07-06)
 
-## [0.2.0] (2014-06-10)
+## 0.2.0 (2014-06-10)
 
-## [0.1.0] (2014-05-26)
+## 0.1.0 (2014-05-26)
