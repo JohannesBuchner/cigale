@@ -17,7 +17,7 @@
 
 ### Fixed
 - The SFH is modelled using discrete star formation episodes every 1 Myr. This means that as the SFH is not really continuous (the input single stellar population do not allow us to compute that properly), we should not integrate SFH(t), but simply sum SFH(t) as t is discrete. In most cases the difference is very small. The only case where it makes a difference is for a very rapidly varying SFH, for instance taking τ=1 Myr. (Médéric Boquien)
-- Ensure that the flux can be computed even if the redshifting module has not been applied. By default in that case we assume a distance of 10 parsecs. While in practice it should never happen as the redshifting module is mandatory, this can be more important when using pcigale as a library. (Médéric Boquien and  Yannick Roehlly)
+- Ensure that the flux can be computed even if the redshifting module has not been applied. By default in that case we assume a distance of 10 parsecs. While in practice it should never happen as the redshifting module is mandatory, this can be more important when using pcigale as a library. (Médéric Boquien and Yannick Roehlly)
 - When called without arguments, pcigale would crash. Now it displays a brief message to remind how it should be invoked. (Médéric Boquien)
 - Raise an exception instead of crash when an unknown IMF is requested. (Médéric Boquien)
 - When the error column for a flux was present in the observation table but not in the used column list (when the user prefers to use a default error instead of the real one), the error on the flux was set to 0. (Yannick Roehlly)
@@ -34,3 +34,70 @@
 - Computing the scaling factors and the χ² in one step over the entire grid of models is very memory-intensive, leading to out-of-memory issues when using multiple cores. Rather, let's compute them band by band, as this avoids the creation of large temporary arrays, while keeping the computation fast. (Médéric Boquien).
 - Each core copied the subset of models corresponding to the redshift of the object to be analysed. This is a problem as it can strongly increase memory usage with the number of cores, especially when there are many models and just one redshift. Rather than making a copy, we use a view, which not only saves a considerable amount of memory but is also faster as there is no need to allocate new, large arrays. This is made possible as models are regularly ordered with redshift. (Médéric Boquien)
 - Various minor optimisations. (Médéric Boquien)
+
+## [0.6.0] (2015-09-07)
+
+### Added
+- New module to compute a star formation history as described in Buat et al. 2008. (Yannick Roehlly)
+- New module to compute a periodic SFH. Each star formation episode can be exponential, "delayed", or rectangular. (Médéric Boquien and Denis Burgarella)
+- New module performing a quench on the star formation history. (Yannick Roehlly)
+- New module to compute the emission of a modified black body. (Denis Burgarella)
+- New module to compute the physical properties measured on the emission spectrum (e.g. spectral indices, ultraviolet slope, etc.). (Denis Burgarella)
+- New pseudo filters to compute line fluxes and spectral indices. (Yannick Roehlly)
+- The dust masses are now computed for the draine2007 and draine2014 modules. (Médéric Boquien)
+
+### Changed
+- The nebular_lines_width parameter of the nebular module is now called lines_width as the nebular prefix was redundant. (Médéric Boquien)
+- Prefix the ouput variables of SFH-related modules with "sfh" to facilitate their identification in the output files. (Médéric Boquien)
+- Prefix the output variables of the fritz2006 AGN module with "agn" to facilitate their identification in the output files. (Médéric Boquien)
+- Prefix the redshift with "universe". (Médéric Boquien)
+- With pcigale-plot, draw the spectra only to λ=50 cm as the models do not extend much further and there is very rarely any observation beyond λ=21 cm. (Médéric Boquien)
+- As pcigale is getting much faster, display the number of computed models every 250 models rather than every 100 models. (Médéric Boquien)
+- Give default values for the dl2014, sfh_buat, and sfhdelayed modules to allow for quick test runs. (Médéric Boquien)
+- Now pcigale-plots plots errors on upper limits. (Denis Burgarella)
+
+### Fixed
+- When plotting, round the redshift to two decimals to match the redshift of the model. (Médéric Boquien)
+- Ensure that all the input parameters of the nebular module are also output so it is possible to analyse them. (Médéric Boquien)
+- Properly take the Lyman continuum photons absorbed by dust into account to compute the dust emission. (Médéric Boquien)
+- Improve the readability of the pcigale-plots generated spectra by drawing the observed fluxes on top of other lines. (Médéric Boquien)
+- The nebular components are now plotted with pcigale-plots. (Médéric Boquien)
+- When a filter that was not in the database was called, pcigale would crash ungracefully as the exception invoked does not exist in Python 3.x. Now use a Python 3.x exception. (Médéric Boquien)
+- The dustatt_powerlaw module could not identify which physical components to attenuate when the nebular module was called. (Médéric Boquien)
+- The displayed counter for the number of objects already analysed could be slightly offset from the number of models actually computed. (Médéric Boquien)
+- Change the method to compute the χ² in the presence of upper limits as the previous method did not always converge. (Denis Burgarella and Médéric Boquien)
+
+### Optimised
+- When plotting, do not recompute the luminosity distance, which is very slow, but rather get the one computed during the analysis and that is given in the output files. (Médéric Boquien)
+- Adding new physical components with a wavelength sampling different than that of the pre-existing grid is slow as a common grid has to be computed and all components interpolated over it. The nebular lines are especially bad for that, owing to the fact that each line is sampled with 19 points. This is excessive as sampling over 9 points barely changes the fluxes while speeding up the computation of the models by ~20%. (Médéric Boquien)
+- Rather than resampling the filter transmission on the wavelength grid every time the flux is computed in a given filter, put the resampled filter into a cache. (Médéric Boquien)
+- Rather than recomputing every time the merged wavelength grid from two different wavelength grids (for instance when adding a new physical component or when integrating the spectrum in a filter), put the results in a cache. (Médéric Boquien)
+- Before adding a new component to a SED, we first copy the original SED without that component from the cache. This copy can be very slow when done automatically by python. We rather do this copy manually, which is much faster. (Médéric Boquien)
+- When adding a new physical component with a different wavelength sampling, rather than reinterpolating all the components over the new grid, compute the interpolation only for new wavelengths. (Médéric Boquien)
+- Various minor optimisations. (Médéric Boquien)
+- When computing the flux in filters, np.trapz() becomes a bottleneck of the code. A large part of the time is actually spent on safeguards and on operations for nD arrays. However here we only have 1D arrays and some variables can be cached, which allows some optimisations to compute fluxes faster. (Médéric Boquien)
+- The output parameters of a model were stored in an ordered dictionary. While convenient to keep the order of insertion it is very slow as it is implemented in pure Python for versions up to 3.4. Rather we use a regular dictionary and we reorder the parameters alphabetically. (Médéric Boquien)
+- To store the SED in memory and retrieve them later, we index them with the list of parameters used to compute them. We serialise those using JSON. However JSON is slow. As these data are purely internal, rather use marshal, which is much faster than JSON. (Médéric Boquien)
+
+## [0.5.1] (2015-04-28)
+
+### Changed
+- Set the default dale2014 AGN fraction to 0 to avoid the accidentl inclusion of AGN. (Denis Burgarella)
+- Modify the name of the averaged SFR: two averaged SFRs over 10 (sfh.sfr10Myrs) and 100Myrs (sfh.sfr100Myrs). (Denis Burgarella)
+- Improve the documentation of the savefluxes module. (Denis Burgarella)
+
+### Fixed
+- Correction of the x-axis limits. (Denis Burgarella)
+- Fix the detection of the presence of the agn.fritz2006_therm in pcigale-plots. (Denis Burgarella)
+- Correct the wavelength in the SCUBA 450 μm filter. (Denis Burgarella)
+- Install the ancillary data required to make plots. (Yannick Roehlly)
+
+## [0.5.0] (2015-04-02)
+
+## [0.4.0] (2014-10-09)
+
+## [0.3.0] (2014-07-06)
+
+## [0.2.0] (2014-06-10)
+
+## [0.1.0] (2014-05-26)
