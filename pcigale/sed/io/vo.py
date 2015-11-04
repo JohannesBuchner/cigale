@@ -38,23 +38,23 @@ def save_sed_to_vo(sed, filename, norm=1.):
     fnu_table.array["wavelength"] = sed.wavelength_grid
     fnu_table.array["F_nu"] = norm * sed.fnu
 
-    # F_lambda contributions and total
-    flambda_table = Table(votable, name="Flambda", id="Flambda")
-    spectra_resource.tables.append(flambda_table)
-    flambda_fields = [
+    # L_lambda contributions and total
+    Llambda_table = Table(votable, name="Llambda", id="Llambda")
+    spectra_resource.tables.append(Llambda_table)
+    Llambda_fields = [
         Field(votable, name="wavelength", datatype="double", unit="nm",
               ucd="em.wl"),
-        Field(votable, name="F_lambda_total", datatype="double", unit="W/nm",
+        Field(votable, name="L_lambda_total", datatype="double", unit="W/nm",
               ucd="phot.flux")]
     for name in sed.contribution_names:
-        flambda_fields.append(Field(votable, name=name, datatype="double",
+        Llambda_fields.append(Field(votable, name=name, datatype="double",
                                     unit="W/nm", ucd="phot.flux"))
-    flambda_table.fields.extend(flambda_fields)
-    flambda_table.create_arrays(len(sed.wavelength_grid))
-    flambda_table.array["wavelength"] = sed.wavelength_grid
-    flambda_table.array["F_lambda_total"] = norm * sed.luminosity
+    Llambda_table.fields.extend(Llambda_fields)
+    Llambda_table.create_arrays(len(sed.wavelength_grid))
+    Llambda_table.array["wavelength"] = sed.wavelength_grid
+    Llambda_table.array["L_lambda_total"] = norm * sed.luminosity
     for name in sed.contribution_names:
-        flambda_table.array[name] = norm * sed.get_lumin_contribution(name)
+        Llambda_table.array[name] = norm * sed.get_lumin_contribution(name)
 
     # SFH
     if sed.sfh is not None:
