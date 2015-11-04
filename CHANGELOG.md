@@ -6,6 +6,7 @@
 - The pcigale-filter utility has been added to easily list, plot, add, and remove filters without having the rebuild the database entirely. (Médéric Boquien)
 - It is now possible to analyse the flux in a band as a regular parameter. It can be useful for flux predictions. (Yannick Roehlly)
 - The redshift can be a now used as a free parameter, enabling pcigale to estimate the photometric redshift. (Médéric Boquien)
+- When running "pcigale genconf", the list of modules is automatically checked against the list of official modules. If modules are missing, information is printed on the screen indicating the level of severity (information, warning, or error) and the list of modules that can be used. (Médéric Boquien)
 
 ### Changed
 - The galaxy_mass parameter was very ambiguous. In reality it corresponds to the integral of the SFH. Consequently it has been renamed sfh.integrated. (Médéric Boquien)
@@ -26,6 +27,7 @@
 - Shorten the left and right 0 parts of the pseudo D4000 filter so that it can be applied on smaller spectra. (Yannick Roehlly)
 - To compute the reduced χ², we need to divide by the number of bands-1 (and not the number of bands). We do that because we consider that the models depend on one meta-parameter. (Médéric Boquien)
 - The test to determine when to take into account upper limits did not work according the specifications. Now upper limits are always taken into account when they should. (Médéric Boquien)
+- The nebular emission could be counted in excess in the dust luminosity as both lines and the Lyman continuum could be attenuated. Now we do not extend the attenuation under 91 nm. Also, a new component as been added, taking specifically the Lyman continuum absorption by gas, allowing to conserve the information about the intrinsic stellar Lyman continuum if need be. (Yannick Roehlly and Médéric Boquien)
 
 ### Optimised
 - Major speedup to build the database by inserting multiple models in the database at once rather one model at a time. On an SSD, the total run time of "python setup.py build" goes from 5m20s to 2m42s. The speedup should be even more spectacular on a rotating hard drive. (Médéric Boquien)
