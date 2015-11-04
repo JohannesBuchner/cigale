@@ -218,7 +218,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                            marker=None, nonposy='clip', linestyle='-',
                            linewidth=0.5)
 
-            ax1.loglog(wavelength_spec[wsed], sed['F_lambda_total'][wsed],
+            ax1.loglog(wavelength_spec[wsed], sed['L_lambda_total'][wsed],
                        label="Model spectrum", color='k', nonposy='clip',
                        linestyle='-', linewidth=1.5)
 
