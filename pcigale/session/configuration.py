@@ -4,7 +4,7 @@
 # Author: Yannick Roehlly
 
 import pkgutil
-import collections
+from collections import Iterable, OrderedDict
 import multiprocessing as mp
 from textwrap import wrap
 
@@ -70,7 +70,7 @@ def evaluate_description(description):
         if description.startswith('eval '):
             results = eval(description[4:])
             # If the evaluation lead to a single value, we put it in a list.
-            if not isinstance(results, collections.Iterable):
+            if not isinstance(results, Iterable):
                 results = [results]
         elif description.startswith('range '):
             start, stop, step = [float(item) for item
@@ -219,6 +219,8 @@ class Configuration(object):
             self.config['sed_creation_modules'].comments[module_name] = [
                 creation_modules.get_module(module_name, blank=True).comments]
 
+        self.check_modules()
+
         # Configuration for the analysis method
         self.config['analysis_configuration'] = {}
         self.config.comments['analysis_configuration'] = ["", ""] + wrap(
@@ -276,3 +278,39 @@ class Configuration(object):
             self.config['analysis_configuration']
 
         return configuration
+
+    def check_modules(self):
+        """Make a basic check to ensure that some required modules are present.
+        Otherwise we emit a warning so the user knows their list of modules is
+        suspicious. We do not emit an exception as they may be using an
+        unofficial module that is not in our list
+        """
+
+        modules = OrderedDict((('SFH', ['sfh2exp', 'sfhdelayed', 'sfhfromfile',
+                                        'sfhperiodic']),
+                               ('SSP', ['bc03', 'm2005']),
+                               ('nebular', ['nebular']),
+                               ('dust attenuation', ['dustatt_calzleit',
+                                                     'dustatt_powerlaw']),
+                               ('dust emission', ['casey2012', 'dale2014',
+                                                  'dl2007', 'dl2014']),
+                               ('AGN', ['dale2014', 'fritz2006']),
+                               ('radio', ['radio']),
+                               ('redshift', ['redshifting'])))
+
+        comments = {'SFH': "ERROR! Choosing one SFH modules is mandatory.",
+                    'SSP': "ERROR! Choosing one SSP is mandatory.",
+                    'nebular': "WARNING! Choosing the nebular module is "
+                               "recommended. Without it the Lyman continuum "
+                               "is left untouched.",
+                    'dust attenuation': "No dust attenuation module found.",
+                    'dust emission': "No dust attenuation module found.",
+                    'AGN': "No AGN module found.",
+                    'radio': "No radio module found.",
+                    'redshift': "ERROR! No redshifting module found"}
+
+        for module in modules:
+            if all([user_module not in modules[module] for user_module in
+                    self.config['creation_modules']]):
+                print("{} Options are: {}.".
+                      format(comments[module], ', '.join(modules[module])))
