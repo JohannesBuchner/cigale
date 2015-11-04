@@ -298,8 +298,8 @@ class Configuration(object):
                                ('radio', ['radio']),
                                ('redshift', ['redshifting'])))
 
-        comments = {'SFH': "ERROR! Choosing one SFH modules is mandatory.",
-                    'SSP': "ERROR! Choosing one SSP is mandatory.",
+        comments = {'SFH': "ERROR! Choosing one SFH module is mandatory.",
+                    'SSP': "ERROR! Choosing one SSP module is mandatory.",
                     'nebular': "WARNING! Choosing the nebular module is "
                                "recommended. Without it the Lyman continuum "
                                "is left untouched.",
@@ -307,7 +307,7 @@ class Configuration(object):
                     'dust emission': "No dust attenuation module found.",
                     'AGN': "No AGN module found.",
                     'radio': "No radio module found.",
-                    'redshift': "ERROR! No redshifting module found"}
+                    'redshift': "ERROR! No redshifting module found."}
 
         for module in modules:
             if all([user_module not in modules[module] for user_module in
