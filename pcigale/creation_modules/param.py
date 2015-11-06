@@ -38,11 +38,6 @@ class Param(CreationModule):
     """
 
     parameter_list = OrderedDict([
-        ("OK", (
-            "boolean",
-            "Are you here?.",
-            "True"
-        )),
         ("filter_list", (
             "string",
             "Filters for which the flux will be computed and added to the SED "
