@@ -48,7 +48,7 @@ class Param(CreationModule):
             "Filters for which the flux will be computed and added to the SED "
             "information dictionary. You can give several filter names "
             "separated by a & (don't use commas).",
-            None
+            ""
         ))
     ])
 
@@ -128,7 +128,8 @@ class Param(CreationModule):
 
         # Computation of fluxes
         filter_list = [item.strip() for item in
-                       self.parameters["filter_list"].split("&")]
+                       self.parameters["filter_list"].split("&")
+                       if item.strip() != '']
 
         for filter_ in filter_list:
             sed.add_info(
