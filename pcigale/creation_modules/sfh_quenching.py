@@ -63,6 +63,11 @@ class SfhQuench(CreationModule):
         # Read the star formation history of the SED
         time, sfr = sed.sfh
 
+        if quenching_age > time[-1]:
+            raise Exception("[sfh_quenching] The quenching age is greater "
+                            "than the galaxy age. Please fix your parameters.")
+
+
         # We assume the time in the star formation history is evenly spaced to
         # compute the reverse index (i.e. from the end of the array) of the SFH
         # step corresponding to the quenching age.
