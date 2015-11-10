@@ -29,6 +29,7 @@
 - The test to determine when to take into account upper limits did not work according the specifications. Now upper limits are always taken into account when they should. (Médéric Boquien)
 - The nebular emission could be counted in excess in the dust luminosity as both lines and the Lyman continuum could be attenuated. Now we do not extend the attenuation under 91 nm. Also, a new component as been added, taking specifically the Lyman continuum absorption by gas, allowing to conserve the information about the intrinsic stellar Lyman continuum if need be. (Yannick Roehlly and Médéric Boquien)
 - The Flambda table in the VO-table export does not reflect the fact that it stores luminosity densities. Accordingly, it has been renamed Llambda. (Yannick Roehlly and Médéric Boquien)
+- When the flux file contains a mix of spaces and tabulations as column separators, pcigale discards the header and takes the first data line as the header. Now pcigale properly handles such a combination. Bug reported by Paola Santini. (Médéric Boquien)
 
 ### Optimised
 - Major speedup to build the database by inserting multiple models in the database at once rather one model at a time. On an SSD, the total run time of "python setup.py build" goes from 5m20s to 2m42s. The speedup should be even more spectacular on a rotating hard drive. (Médéric Boquien)
