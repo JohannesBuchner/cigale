@@ -170,7 +170,6 @@ class NebularEmission(CreationModule):
                                  lines.ratio * NLy_old * self.conv_line)
             sed.add_contribution('nebular.lines_young', lines.wave,
                                  lines.ratio * NLy_young * self.conv_line)
-            print(lines.ratio, NLy_young, self.conv_line, lines.ratio * NLy_young * self.conv_line)
 
             sed.add_contribution('nebular.continuum_old', cont.wave,
                                  cont.lumin * NLy_old * self.conv_cont)
