@@ -89,7 +89,6 @@ class SaveFluxes(AnalysisModule):
 
         # Rename the output directory if it exists
         backup_dir()
-
         out_file = parameters["output_file"]
         out_format = parameters["output_format"]
         save_sed = parameters["save_sed"].lower() == "true"
@@ -98,7 +97,7 @@ class SaveFluxes(AnalysisModule):
         n_filters = len(filters)
 
         w_redshifting = creation_modules.index('redshifting')
-        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
             obs_table = read_table(data_file)
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))
