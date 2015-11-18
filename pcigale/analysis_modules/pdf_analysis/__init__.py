@@ -142,7 +142,7 @@ class PdfAnalysis(AnalysisModule):
         n_obs = len(obs_table)
 
         w_redshifting = creation_modules.index('redshifting')
-        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))
             creation_modules_params[w_redshifting]['redshift'] = z
