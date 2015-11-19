@@ -164,14 +164,26 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ax2 = plt.subplot(gs[1])
 
             # Stellar emission
-            ax1.loglog(wavelength_spec[wsed],
-                       (sed['stellar.young'][wsed] +
-                        sed['attenuation.stellar.young'][wsed] +
-                        sed['stellar.old'][wsed] +
-                        sed['attenuation.stellar.old'][wsed]),
-                       label="Stellar attenuated ", color='orange',
-                       marker=None, nonposy='clip', linestyle='-',
-                       linewidth=0.5)
+            if 'nebular.absorption_young' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['nebular.absorption_young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed] +
+                            sed['nebular.absorption_old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
+            else:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
             ax1.loglog(wavelength_spec[wsed],
                        (sed['stellar.old'][wsed] +
                         sed['stellar.young'][wsed]),
