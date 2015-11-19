@@ -7,17 +7,19 @@
 # Author: Yannick Roehlly, Médéric Boquien & Denis Burgarella
 
 import argparse
-from astropy.table import Table
 from itertools import product, repeat
 from collections import OrderedDict
+
+from astropy.table import Table
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import numpy as np
 import os
 import pkg_resources
-from scipy.constants import c, parsec
+from scipy.constants import c
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
@@ -113,7 +115,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
     if os.path.isfile(OUT_DIR + "{}_best_model.xml".format(obs['id'])):
 
         sed = Table.read(OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                         table_id="Flambda")
+                         table_id="Llambda")
 
         filters_wl = np.array([filt.effective_wavelength
                                for filt in filters.values()])
@@ -162,14 +164,26 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ax2 = plt.subplot(gs[1])
 
             # Stellar emission
-            ax1.loglog(wavelength_spec[wsed],
-                       (sed['stellar.young'][wsed] +
-                        sed['attenuation.stellar.young'][wsed] +
-                        sed['stellar.old'][wsed] +
-                        sed['attenuation.stellar.old'][wsed]),
-                       label="Stellar attenuated ", color='orange',
-                       marker=None, nonposy='clip', linestyle='-',
-                       linewidth=0.5)
+            if 'nebular.absorption_young' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['nebular.absorption_young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed] +
+                            sed['nebular.absorption_old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
+            else:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
             ax1.loglog(wavelength_spec[wsed],
                        (sed['stellar.old'][wsed] +
                         sed['stellar.young'][wsed]),
@@ -216,7 +230,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                            marker=None, nonposy='clip', linestyle='-',
                            linewidth=0.5)
 
-            ax1.loglog(wavelength_spec[wsed], sed['F_lambda_total'][wsed],
+            ax1.loglog(wavelength_spec[wsed], sed['L_lambda_total'][wsed],
                        label="Model spectrum", color='k', nonposy='clip',
                        linestyle='-', linewidth=1.5)
 

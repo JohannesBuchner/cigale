@@ -14,7 +14,9 @@ in Charlot and Fall (2000) with a UV bump added.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 
 
@@ -65,6 +67,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     """Compute the complete attenuation curve A(λ)/Av
 
     The continuum is a power law (λ / λv) ** δ to which is added a UV bump.
+    Over the Lyman continuum, there is no attenuation.
 
     Parameters
     ----------
@@ -88,8 +91,10 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     wave = np.array(wavelength)
 
     attenuation = power_law(wave, delta)
-    attenuation = attenuation + uv_bump(wavelength, bump_wave,
-                                        bump_width, bump_ampl)
+    attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
+
+    # Lyman continuum not attenuated.
+    attenuation[wavelength <= 91.2] = 0.
 
     return attenuation
 
@@ -180,7 +185,9 @@ class PowerLawAtt(CreationModule):
                                               uv_bump_width, uv_bump_amplitude)
 
         attenuation_total = 0.
-        for contrib in list(sed.contribution_names):
+        contribs = [contrib for contrib in sed.contribution_names if
+                    'absorption' not in contrib]
+        for contrib in contribs:
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **

@@ -1,6 +1,7 @@
 .be/id-cache
 .DS_Store
 *.pyc
+build/
 pcigale/data/data.db
 pcigale.egg-info
 docs/_build

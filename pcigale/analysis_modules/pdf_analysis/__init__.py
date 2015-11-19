@@ -42,7 +42,6 @@ from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
 from ..utils import ParametersHandler, backup_dir
 
-from ..utils import OUT_DIR
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
@@ -118,6 +117,7 @@ class PdfAnalysis(AnalysisModule):
             Number of cores to run the analysis on
 
         """
+        np.seterr(invalid='ignore')
 
         print("Initialising the analysis module... ")
 
@@ -142,7 +142,7 @@ class PdfAnalysis(AnalysisModule):
         n_obs = len(obs_table)
 
         w_redshifting = creation_modules.index('redshifting')
-        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))
             creation_modules_params[w_redshifting]['redshift'] = z
@@ -208,12 +208,11 @@ class PdfAnalysis(AnalysisModule):
         best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
         best_chi2_red = (RawArray(ctypes.c_double, n_obs), (n_obs))
 
-        phase = 1
         initargs = (params, filters, analysed_variables, model_redshifts,
                     model_fluxes, model_variables, time.time(),
                     mp.Value('i', 0), analysed_averages, analysed_std,
                     best_fluxes, best_parameters, best_chi2, best_chi2_red,
-                    save, lim_flag, n_obs, phase)
+                    save, lim_flag, n_obs)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             for idx, obs in enumerate(obs_table):
@@ -238,48 +237,30 @@ class PdfAnalysis(AnalysisModule):
 
             print("\nMock analysis...")
 
+            # For the mock analysis we do not save the ancillary files
+            for k in save:
+                save[k] = False
+
             obs_fluxes = np.array([obs_table[name] for name in filters]).T
             obs_errors = np.array([obs_table[name + "_err"] for name in
                                    filters]).T
-            mock_fluxes = np.empty_like(obs_fluxes)
-            mock_errors = np.empty_like(obs_errors)
+            mock_fluxes = obs_fluxes.copy()
             bestmod_fluxes = np.ctypeslib.as_array(best_fluxes[0])
             bestmod_fluxes = bestmod_fluxes.reshape(best_fluxes[1])
-
-            wdata = np.where((obs_fluxes > 0.) & (obs_errors > 0.))
-            wlim = np.where((obs_fluxes > 0.) & (obs_errors >= -9990.) &
-                            (obs_errors < 0.))
-            wnodata = np.where((obs_fluxes <= -9990.) &
-                               (obs_errors <= -9990.))
-
-            mock_fluxes[wdata] = np.random.normal(
-                           bestmod_fluxes[wdata],
-                           obs_errors[wdata],
-                           len(bestmod_fluxes[wdata]))
-            mock_errors[wdata] = obs_errors[wdata]
-
-            mock_fluxes[wlim] = obs_fluxes[wlim]
-            mock_errors[wlim] = obs_errors[wlim]
-
-            mock_fluxes[wnodata] = obs_fluxes[wnodata]
-            mock_errors[wnodata] = obs_errors[wnodata]
+            wdata = np.where((obs_fluxes > TOLERANCE) &
+                             (obs_errors > TOLERANCE))
+            mock_fluxes[wdata] = np.random.normal(bestmod_fluxes[wdata],
+                                                  obs_errors[wdata])
 
             mock_table = obs_table.copy()
-            mock_table['id'] = obs_table['id']
-            mock_table['redshift'] = obs_table['redshift']
+            for idx, name in enumerate(filters):
+                mock_table[name] = mock_fluxes[:, idx]
 
-            indx = 0
-            for name in filters:
-                mock_table[name] = mock_fluxes[:, indx]
-                mock_table[name + "_err"] = mock_errors[:, indx]
-                indx += 1
-
-            phase = 2
             initargs = (params, filters, analysed_variables, model_redshifts,
                         model_fluxes, model_variables, time.time(),
                         mp.Value('i', 0), analysed_averages, analysed_std,
                         best_fluxes, best_parameters, best_chi2,
-                        best_chi2_red, save, lim_flag, n_obs, phase)
+                        best_chi2_red, save, lim_flag, n_obs)
             if cores == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):

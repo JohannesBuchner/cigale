@@ -31,10 +31,12 @@ Such SED is characterised by:
 """
 
 import numpy as np
+from scipy.constants import c, parsec
+
 from . import utils
 from .io.vo import save_sed_to_vo
-from scipy.constants import c, parsec
 from ..data import Database
+
 
 
 # Time lapse used to compute the average star formation rate. We use a
@@ -107,9 +109,12 @@ class SED(object):
         """
 
         # Fλ flux density in W/m²/nm
-        f_lambda = utils.luminosity_to_flux(self.luminosity,
-                                            self.info
-                                            ['universe.luminosity_distance'])
+        if 'universe.luminosity_distance' in self.info:
+            f_lambda = utils.luminosity_to_flux(self.luminosity,
+                                                self.info
+                                                ['universe.luminosity_distance'])
+        else:
+            f_lambda = utils.luminosity_to_flux(self.luminosity, 10. * parsec)
 
         # Fν flux density in mJy
         f_nu = utils.lambda_flambda_to_fnu(self.wavelength_grid, f_lambda)
@@ -257,7 +262,7 @@ class SED(object):
         Fν is computed in W/m²/Hz and then converted to mJy.
 
         If the SED spectrum does not cover all the filter response table,
-        -99 is returned.
+        NaN is returned.
 
         Parameters
         ----------
@@ -301,7 +306,7 @@ class SED(object):
             # Test if the filter covers all the spectrum extent. If not then
             # the flux is not defined
             if ((wavelength[0] > lambda_min) or (wavelength[-1] < lambda_max)):
-                return -99.
+                return np.nan
 
             # We regrid both spectrum and filter to the best wavelength grid
             # to avoid interpolating a high wavelength density curve to a low

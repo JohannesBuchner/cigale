@@ -11,7 +11,9 @@ This module implements the Fritz et al. (2006) models.
 
 """
 from collections import OrderedDict
+
 import numpy as np
+
 from pcigale.data import Database
 from . import CreationModule
 

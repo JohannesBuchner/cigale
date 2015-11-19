@@ -5,6 +5,7 @@
 # Author: Yannick Roehlly & Denis Burgarella
 
 from importlib import import_module
+
 import numpy as np
 from astropy.table import Column
 
@@ -148,20 +149,18 @@ def get_module(module_name):
         raise
 
 
-def adjust_errors(flux, error, tolerance, lim_flag, default_error=0.1,
-                  systematic_deviation=0.1):
-    """Adjust the errors replacing the 0 values by the default error and
-    adding the systematic deviation.
-
-    The systematic deviation change the error to:
-    sqrt( error² + (flux * deviation)² )
+def adjust_data(fluxes, errors, tolerance, lim_flag, default_error=0.1,
+                systematic_deviation=0.1):
+    """Adjust the fluxes and errors replacing the invalid values by NaN, and
+    adding the systematic deviation. The systematic deviation changes the
+    errors to: sqrt(errors² + (fluxes*deviation)²)
 
     Parameters
     ----------
-    flux: array of floats
-        Fluxes.
-    error: array of floats
-        Observational error in the same unit as the fluxes.
+    fluxes: array of floats
+        Observed fluxes.
+    errors: array of floats
+        Observational errors in the same unit as the fluxes.
     tolerance: float
         Tolerance threshold under flux error is considered as 0.
     lim_flag: boolean
@@ -179,38 +178,35 @@ def adjust_errors(flux, error, tolerance, lim_flag, default_error=0.1,
 
     """
     # The arrays must have the same lengths.
-    if len(flux) != len(error):
+    if len(fluxes) != len(errors):
         raise ValueError("The flux and error arrays must have the same "
                          "length.")
 
-    # We copy the error array not to modify the original one.
-    error = np.copy(error)
+    # We copy the arrays not to modify the original ones.
+    fluxes = fluxes.copy()
+    errors = errors.copy()
 
-    # We define:
-    # 1) upper limit == (lim_flag==True) and
-    #                [(flux > tolerance) and (-9990. < error < tolerance)]
-    # 2) no data == (flux < -9990.) and (error < -9990.)
-    # Note that the upper-limit test must be performed before the no-data test
-    # because if lim_flag is False, we process upper limits as no-data.
-    #
-    # Replace errors below tolerance by the default one.
-    mask_noerror = np.logical_and(flux > tolerance, error < -9990.)
-    error[mask_noerror] = (default_error * flux[mask_noerror])
+    # We set invalid data to NaN
+    mask_invalid = np.where((fluxes <= tolerance) | (errors < -9990.))
+    fluxes[mask_invalid] = np.nan
+    errors[mask_invalid] = np.nan
 
-    mask_limflag = np.logical_and.reduce(
-                       (flux > tolerance, error >= -9990., error < tolerance))
+    # Replace missing errors by the default ones.
+    mask_noerror = np.where((fluxes > tolerance) & ~np.isfinite(errors))
+    errors[mask_noerror] = (default_error * fluxes[mask_noerror])
 
     # Replace upper limits by no data if lim_flag==False
     if not lim_flag:
-        flux[mask_limflag] = -9999.
-        error[mask_limflag] = -9999.
-
-    mask_ok = np.logical_and(flux > tolerance, error > tolerance)
+        mask_limflag = np.where((fluxes > tolerance) & (errors < tolerance))
+        fluxes[mask_limflag] = np.nan
+        errors[mask_limflag] = np.nan
 
     # Add the systematic error.
-    error[mask_ok] = np.sqrt(error[mask_ok]**2 +
-                             (flux[mask_ok]*systematic_deviation)**2)
-    return error
+    mask_ok = np.where((fluxes > tolerance) & (errors > tolerance))
+    errors[mask_ok] = np.sqrt(errors[mask_ok]**2 +
+                             (fluxes[mask_ok]*systematic_deviation)**2)
+
+    return fluxes, errors
 
 
 def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
@@ -259,20 +255,17 @@ def complete_obs_table(obs_table, used_columns, filter_list, tolerance,
                                 "the observation table.".format(name))
 
         name_err = name + "_err"
-        if name_err not in used_columns:
-            if name_err not in obs_table.columns:
-                obs_table.add_column(Column(
-                    name=name_err,
-                    data=np.ones(len(obs_table), dtype=float))*-9999.,
-                    index=obs_table.colnames.index(name)+1
-                )
-            else:
-                obs_table[name_err] = np.zeros(len(obs_table))
+        if name_err not in obs_table.columns:
+            obs_table.add_column(Column(name=name_err,
+                                        data=np.full(len(obs_table), np.nan)),
+            index=obs_table.colnames.index(name)+1)
+        elif name_err not in used_columns:
+            obs_table[name_err] = np.full(len(obs_table), np.nan)
 
-        obs_table[name_err] = adjust_errors(obs_table[name],
-                                            obs_table[name_err],
-                                            tolerance,
-                                            lim_flag,
-                                            default_error,
-                                            systematic_deviation)
+        obs_table[name], obs_table[name_err] = adjust_data(obs_table[name],
+                                                           obs_table[name_err],
+                                                           tolerance,
+                                                           lim_flag,
+                                                           default_error,
+                                                           systematic_deviation)
     return obs_table

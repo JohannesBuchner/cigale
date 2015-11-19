@@ -18,8 +18,10 @@ This module implements the radio emission of galaxies, taking into account only
 """
 
 from collections import OrderedDict
+
 import numpy as np
 import scipy.constants as cst
+
 from . import CreationModule
 
 

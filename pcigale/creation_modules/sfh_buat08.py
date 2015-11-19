@@ -22,12 +22,10 @@ and interpolate the values of a, b and c.
 """
 
 from collections import OrderedDict
-import numpy as np
-from . import CreationModule
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
+import numpy as np
+
+from . import CreationModule
 
 
 class SfhBuat08(CreationModule):
@@ -71,7 +69,7 @@ class SfhBuat08(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
+        time_grid = np.arange(1, age + 1)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])
@@ -85,22 +83,21 @@ class SfhBuat08(CreationModule):
         c = np.interp(velocity, paper_velocities, paper_cs)
 
         # Main SFR
-        #
         t = time_grid / 1000  # The time is in Gyr in the formulae
         sfr = 10**(a + b * np.log10(t) + c * t**.5) / 1.e9
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
+        sfr_integrated = np.sum(sfr) * 1e6
         if normalise:
-            sfr = sfr / galaxy_mass
-            galaxy_mass = 1.
+            sfr /= sfr_integrated
+            sfr_integrated = 1.
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
-        sed.add_info("galaxy_mass", galaxy_mass, True)
+        sed.add_info("sfh.integrated", sfr_integrated, True)
         sed.add_info("sfh.velocity", velocity)
 
 # CreationModule to be returned by get_module

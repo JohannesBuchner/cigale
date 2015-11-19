@@ -12,7 +12,9 @@ This module implements the Maraston (2005) Single Stellar Populations.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 from ..data import Database
 
@@ -65,6 +67,8 @@ class M2005(CreationModule):
             imf = 'salp'
         elif self.parameters["imf"] == 1:
             imf = 'krou'
+        else:
+            raise Exception("IMF #{} unknown".format(self.parameters["imf"]))
         metallicity = float(self.parameters["metallicity"])
         with Database() as database:
             self.ssp = database.get_m2005(imf, metallicity)

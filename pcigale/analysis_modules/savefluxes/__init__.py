@@ -28,6 +28,7 @@ from ...warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
 
+
 # Limit the redshift to this number of decimals
 REDSHIFT_DECIMALS = 2
 
@@ -88,7 +89,6 @@ class SaveFluxes(AnalysisModule):
 
         # Rename the output directory if it exists
         backup_dir()
-
         out_file = parameters["output_file"]
         out_format = parameters["output_format"]
         save_sed = parameters["save_sed"].lower() == "true"
@@ -97,7 +97,7 @@ class SaveFluxes(AnalysisModule):
         n_filters = len(filters)
 
         w_redshifting = creation_modules.index('redshifting')
-        if creation_modules_params[w_redshifting]['redshift'] == ['']:
+        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
             obs_table = read_table(data_file)
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))

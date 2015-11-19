@@ -10,13 +10,21 @@ Module that estimates other parameters, e.g., UV slope, Lick indices, etc.
 This module estimates additional parameters of interest
 close to the observation, e.g., the ultraviolet slope (beta), the rest-frame
 far-ultraviolet luminosity, any type of indices (Lick), etc.
+
+This module can also be used to compute the fluxes in some filters and add them
+to the SED parameters (each flux will be added as “param.FILTERID”).  This can
+be used for instance to compute the flux probability distribution for not
+observed filters during an analysis.
+
 This module will be the last one (after redshifting) to account
 for all the physical processes at play to build the received total emission.
 
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 
 
@@ -30,10 +38,12 @@ class Param(CreationModule):
     """
 
     parameter_list = OrderedDict([
-        ("OK", (
-            "boolean",
-            "Are you here?.",
-            "True"
+        ("filter_list", (
+            "string",
+            "Filters for which the flux will be computed and added to the SED "
+            "information dictionary. You can give several filter names "
+            "separated by a & (don't use commas).",
+            ""
         ))
     ])
 
@@ -110,6 +120,18 @@ class Param(CreationModule):
         sed.add_info("param.beta_calz94", beta_calz94)
         sed.add_info("param.FUV_luminosity", L_FUV, True)
         sed.add_info("param.D_4000", D_4000)
+
+        # Computation of fluxes
+        filter_list = [item.strip() for item in
+                       self.parameters["filter_list"].split("&")
+                       if item.strip() != '']
+
+        for filter_ in filter_list:
+            sed.add_info(
+                "param.{}".format(filter_),
+                sed.compute_fnu(filter_),
+                True
+            )
 
 # CreationModule to be returned by get_module
 Module = Param

@@ -20,6 +20,7 @@ from sqlalchemy import create_engine, exc, Column, String,  Float, PickleType
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, sessionmaker
 import numpy as np
+
 from .filters import Filter
 from .m2005 import M2005
 from .bc03 import BC03
@@ -29,7 +30,6 @@ from .dl2014 import DL2014
 from .fritz2006 import Fritz2006
 from .nebular_continuum import NebularContinuum
 from .nebular_lines import NebularLines
-
 
 DATABASE_FILE = pkg_resources.resource_filename(__name__, 'data.db')
 
@@ -404,17 +404,18 @@ class Database(object):
         """
         return self._get_parameters(_BC03)
 
-    def add_dl2007(self, model):
+    def add_dl2007(self, models):
         """
-        Add a Draine and Li (2007) model to the database.
+        Add a list of Draine and Li (2007) models to the database.
 
         Parameters
         ----------
-        model: pcigale.data.DL2007
+        models: list of pcigale.data.DL2007 objects
 
         """
         if self.is_writable:
-            self.session.add(_DL2007(model))
+            for model in models:
+                self.session.add(_DL2007(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -423,6 +424,7 @@ class Database(object):
                     'The DL07 model is already in the base.')
         else:
             raise Exception('The database is not writable.')
+
 
     def get_dl2007(self, qpah, umin, umax):
         """
@@ -471,17 +473,18 @@ class Database(object):
         """
         return self._get_parameters(_DL2007)
 
-    def add_dl2014(self, model):
+    def add_dl2014(self, models):
         """
-        Add an updated Draine and Li (2007) model to the database.
+        Add a list of updated Draine and Li (2007) models to the database.
 
         Parameters
         ----------
-        model: pcigale.data.DL2014
+        models: list of pcigale.data.DL2014 objects
 
         """
         if self.is_writable:
-            self.session.add(_DL2014(model))
+            for model in models:
+                self.session.add(_DL2014(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -542,19 +545,19 @@ class Database(object):
         """
         return self._get_parameters(_DL2014)
 
-    def add_dale2014(self, iragn):
+    def add_dale2014(self, models):
         """
         Add Dale et al (2014) templates the collection.
 
         Parameters
         ----------
-        iragn: pcigale.data.Dale2014
+        models: list of pcigale.data.Dale2014 objects
 
         """
 
         if self.is_writable:
-            template = _Dale2014(iragn)
-            self.session.add(template)
+            for model in models:
+                self.session.add(_Dale2014(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -609,17 +612,18 @@ class Database(object):
         """
         return self._get_parameters(_Dale2014)
 
-    def add_fritz2006(self, agn):
+    def add_fritz2006(self, models):
         """
         Add a Fritz et al. (2006) AGN model to the database.
 
         Parameters
         ----------
-        agn: pcigale.data.Fritz2006
+        models: list of pcigale.data.Fritz2006 objects
 
         """
         if self.is_writable:
-            self.session.add(_Fritz2006(agn))
+            for model in models:
+                self.session.add(_Fritz2006(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -695,12 +699,13 @@ class Database(object):
         """
         return self._get_parameters(_Fritz2006)
 
-    def add_nebular_lines(self, nebular_lines):
+    def add_nebular_lines(self, models):
         """
         Add ultraviolet and optical line templates to the database.
         """
         if self.is_writable:
-            self.session.add(_NebularLines(nebular_lines))
+            for model in models:
+                self.session.add(_NebularLines(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -740,12 +745,13 @@ class Database(object):
         """
         return self._get_parameters(_NebularLines)
 
-    def add_nebular_continuum(self, nebular_continuum):
+    def add_nebular_continuum(self, models):
         """
         Add nebular continuum templates to the database.
         """
         if self.is_writable:
-            self.session.add(_NebularContinuum(nebular_continuum))
+            for model in models:
+                self.session.add(_NebularContinuum(model))
             try:
                 self.session.commit()
             except exc.IntegrityError:
@@ -817,6 +823,45 @@ class Database(object):
         else:
             raise Exception('The database is not writable.')
 
+    def add_filters(self, pcigale_filters):
+        """
+        Add a list of filters to the pcigale database.
+
+        Parameters
+        ----------
+        pcigale_filters: list of pcigale.data.Filter objects
+        """
+        if self.is_writable:
+            for pcigale_filter in pcigale_filters:
+                self.session.add(_Filter(pcigale_filter))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError('The filter is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def del_filter(self, name):
+        """
+        Delete a filter from the pcigale database.
+
+        Parameters
+        ----------
+        name: name of the filter to be deleted
+        """
+        if self.is_writable:
+            if name in self.get_filter_names():
+                (self.session.query(_Filter).
+                 filter(_Filter.name == name).delete())
+                try:
+                    self.session.commit()
+                except exc.IntegrityError:
+                    raise Exception('The database is not writable.')
+        else:
+            raise DatabaseLookupError(
+                "The filter <{0}> is not in the database".format(name))
+
     def get_filter(self, name):
         """
         Get a specific filter from the collection
@@ -847,20 +892,15 @@ class Database(object):
             raise DatabaseLookupError(
                 "The filter <{0}> is not in the database".format(name))
 
-    def get_filter_list(self):
-        """Get the list of the filters in the database.
+    def get_filter_names(self):
+        """Get the list of the name of the filters in the database.
 
         Returns
         -------
-        names, lambda_eff: array, dictionary
-            names is the list of the filter names and lambda_eff is a
-            dictionary associating the effective wavelength (in nm) to the
-            filter name
+        names: list
+            list of the filter names
         """
-        result = self.session.query(_Filter.name,
-                                    _Filter.effective_wavelength).all()
-        result = dict(result)
-        return result.keys(), result
+        return [n[0] for n in self.session.query(_Filter.name).all()]
 
     def parse_filters(self):
         """Generator to parse the filter database."""

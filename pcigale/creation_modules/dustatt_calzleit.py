@@ -14,7 +14,9 @@ attenuation formulae, adding an UV-bump and a power law.
 """
 
 from collections import OrderedDict
+
 import numpy as np
+
 from . import CreationModule
 
 
@@ -123,11 +125,11 @@ def power_law(wavelength, delta):
 def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     """Compute the complete attenuation curve A(λ)/E(B-V)*
 
-    The Leitherer et al. (2002) formula is used bellow 150 nm (even if it is
-    defined only after 91.2 nm) and the Calzetti et al. (2000) formula is used
-    after 150 (we do an extrapolation after 2200 nm). When the attenuation
-    becomes negative, it is kept to 0. This continuum is multiplied by the
-    power law and then the UV bump is added.
+    The Leitherer et al. (2002) formula is used between 91.2 nm and 150 nm, and
+    the Calzetti et al. (2000) formula is used after 150 (we do an
+    extrapolation after 2200 nm). When the attenuation becomes negative, it is
+    kept to 0. This continuum is multiplied by the power law and then the UV
+    bump is added.
 
     Parameters
     ----------
@@ -151,7 +153,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     attenuation = np.zeros(len(wavelength))
 
     # Leitherer et al.
-    mask = (wavelength < 150)
+    mask = (wavelength > 91.2) & (wavelength < 150)
     attenuation[mask] = k_leitherer2002(wavelength[mask])
     # Calzetti et al.
     mask = (wavelength >= 150)
@@ -160,10 +162,9 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     mask = (attenuation < 0)
     attenuation[mask] = 0
     # Power law
-    attenuation = attenuation * power_law(wavelength, power_slope)
+    attenuation *= power_law(wavelength, power_slope)
     # UV bump
-    attenuation = attenuation + uv_bump(wavelength, bump_wave,
-                                        bump_width, bump_ampl)
+    attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
 
     return attenuation
 
@@ -183,7 +184,9 @@ class CalzLeit(CreationModule):
         ("E_BVs_young", (
             "float",
             "E(B-V)*, the colour excess of the stellar continuum light for "
-            "the young population.",
+            "the young population. BEWARE that if you add a power law with "
+            "a slope different from 0, this E(B-V)* no longer equals "
+            "A(B) - A(V).",
             0.3
         )),
         ("E_BVs_old_factor", (
@@ -217,7 +220,7 @@ class CalzLeit(CreationModule):
             "Filters for which the attenuation will be computed and added to "
             "the SED information dictionary. You can give several filter "
             "names separated by a & (don't use commas).",
-            "V_B90 & FUV"
+            "B_B90 & V_B90 & FUV"
         ))
     ])
 
@@ -256,7 +259,9 @@ class CalzLeit(CreationModule):
                                             powerlaw_slope)
 
         attenuation_total = 0.
-        for contrib in list(sed.contribution_names):
+        contribs = [contrib for contrib in sed.contribution_names if
+                    'absorption' not in contrib]
+        for contrib in contribs:
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **

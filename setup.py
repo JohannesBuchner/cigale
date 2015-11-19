@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012, 2013 Centre de données Astrophysiques de Marseille
+# Copyright (C) 2012, 2015 Centre de données Astrophysiques de Marseille
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
@@ -19,12 +19,14 @@ class custom_build(build):
 
 entry_points = {
     'console_scripts': ['pcigale = pcigale:main',
-                        'pcigale-plots = pcigale_plots:main']
+                        'pcigale-plots = pcigale_plots:main',
+                        'pcigale-filters = pcigale_filters:main',
+                        'pcigale-mock = pcigale_mock:main']
 }
 
 setup(
     name="pcigale",
-    version="0.6.0",
+    version="0.7.0",
     packages=find_packages(exclude=["database_builder"]),
 
     install_requires=['numpy', 'scipy', 'sqlalchemy', 'matplotlib',
@@ -34,7 +36,8 @@ setup(
 
     cmdclass={"build": custom_build},
     package_data={'pcigale': ['data/data.db'],
-                  'pcigale_plots': ['data/CIGALE.png']},
+                  'pcigale_plots': ['data/CIGALE.png'],
+                  'pcigale_mock': ['data/CIGALE.png']},
 
     author="The CIGALE team",
     author_email="cigale@lam.fr",

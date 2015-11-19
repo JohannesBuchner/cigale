@@ -14,12 +14,10 @@ rise of the SFR up to a maximum, followed by an exponential decrease.
 """
 
 from collections import OrderedDict
-import numpy as np
-from . import CreationModule
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
+import numpy as np
+
+from . import CreationModule
 
 
 class SFHDelayed(CreationModule):
@@ -67,26 +65,26 @@ class SFHDelayed(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
+        time_grid = np.arange(1, age + 1)
 
         # Main SFR
         sfr = time_grid / tau_main**2 * np.exp(-time_grid / tau_main)
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
+        sfr_integrated = np.sum(sfr) * 1e6
         if normalise:
-            sfr = sfr / galaxy_mass
-            galaxy_mass = 1.
+            sfr /= sfr_integrated
+            sfr_integrated = 1.
         else:
             sfr *= sfr_A
-            galaxy_mass *= sfr_A
+            sfr_integrated *= sfr_A
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
         sed.sfh = (time_grid, sfr)
-        sed.add_info("galaxy_mass", galaxy_mass, True)
+        sed.add_info("sfh.integrated", sfr_integrated, True)
         sed.add_info("sfh.tau_main", tau_main)
 
 # CreationModule to be returned by get_module

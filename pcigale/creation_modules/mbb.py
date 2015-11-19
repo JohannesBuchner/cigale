@@ -17,8 +17,10 @@ wavelength range.
 """
 
 from collections import OrderedDict
+
 import numpy as np
 import scipy.constants as cst
+
 from . import CreationModule
 
 

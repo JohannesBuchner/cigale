@@ -21,9 +21,9 @@ is changed, this module may need to be adapted.
 import numpy as np
 from scipy.constants import parsec
 from scipy.misc import factorial
+from astropy.cosmology import WMAP7 as cosmology
 
 from ..creation_modules import CreationModule
-from astropy.cosmology import WMAP7 as cosmology
 
 
 def igm_transmission(wavelength, redshift):

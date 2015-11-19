@@ -8,15 +8,12 @@
 from astropy import log
 from astropy.table import Table, Column
 import numpy as np
+from scipy import optimize
 from scipy.special import erf
-from scipy.stats import scoreatpercentile
 
 from ..utils import OUT_DIR
 
 log.setLevel('ERROR')
-
-# Number of points in the PDF
-PDF_NB_POINTS = 1000
 
 
 def save_best_sed(obsid, sed, norm):
@@ -35,62 +32,75 @@ def save_best_sed(obsid, sed, norm):
     sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
 
 
-def save_pdf(obsid, analysed_variables, model_variables, likelihood):
-    """Save the PDF to a FITS file
+def save_pdf(obsid, name, model_variable, likelihood):
+    """Compute and save the PDF to a FITS file
 
-    We estimate the probability density functions (PDF) of the parameters using
-    a weighted kernel density estimation. This part should definitely be
-    improved as we simulate the weight by adding as many value as their
-    probability * 100.
+    We estimate the probability density functions (PDF) of the parameter from
+    a likelihood-weighted histogram.
 
     Parameters
     ----------
     obsid: string
         Name of the object. Used to prepend the output file name
-    analysed_variables: list
-        Analysed variables names
-    model_variables: 2D array
-        Analysed variables values for all models
-    likelihood: 2D array
-        Likelihood for all models
+    name: string
+        Analysed variable name
+    model_variable: array
+        Values of the model variable
+    likelihood: 1D array
+        Likelihood of the "likely" models
 
     """
-    for var_index, var_name in enumerate(analysed_variables):
-        pdf_grid = model_variables[:, var_index]
-        pdf_prob = likelihood[:, var_index]
-        if pdf_prob is None:
-            # TODO: use logging
-            print("Can not compute PDF for observation <{}> and "
-                  "variable <{}>.".format(obsid, var_name))
-        else:
-            table = Table((
-                Column(pdf_grid, name=var_name),
-                Column(pdf_prob, name="probability density")
-            ))
-            table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, var_name))
 
+    # We check how many unique parameter values are analysed and if
+    # less than Npdf (= 100), the PDF is initally built assuming a
+    # number of bins equal to the number of unique values for a given
+    # parameter
+    Npdf = 100
+    min_hist = np.min(model_variable)
+    max_hist = np.max(model_variable)
+    Nhist = min(Npdf, len(np.unique(model_variable)))
 
-def save_chi2(obsid, analysed_variables, model_variables, reduced_chi2):
-    """Save the best reduced Ç² versus the analysed variables
+    if min_hist == max_hist:
+        pdf_grid = np.array([min_hist, max_hist])
+        pdf_prob = np.array([1., 1.])
+    else:
+        pdf_prob, pdf_grid = np.histogram(model_variable, Nhist,
+                                          (min_hist, max_hist),
+                                          weights=likelihood, density=True)
+        pdf_x = (pdf_grid[1:]+pdf_grid[:-1]) / 2.
 
-    Parameters
-    ----------
-    obsid: string
-        Name of the object. Used to prepend the output file name
-    analysed_variables: list
-        Analysed variable names
-    model_variables: 2D array
-        Analysed variables values for all models
-    reduced_chi2:
-        Reduced Ç²
+        pdf_grid = np.linspace(min_hist, max_hist, Npdf)
+        pdf_prob = np.interp(pdf_grid, pdf_x, pdf_prob)
 
-    """
-    for var_index, var_name in enumerate(analysed_variables):
+    if pdf_prob is None:
+        print("Can not compute PDF for observation <{}> and variable <{}>."
+              "".format(obsid, name))
+    else:
         table = Table((
-            Column(model_variables[:, var_index],
-                   name=var_name),
-            Column(reduced_chi2, name="chi2")))
-        table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, var_name))
+            Column(pdf_grid, name=name),
+            Column(pdf_prob, name="probability density")
+        ))
+        table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, name))
+
+
+def save_chi2(obsid, name, model_variable, chi2):
+    """Save the best reduced χ² versus an analysed variable
+
+    Parameters
+    ----------
+    obsid: string
+        Name of the object. Used to prepend the output file name
+    name: string
+        Analysed variable name
+    model_variable: array
+        Values of the model variable
+    chi2:
+        Reduced χ²
+
+    """
+    table = Table((Column(model_variable, name=name),
+                   Column(chi2, name="chi2")))
+    table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, name))
 
 
 def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,
@@ -213,9 +223,9 @@ def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
     # The mask "data" selects the filter(s) for which measured fluxes are given
     # i.e., when obs_fluxes is >=0. and obs_errors >=0.
     # The mask "lim" selects the filter(s) for which upper limits are given
-    # i.e., when obs_fluxes is >=0. and obs_errors = 9990 <= obs_errors < 0.
+    # i.e., when obs_errors < 0
 
-    wlim = np.where((obs_errors >= -9990.) & (obs_errors < 0.))
+    wlim = np.where(np.isfinite(obs_errors) & (obs_errors < 0.))
     wdata = np.where(obs_errors >= 0.)
 
     mod_fluxes_data = mod_fluxes[wdata]
@@ -266,3 +276,113 @@ def analyse_chi2(chi2):
     print("\n{}% of the objects have chi^2_red~0 and {}% chi^2_red<0.5"
           .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
                   np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
+
+
+def _compute_scaling(model_fluxes, obs_fluxes, obs_errors):
+    """Compute the scaling factor to be applied to the model fluxes to best fit
+    the observations. Note that we look over the bands to avoid the creation of
+    an array of the same size as the model_fluxes array. Because we loop on the
+    bands and not on the models, the impact on the performance should be small.
+
+    Parameters
+    ----------
+    model_fluxes: array
+        Fluxes of the models
+    obs_fluxes: array
+        Observed fluxes
+    obs_errors: array
+        Observed errors
+
+    Returns
+    -------
+    scaling: array
+        Scaling factors minimising the χ²
+    """
+    num = np.zeros(model_fluxes.shape[0])
+    denom = np.zeros(model_fluxes.shape[0])
+    for i in range(obs_fluxes.size):
+        if np.isfinite(obs_fluxes[i]):
+            num += model_fluxes[:, i] * (obs_fluxes[i] / (obs_errors[i] *
+                                                          obs_errors[i]))
+            denom += np.square(model_fluxes[:, i] / obs_errors[i])
+
+    return num/denom
+
+
+def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
+    """Compute the χ² of observed fluxes with respect to the grid of models. We
+    take into account upper limits if need be. Note that we look over the bands
+    to avoid the creation of an array of the same size as the model_fluxes
+    array. Because we loop on the bands and not on the models, the impact on
+    the performance should be small.
+
+    Parameters
+    ----------
+    model_fluxes: array
+        2D grid containing the fluxes of the models
+    obs_fluxes: array
+        Fluxes of the observed object
+    obs_errors: array
+        Uncertainties on the fluxes of the observed object
+    lim_flag: boolean
+        Boolean indicating whether upper limits should be treated (True) or
+        discarded (False)
+
+    Returns
+    -------
+    chi2: array
+        χ² for all the models in the grid
+    scaling: array
+        scaling of the models to obtain the minimum χ²
+    """
+    scaling = _compute_scaling(model_fluxes, obs_fluxes, obs_errors)
+
+    # χ² of the comparison of each model to each observation.
+    chi2 = np.zeros(model_fluxes.shape[0])
+    for i in range(obs_fluxes.size):
+        if np.isfinite(obs_fluxes[i]) and obs_errors[i] > 0.:
+            chi2 += np.square(
+                (obs_fluxes[i] - model_fluxes[:, i] * scaling) / obs_errors[i])
+
+    # Some observations may not have flux values in some filter(s), but
+    # they can have upper limit(s).
+    if (lim_flag and np.any(obs_errors <= 0.)) == True:
+        for imod in range(len(model_fluxes)):
+            scaling[imod] = optimize.root(dchi2_over_ds2, scaling[imod],
+                                          args=(obs_fluxes, obs_errors,
+                                                model_fluxes[imod, :])).x
+        mask_lim = (obs_errors <= 0.)
+        chi2 += -2. * np.sum(
+            np.log(
+                np.sqrt(np.pi/2.)*(-obs_errors[mask_lim])*(
+                    1.+erf(
+                        (obs_fluxes[mask_lim]-model_fluxes[:, mask_lim] *
+                         scaling[:, np.newaxis]) /
+                        (np.sqrt(2)*(-obs_errors[mask_lim]))))), axis=1)
+
+    return chi2, scaling
+
+
+def weighted_param(param, weights):
+    """Compute the weighted mean and standard deviation of an array of data.
+
+    Parameters
+    ----------
+    param: array
+        Values of the parameters for the entire grid of models
+    weights: array
+        Weights by which to weight the parameter values
+
+    Returns
+    -------
+    mean: float
+        Weighted mean of the parameter values
+    std: float
+        Weighted standard deviation of the parameter values
+
+    """
+
+    mean = np.average(param, weights=weights)
+    std = np.sqrt(np.average((param-mean)**2, weights=weights))
+
+    return (mean, std)

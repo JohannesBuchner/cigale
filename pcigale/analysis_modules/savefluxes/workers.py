@@ -10,7 +10,6 @@ import time
 import numpy as np
 
 from ...warehouse import SedWarehouse
-
 from ..utils import OUT_DIR
 
 
@@ -84,12 +83,11 @@ def fluxes(idx):
         sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
 
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
-        model_fluxes = -99. * np.ones(len(gbl_filters))
+        gbl_model_fluxes[idx, :] = np.full(len(gbl_filters), np.nan)
     else:
-        model_fluxes = np.array([sed.compute_fnu(filter_) for filter_ in
-                                 gbl_filters])
+        gbl_model_fluxes[idx, :] = np.array([sed.compute_fnu(filter_) for
+                                             filter_ in gbl_filters])
 
-    gbl_model_fluxes[idx, :] = model_fluxes
     if gbl_keys is None:
         gbl_keys = list(sed.info.keys())
         gbl_keys.sort()

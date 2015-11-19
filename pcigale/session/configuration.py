@@ -3,14 +3,16 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Yannick Roehlly
 
-import configobj
-import pkg_resources
 import pkgutil
-import collections
+from collections import Iterable, OrderedDict
 import multiprocessing as mp
-import numpy as np
-from glob import glob  # To allow the use of glob() in "eval..."
 from textwrap import wrap
+
+import configobj
+from glob import glob  # To allow the use of glob() in "eval..."
+import pkg_resources
+import numpy as np
+
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules
@@ -68,7 +70,7 @@ def evaluate_description(description):
         if description.startswith('eval '):
             results = eval(description[4:])
             # If the evaluation lead to a single value, we put it in a list.
-            if not isinstance(results, collections.Iterable):
+            if not isinstance(results, Iterable):
                 results = [results]
         elif description.startswith('range '):
             start, stop, step = [float(item) for item
@@ -126,16 +128,16 @@ class Configuration(object):
             "the configuration file, in particular for the savefluxes module.")
 
         self.config['creation_modules'] = []
-        self.config.comments['creation_modules'] = [""] + wrap(
-            "Order of the modules use for SED creation. Available modules: "
-            "SFH: sfh2exp, sfhdelayed, sfhfromfile, sfhperiodic ; "
-            "SSP: bc03, m2005 ; "
-            "Nebular: nebular ; "
-            "Attenuation: dustatt_calzleit, dustatt_powerlaw ; "
-            "Dust model: casey2012, dale2014, dl2007, dl2014 ; "
-            "AGN: dale2014, fritz2006 ; "
-            "Radio: radio ; "
-            "redshift: redshifting (mandatory!).")
+        self.config.comments['creation_modules'] = ([""] +
+            ["Order of the modules use for SED creation. Available modules:"] +
+            ["SFH: sfh2exp, sfhdelayed, sfhfromfile, sfhperiodic"] +
+            ["SSP: bc03, m2005"] +
+            ["Nebular emission: nebular"] +
+            ["Dust attenuation: dustatt_calzleit, dustatt_powerlaw"] +
+            ["Dust emission: casey2012, dale2014, dl2007, dl2014"] +
+            ["AGN: dale2014, fritz2006"] +
+            ["Radio: radio"] +
+            ["Redshift: redshifting (mandatory!)"])
 
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
@@ -160,7 +162,7 @@ class Configuration(object):
 
         # Getting the list of the filters available in pcigale database
         with Database() as base:
-            filter_list = base.get_filter_list()[0]
+            filter_list = base.get_filter_names()
 
         if self.config['data_file'] != '':
             obs_table = read_table(self.config['data_file'])
@@ -216,6 +218,8 @@ class Configuration(object):
 
             self.config['sed_creation_modules'].comments[module_name] = [
                 creation_modules.get_module(module_name, blank=True).comments]
+
+        self.check_modules()
 
         # Configuration for the analysis method
         self.config['analysis_configuration'] = {}
@@ -274,3 +278,39 @@ class Configuration(object):
             self.config['analysis_configuration']
 
         return configuration
+
+    def check_modules(self):
+        """Make a basic check to ensure that some required modules are present.
+        Otherwise we emit a warning so the user knows their list of modules is
+        suspicious. We do not emit an exception as they may be using an
+        unofficial module that is not in our list
+        """
+
+        modules = OrderedDict((('SFH', ['sfh2exp', 'sfhdelayed', 'sfhfromfile',
+                                        'sfhperiodic']),
+                               ('SSP', ['bc03', 'm2005']),
+                               ('nebular', ['nebular']),
+                               ('dust attenuation', ['dustatt_calzleit',
+                                                     'dustatt_powerlaw']),
+                               ('dust emission', ['casey2012', 'dale2014',
+                                                  'dl2007', 'dl2014']),
+                               ('AGN', ['dale2014', 'fritz2006']),
+                               ('radio', ['radio']),
+                               ('redshift', ['redshifting'])))
+
+        comments = {'SFH': "ERROR! Choosing one SFH module is mandatory.",
+                    'SSP': "ERROR! Choosing one SSP module is mandatory.",
+                    'nebular': "WARNING! Choosing the nebular module is "
+                               "recommended. Without it the Lyman continuum "
+                               "is left untouched.",
+                    'dust attenuation': "No dust attenuation module found.",
+                    'dust emission': "No dust attenuation module found.",
+                    'AGN': "No AGN module found.",
+                    'radio': "No radio module found.",
+                    'redshift': "ERROR! No redshifting module found."}
+
+        for module in modules:
+            if all([user_module not in modules[module] for user_module in
+                    self.config['creation_modules']]):
+                print("{} Options are: {}.".
+                      format(comments[module], ', '.join(modules[module])))
