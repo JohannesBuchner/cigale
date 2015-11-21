@@ -1,5 +1,12 @@
 # Change Log
 
+## Unreleased
+### Added
+### Changed
+### Fixed
+
+### Optimised
+
 ## 0.7.0 (2015-11-19)
 ### Added
 - The pcigale-mock utility has been added to generate plots comparing the exact and pcigale-estimated parameters. This requires pcigale to be run beforehand with the pdf_analysis module and the mock_flag option set to True. (Denis Burgarella and Médéric Boquien)
