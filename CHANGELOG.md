@@ -4,6 +4,7 @@
 ### Added
 ### Changed
 ### Fixed
+- Running the scripts in parallel trigger a deadlock on OS X with python 3.5. A workaround has been implemented.
 
 ### Optimised
 
