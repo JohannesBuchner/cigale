@@ -206,10 +206,13 @@ def analysis(idx, obs):
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
-    # We pick the the models with the closest redshift using a slice to work on
-    # views of the arrays and not on copies to save on RAM.
-    wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
-               gbl_redshifts.size)
+    if obs['redshift'] >= 0.:
+        # We pick the the models with the closest redshift using a slice to
+        # work on views of the arrays and not on copies to save on RAM.
+        wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
+                   gbl_redshifts.size)
+    else:  # We do not know the redshift so we use the full grid
+        wz = slice(0, None, 1)
 
     chi2, scaling = compute_chi2(gbl_model_fluxes[wz, :], obs_fluxes,
                                  obs_errors, gbl_lim_flag)
@@ -221,7 +224,7 @@ def analysis(idx, obs):
     # We select only models that have at least 0.1% of the probability of
     # the best model to reproduce the observations. It helps eliminating
     # very bad models.
-    maxchi2 = st.chi2.isf(st.chi2.sf(np.min(chi2), nobs - 1) * 1e-3, nobs - 1)
+    maxchi2 = st.chi2.isf(st.chi2.sf(np.nanmin(chi2), nobs-1) * 1e-3, nobs-1)
     wlikely = np.where(chi2 < maxchi2)
 
     if wlikely[0].size == 0:
@@ -241,7 +244,7 @@ def analysis(idx, obs):
 
         # We define the best fitting model for each observation as the one
         # with the least χ².
-        best_index_z = chi2.argmin()  # index for models at given z
+        best_index_z = np.nanargmin(chi2)  # index for models at given z
         best_index = wz.start + best_index_z * wz.step  # index for all models
 
         # We compute once again the best sed to obtain its info

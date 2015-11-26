@@ -185,7 +185,9 @@ class PowerLawAtt(CreationModule):
                                               uv_bump_width, uv_bump_amplitude)
 
         attenuation_total = 0.
-        for contrib in list(sed.contribution_names):
+        contribs = [contrib for contrib in sed.contribution_names if
+                    'absorption' not in contrib]
+        for contrib in contribs:
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
             attenuated_luminosity = (luminosity * 10 **

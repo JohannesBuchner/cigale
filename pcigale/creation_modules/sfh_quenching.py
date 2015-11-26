@@ -21,11 +21,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class SfhQuench(CreationModule):
     """Star Formation History Quenching
 
@@ -68,6 +63,11 @@ class SfhQuench(CreationModule):
         # Read the star formation history of the SED
         time, sfr = sed.sfh
 
+        if quenching_age > time[-1]:
+            raise Exception("[sfh_quenching] The quenching age is greater "
+                            "than the galaxy age. Please fix your parameters.")
+
+
         # We assume the time in the star formation history is evenly spaced to
         # compute the reverse index (i.e. from the end of the array) of the SFH
         # step corresponding to the quenching age.
@@ -81,13 +81,13 @@ class SfhQuench(CreationModule):
 
             # Compute the galaxy mass and normalise the SFH to 1 solar mass
             # produced if asked to.
-            galaxy_mass = np.trapz(sfr, time) * 1e6
+            sfr_integrated = np.sum(sfr) * 1e6
             if normalise:
-                sfr /= galaxy_mass
-                galaxy_mass = 1.
+                sfr /= sfr_integrated
+                sfr_integrated = 1.
 
             sed.sfh = (time, sfr)
-            sed.add_info("galaxy_mass", galaxy_mass, True, force=True)
+            sed.add_info("sfh.integrated", sfr_integrated, True, force=True)
 
         sed.add_module(self.name, self.parameters)
 

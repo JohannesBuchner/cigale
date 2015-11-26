@@ -19,11 +19,6 @@ import numpy as np
 from . import CreationModule
 
 
-# Time lapse used in the age grid in Myr. If should be consistent with the
-# time lapse in the SSP modules.
-AGE_LAPSE = 1
-
-
 class Sfh2Exp(CreationModule):
     """Double decreasing exponential Star Formation History
 
@@ -71,6 +66,40 @@ class Sfh2Exp(CreationModule):
         )),
     ])
 
+    def _init_code(self):
+        self.tau_main = float(self.parameters["tau_main"])
+        self.tau_burst = float(self.parameters["tau_burst"])
+        self.f_burst = float(self.parameters["f_burst"])
+        self.burst_age = int(self.parameters["burst_age"])
+        age = int(self.parameters["age"])
+        sfr_0 = int(self.parameters["sfr_0"])
+        normalise = (self.parameters["normalise"].lower() == "true")
+
+        # Time grid and age. If needed, the age is rounded to the inferior Myr
+        self.time_grid = np.arange(1, age + 1)
+        time_grid_burst = np.arange(1, self.burst_age + 1)
+
+        # SFR for each component
+        self.sfr = np.exp(-self.time_grid / self.tau_main)
+        sfr_burst = np.exp(-time_grid_burst / self.tau_burst)
+
+        # Height of the late burst to have the desired produced mass fraction
+        sfr_burst *= self.f_burst / (1.-self.f_burst) * np.sum(self.sfr) / np.sum(sfr_burst)
+
+        # We add the age burst exponential for ages superior to age -
+        # burst_age
+        self.sfr[-time_grid_burst[-1]:] += sfr_burst
+
+        # Compute the galaxy mass and normalise the SFH to 1 solar mass
+        # produced if asked to.
+        self.sfr_integrated = np.sum(self.sfr) * 1e6
+        if normalise:
+            self.sfr /= self.sfr_integrated
+            self.sfr_integrated = 1.
+        else:
+            self.sfr *= sfr_0
+            self.sfr_integrated *= sfr_0
+
     def process(self, sed):
         """Add a double decreasing exponential Star Formation History.
 
@@ -79,52 +108,16 @@ class Sfh2Exp(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        tau_main = float(self.parameters["tau_main"])
-        tau_burst = float(self.parameters["tau_burst"])
-        f_burst = float(self.parameters["f_burst"])
-        age = int(self.parameters["age"])
-        burst_age = int(self.parameters["burst_age"])
-        sfr_0 = int(self.parameters["sfr_0"])
-        normalise = (self.parameters["normalise"].lower() == "true")
-
-        # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(AGE_LAPSE, age + AGE_LAPSE, AGE_LAPSE)
-        age = np.max(time_grid)
-
-        # Main exponential
-        sfr = np.exp(-time_grid / tau_main)
-
-        # Height of the late burst to have the desired produced mass fraction
-        # (assuming that the main burst as a height of 1).
-        burst_height = (f_burst/(1-f_burst) * tau_main/tau_burst *
-                        (1-np.exp(-age/tau_main)) /
-                        (1-np.exp(-burst_age/tau_burst)))
-
-        # We add the age burst exponential for ages superior to age -
-        # burst_age
-        mask = (time_grid >= (age - burst_age))
-        sfr[mask] = sfr[mask] + burst_height * np.exp(
-            (-time_grid[mask] + age - burst_age) / tau_burst)
-
-        # Compute the galaxy mass and normalise the SFH to 1 solar mass
-        # produced if asked to.
-        galaxy_mass = np.trapz(sfr, time_grid) * 1e6
-        if normalise:
-            sfr /= galaxy_mass
-            galaxy_mass = 1.
-        else:
-            sfr *= sfr_0
-            galaxy_mass *= sfr_0
 
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (time_grid, sfr)
-        sed.add_info("galaxy_mass", galaxy_mass, True)
-        sed.add_info("sfh.tau_main", tau_main)
-        sed.add_info("sfh.tau_burst", tau_burst)
-        sed.add_info("sfh.f_burst", f_burst)
-        sed.add_info("sfh.burst_age", burst_age)
+        sed.sfh = (self.time_grid, self.sfr)
+        sed.add_info("sfh.integrated", self.sfr_integrated, True)
+        sed.add_info("sfh.tau_main", self.tau_main)
+        sed.add_info("sfh.tau_burst", self.tau_burst)
+        sed.add_info("sfh.f_burst", self.f_burst)
+        sed.add_info("sfh.burst_age", self.burst_age)
 
 # CreationModule to be returned by get_module
 Module = Sfh2Exp

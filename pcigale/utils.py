@@ -32,10 +32,10 @@ def read_table(file_):
 
     """
     try:
-        table = Table.read(file_)
+        table = Table.read(file_, delimiter='\s')
     except Exception:  # astropy should raise a specific exception
         try:
-            table = Table.read(file_, format="ascii")
+            table = Table.read(file_, format="ascii", delimiter='\s')
         except InconsistentTableError:
             raise Exception("The file <{}> can not be parsed as a data "
                             "table.".format(file_))

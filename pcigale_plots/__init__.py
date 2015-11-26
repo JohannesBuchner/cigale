@@ -115,7 +115,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
     if os.path.isfile(OUT_DIR + "{}_best_model.xml".format(obs['id'])):
 
         sed = Table.read(OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                         table_id="Flambda")
+                         table_id="Llambda")
 
         filters_wl = np.array([filt.effective_wavelength
                                for filt in filters.values()])
@@ -164,14 +164,26 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             ax2 = plt.subplot(gs[1])
 
             # Stellar emission
-            ax1.loglog(wavelength_spec[wsed],
-                       (sed['stellar.young'][wsed] +
-                        sed['attenuation.stellar.young'][wsed] +
-                        sed['stellar.old'][wsed] +
-                        sed['attenuation.stellar.old'][wsed]),
-                       label="Stellar attenuated ", color='orange',
-                       marker=None, nonposy='clip', linestyle='-',
-                       linewidth=0.5)
+            if 'nebular.absorption_young' in sed.columns:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['nebular.absorption_young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed] +
+                            sed['nebular.absorption_old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
+            else:
+                ax1.loglog(wavelength_spec[wsed],
+                           (sed['stellar.young'][wsed] +
+                            sed['attenuation.stellar.young'][wsed] +
+                            sed['stellar.old'][wsed] +
+                            sed['attenuation.stellar.old'][wsed]),
+                           label="Stellar attenuated ", color='orange',
+                           marker=None, nonposy='clip', linestyle='-',
+                           linewidth=0.5)
             ax1.loglog(wavelength_spec[wsed],
                        (sed['stellar.old'][wsed] +
                         sed['stellar.young'][wsed]),
@@ -218,7 +230,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                            marker=None, nonposy='clip', linestyle='-',
                            linewidth=0.5)
 
-            ax1.loglog(wavelength_spec[wsed], sed['F_lambda_total'][wsed],
+            ax1.loglog(wavelength_spec[wsed], sed['L_lambda_total'][wsed],
                        label="Model spectrum", color='k', nonposy='clip',
                        linestyle='-', linewidth=1.5)
 
@@ -350,6 +362,12 @@ def sed(config, sed_type, nologo):
 
 
 def main():
+
+    if sys.version_info[:2] >= (3, 4):
+        mp.set_start_method('spawn')
+    else:
+        print("Could not set the multiprocessing start method to spawn. If "
+              "you encounter a deadlock, please upgrade to Python≥3.4.")
 
     parser = argparse.ArgumentParser()
 

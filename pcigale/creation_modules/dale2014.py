@@ -25,7 +25,7 @@ class Dale2014(CreationModule):
     template corresponding to a given α to this amount of energy and add it
     to the SED.
 
-    Information added to the SED: NAME_fracAGN, NAME_alpha.
+    Information added to the SED: agn.fracAGN_dale2014, dust.alpha.
 
     """
 
@@ -88,7 +88,7 @@ class Dale2014(CreationModule):
                             "undefined.")
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("agn.fracAGN", self.parameters["fracAGN"])
+        sed.add_info("agn.fracAGN_dale2014", self.parameters["fracAGN"])
         sed.add_info("dust.alpha", self.parameters["alpha"])
 
         sed.add_contribution('dust', self.model_sb.wave,
