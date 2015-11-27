@@ -265,14 +265,23 @@ def analysis(idx, obs):
         # We compute the weighted average and standard deviation using the
         # likelihood as weight.
         for i, variable in enumerate(gbl_analysed_variables):
-            if variable in sed.mass_proportional_info:
-                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely]
-                                           * scaling[wlikely], likelihood)
+            if variable.endswith('_log'):
+                variable = variable.strip('_log')
+                _ = np.log10
+                maxstd = lambda mean, std: max(0.02, std)
             else:
-                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely],
+                _ = lambda x: x
+                maxstd = lambda mean, std: max(0.05 * mean, std)
+
+            if variable in sed.mass_proportional_info:
+                mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]
+                                           * scaling[wlikely]), likelihood)
+            else:
+                mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]),
                                            likelihood)
+
             gbl_analysed_averages[idx, i] = mean
-            gbl_analysed_std[idx, i] = max(0.05 * mean, std)
+            gbl_analysed_std[idx, i] = maxstd(mean, std)
 
         gbl_best_fluxes[idx, :] = gbl_model_fluxes[best_index, :] \
             * scaling[best_index_z]

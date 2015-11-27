@@ -126,6 +126,8 @@ class PdfAnalysis(AnalysisModule):
 
         # Initalise variables from input arguments.
         analysed_variables = config["analysed_variables"]
+        analysed_variables_nolog = [variable.rstrip('_log') for variable in
+                                    analysed_variables]
         n_variables = len(analysed_variables)
         save = {key: config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
@@ -182,7 +184,7 @@ class PdfAnalysis(AnalysisModule):
                                     n_params * n_variables),
                            (n_params, n_variables))
 
-        initargs = (params, filters, analysed_variables, model_redshifts,
+        initargs = (params, filters, analysed_variables_nolog, model_redshifts,
                     model_fluxes, model_variables, time.time(),
                     mp.Value('i', 0))
         if cores == 1:  # Do not create a new process
