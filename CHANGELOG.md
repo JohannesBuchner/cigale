@@ -8,6 +8,7 @@
 ### Fixed
 - Running the scripts in parallel trigger a deadlock on OS X with python 3.5. A workaround has been implemented. (Médéric Boquien)
 - When no dust emission module is used, pcigale genconf complains that no dust attenuation module is used. Correctly specify dust emission and not attenuation. (Médéric Boquien and Laure Ciesla)
+- Allowing more flexibility to read ASCII files broke the handling of FITS files. It is now fixed. (Yannick Roehlly)
 
 ### Optimised
 
