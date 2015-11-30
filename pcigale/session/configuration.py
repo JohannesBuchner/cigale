@@ -304,7 +304,7 @@ class Configuration(object):
                                "recommended. Without it the Lyman continuum "
                                "is left untouched.",
                     'dust attenuation': "No dust attenuation module found.",
-                    'dust emission': "No dust attenuation module found.",
+                    'dust emission': "No dust emission module found.",
                     'AGN': "No AGN module found.",
                     'radio': "No radio module found.",
                     'redshift': "ERROR! No redshifting module found."}

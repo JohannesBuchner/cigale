@@ -363,6 +363,12 @@ def sed(config, sed_type, nologo):
 
 def main():
 
+    if sys.version_info[:2] >= (3, 4):
+        mp.set_start_method('spawn')
+    else:
+        print("Could not set the multiprocessing start method to spawn. If "
+              "you encounter a deadlock, please upgrade to Python≥3.4.")
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-c', '--conf-file', dest='config_file',
