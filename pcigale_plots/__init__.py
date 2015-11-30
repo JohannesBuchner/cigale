@@ -9,6 +9,7 @@
 import argparse
 from itertools import product, repeat
 from collections import OrderedDict
+import sys
 
 from astropy.table import Table
 import matplotlib
