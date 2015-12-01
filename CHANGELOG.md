@@ -9,6 +9,9 @@
 - When no dust emission module is used, pcigale genconf complains that no dust attenuation module is used. Correctly specify dust emission and not attenuation. (Médéric Boquien and Laure Ciesla)
 - Allowing more flexibility to read ASCII files broke the handling of FITS files. It is now fixed. (Yannick Roehlly)
 
+### Changed
+- The attenuation.ebvs\_main and attenuation.ebvs\_old parameters are no longer present as they were duplicates of attenuation.E\_BVs.stellar.old and attenuation.E\_BVs.stellar.young (that are still available).
+
 ## 0.7.0 (2015-11-19)
 ### Added
 - The pcigale-mock utility has been added to generate plots comparing the exact and pcigale-estimated parameters. This requires pcigale to be run beforehand with the pdf_analysis module and the mock_flag option set to True. (Denis Burgarella and Médéric Boquien)
