@@ -148,7 +148,8 @@ class PdfAnalysis(AnalysisModule):
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))
             creation_modules_params[w_redshifting]['redshift'] = z
-            del z
+        else:
+            z = np.array(creation_modules_params[w_redshifting]['redshift'])
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create
@@ -175,8 +176,6 @@ class PdfAnalysis(AnalysisModule):
         # not write on the same section.
         # We put the shape in a tuple along with the RawArray because workers
         # need to know the shape to create the numpy array from the RawArray.
-        model_redshifts = (RawArray(ctypes.c_double, n_params),
-                           (n_params))
         model_fluxes = (RawArray(ctypes.c_double,
                                  n_params * n_filters),
                         (n_params, n_filters))
@@ -184,9 +183,8 @@ class PdfAnalysis(AnalysisModule):
                                     n_params * n_variables),
                            (n_params, n_variables))
 
-        initargs = (params, filters, analysed_variables_nolog, model_redshifts,
-                    model_fluxes, model_variables, time.time(),
-                    mp.Value('i', 0))
+        initargs = (params, filters, analysed_variables_nolog, model_fluxes,
+                    model_variables, time.time(), mp.Value('i', 0))
         if cores == 1:  # Do not create a new process
             init_worker_sed(*initargs)
             for idx in range(n_params):
@@ -210,11 +208,11 @@ class PdfAnalysis(AnalysisModule):
         best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
         best_chi2_red = (RawArray(ctypes.c_double, n_obs), (n_obs))
 
-        initargs = (params, filters, analysed_variables, model_redshifts,
-                    model_fluxes, model_variables, time.time(),
-                    mp.Value('i', 0), analysed_averages, analysed_std,
-                    best_fluxes, best_parameters, best_chi2, best_chi2_red,
-                    save, lim_flag, n_obs)
+        initargs = (params, filters, analysed_variables, z, model_fluxes,
+                    model_variables, time.time(), mp.Value('i', 0),
+                    analysed_averages, analysed_std, best_fluxes,
+                    best_parameters, best_chi2, best_chi2_red, save, lim_flag,
+                    n_obs)
         if cores == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             for idx, obs in enumerate(obs_table):
@@ -258,11 +256,11 @@ class PdfAnalysis(AnalysisModule):
             for idx, name in enumerate(filters):
                 mock_table[name] = mock_fluxes[:, idx]
 
-            initargs = (params, filters, analysed_variables, model_redshifts,
-                        model_fluxes, model_variables, time.time(),
-                        mp.Value('i', 0), analysed_averages, analysed_std,
-                        best_fluxes, best_parameters, best_chi2,
-                        best_chi2_red, save, lim_flag, n_obs)
+            initargs = (params, filters, analysed_variables, z, model_fluxes,
+                        model_variables, time.time(), mp.Value('i', 0),
+                        analysed_averages, analysed_std, best_fluxes,
+                        best_parameters, best_chi2, best_chi2_red, save,
+                        lim_flag, n_obs)
             if cores == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):

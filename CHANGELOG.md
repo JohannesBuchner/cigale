@@ -5,6 +5,7 @@
 ### Changed
 ### Fixed
 ### Optimised
+- Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise.
 
 ## 0.8.0 (2015-12-01)
 ### Added

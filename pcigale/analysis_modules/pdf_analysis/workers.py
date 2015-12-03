@@ -16,8 +16,7 @@ from .utils import (save_best_sed, save_pdf, save_chi2, compute_chi2,
 from ...warehouse import SedWarehouse
 
 
-def init_sed(params, filters, analysed, redshifts, fluxes, variables,
-             t_begin, n_computed):
+def init_sed(params, filters, analysed, fluxes, variables, t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -30,8 +29,6 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
         Contains the names of the filters to compute the fluxes.
     analysed: list
         Variable names to be analysed.
-    redshifts: RawArray and tuple containing the shape
-        Redshifts of individual models. Shared among workers.
     fluxes: RawArray and tuple containing the shape
         Fluxes of individual models. Shared among workers.
     variables: RawArray and tuple containing the shape
@@ -42,11 +39,9 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
         Time of the beginning of the computation.
 
     """
-    global gbl_model_redshifts, gbl_model_fluxes, gbl_model_variables
-    global gbl_n_computed, gbl_t_begin, gbl_params, gbl_previous_idx
-    global gbl_filters, gbl_analysed_variables, gbl_warehouse
-
-    gbl_model_redshifts = np.ctypeslib.as_array(redshifts[0])
+    global gbl_model_fluxes, gbl_model_variables, gbl_n_computed, gbl_t_begin
+    global gbl_params, gbl_previous_idx, gbl_filters, gbl_analysed_variables
+    global gbl_warehouse
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -67,7 +62,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     gbl_warehouse = SedWarehouse()
 
 
-def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
+def init_analysis(params, filters, analysed, z, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
                   best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
                   lim_flag, n_obs):
@@ -83,7 +78,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         Contains filters to compute the fluxes.
     analysed: list
         Variable names to be analysed
-    redshifts: RawArray and tuple containing the shape.
+    z: RawArray and tuple containing the shape.
         Redshifts of individual models. Shared among workers.
     fluxes: RawArray
         Fluxes of individual models. Shared among workers.
@@ -112,9 +107,8 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         Number of observations.
 
     """
-    init_sed(params, filters, analysed, redshifts, fluxes, variables,
-             t_begin, n_computed)
-    global gbl_redshifts, gbl_analysed_averages, gbl_analysed_std
+    init_sed(params, filters, analysed, fluxes, variables, t_begin, n_computed)
+    global gbl_z, gbl_analysed_averages, gbl_analysed_std
     global gbl_best_fluxes, gbl_best_parameters, gbl_best_chi2
     global gbl_best_chi2_red, gbl_save, gbl_n_obs, gbl_lim_flag, gbl_keys
 
@@ -134,8 +128,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
 
     gbl_best_chi2_red = np.ctypeslib.as_array(best_chi2_red[0])
 
-    gbl_redshifts = gbl_model_redshifts[np.unique(gbl_model_redshifts,
-                                                  return_index=True)[1]]
+    gbl_z = z
 
     gbl_save = save
     gbl_lim_flag = lim_flag
@@ -174,8 +167,6 @@ def sed(idx):
                                                 for name in
                                                 gbl_analysed_variables])
 
-    gbl_model_redshifts[idx] = sed.info['universe.redshift']
-
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
@@ -209,8 +200,7 @@ def analysis(idx, obs):
     if obs['redshift'] >= 0.:
         # We pick the the models with the closest redshift using a slice to
         # work on views of the arrays and not on copies to save on RAM.
-        wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
-                   gbl_redshifts.size)
+        wz = slice(np.abs(obs['redshift'] - gbl_z).argmin(), None, gbl_z.size)
     else:  # We do not know the redshift so we use the full grid
         wz = slice(0, None, 1)
 
