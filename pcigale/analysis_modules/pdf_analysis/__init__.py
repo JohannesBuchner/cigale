@@ -189,7 +189,7 @@ class PdfAnalysis(AnalysisModule):
             init_worker_sed(*initargs)
             for idx in range(n_params):
                 worker_sed(idx)
-        else:  # Analyse observations in parallel
+        else:  # Compute the models in parallel
             with mp.Pool(processes=cores, initializer=init_worker_sed,
                          initargs=initargs) as pool:
                 pool.map(worker_sed, range(n_params))
