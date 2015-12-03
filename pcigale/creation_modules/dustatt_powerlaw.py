@@ -169,7 +169,8 @@ class PowerLawAtt(CreationModule):
         av = {}
         wavelength = sed.wavelength_grid
         av['young'] = float(self.parameters["Av_young"])
-        av['old'] = float(self.parameters["Av_old_factor"] * av['young'])
+        av_old_factor = float(self.parameters["Av_old_factor"])
+        av['old'] = av_old_factor * av['young']
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
         uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
@@ -204,7 +205,9 @@ class PowerLawAtt(CreationModule):
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
-        # Bump and slope of the dust attenuation
+        sed.add_info("attenuation.av_old_factor", av_old_factor)
+        sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
+        sed.add_info('attenuation.uv_bump_width', uv_bump_width)
         sed.add_info("attenuation.uv_bump_amplitude", uv_bump_amplitude)
         sed.add_info("attenuation.powerlaw_slope", powerlaw_slope)
 

@@ -1,16 +1,16 @@
 # Change Log
 
-## 0.7.1 (2015-11-30)
+## 0.8.0 (2015-11-01)
 ### Added
 - The evaluation of the parameters is always done linearly. This can be a problem when estimating the SFR or the stellar mass for instance as it is usual to estimate their log rather. Because the log is non-linear, the likelihood-weigthed mean of the log is not the log of the likelihood-weighted mean. Therefore the estimation of the log of these parameters has to be done during the analysis step. This is now possible. The variables to be analysed in log just need to be indicated with the suffix "_log", for instance "stellar.m_star_log". (Médéric Boquien, idea suggested by Samir Salim)
 
-### Changed
 ### Fixed
 - Running the scripts in parallel trigger a deadlock on OS X with python 3.5. A workaround has been implemented. (Médéric Boquien)
 - When no dust emission module is used, pcigale genconf complains that no dust attenuation module is used. Correctly specify dust emission and not attenuation. (Médéric Boquien and Laure Ciesla)
 - Allowing more flexibility to read ASCII files broke the handling of FITS files. It is now fixed. (Yannick Roehlly)
 
-### Optimised
+### Changed
+- The attenuation.ebvs\_main and attenuation.ebvs\_old parameters are no longer present as they were duplicates of attenuation.E\_BVs.stellar.old and attenuation.E\_BVs.stellar.young (that are still available).
 
 ## 0.7.0 (2015-11-19)
 ### Added

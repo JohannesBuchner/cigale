@@ -243,7 +243,8 @@ class CalzLeit(CreationModule):
         ebvs = {}
         wavelength = sed.wavelength_grid
         ebvs['young'] = float(self.parameters["E_BVs_young"])
-        ebvs['old'] = float(self.parameters["E_BVs_old_factor"]) * ebvs['young']
+        ebvs_old_factor = float(self.parameters["E_BVs_old_factor"])
+        ebvs['old'] = ebvs_old_factor * ebvs['young']
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
         uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
@@ -294,8 +295,7 @@ class CalzLeit(CreationModule):
             sed.add_info("attenuation." + filt,
                          -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
-        sed.add_info('attenuation.ebvs_main', ebvs['old'])
-        sed.add_info('attenuation.ebvs_young', ebvs['young'])
+        sed.add_info('attenuation.ebvs_old_factor', ebvs_old_factor)
         sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
         sed.add_info('attenuation.uv_bump_width', uv_bump_width)
         sed.add_info('attenuation.uv_bump_amplitude', uv_bump_amplitude)
