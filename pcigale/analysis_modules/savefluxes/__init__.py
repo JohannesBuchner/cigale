@@ -42,6 +42,12 @@ class SaveFluxes(AnalysisModule):
     """
 
     parameter_list = dict([
+        ("variables", (
+            "array of strings",
+            "List of variables to be saved. If the list is left empty, all"
+            "variables will be saved.",
+            ['']
+        )),
         ("output_file", (
             "string",
             "Name of the output file that contains the parameters of the "
@@ -112,13 +118,17 @@ class SaveFluxes(AnalysisModule):
         params = ParametersHandler(creation_modules, creation_modules_params)
         n_params = params.size
 
-        # Retrieve an arbitrary SED to obtain the list of output parameters
-        warehouse = SedWarehouse()
-        sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = list(sed.info.keys())
+        if parameters["variables"] == '':
+            # Retrieve an arbitrary SED to obtain the list of output parameters
+            warehouse = SedWarehouse()
+            sed = warehouse.get_sed(creation_modules, params.from_index(0))
+            info = list(sed.info.keys())
+            del warehouse, sed
+        else:
+            info = parameters["variables"]
+            n_info = len(info)
         info.sort()
-        n_info = len(sed.info)
-        del warehouse, sed
+        n_info = len(info)
 
         model_fluxes = (RawArray(ctypes.c_double,
                                  n_params * n_filters),
@@ -127,7 +137,7 @@ class SaveFluxes(AnalysisModule):
                                      n_params * n_info),
                             (n_params, n_info))
 
-        initargs = (params, filters, save_sed, model_fluxes,
+        initargs = (params, filters, save_sed, info, model_fluxes,
                     model_parameters, time.time(), mp.Value('i', 0))
         if cores == 1:  # Do not create a new process
             init_worker_fluxes(*initargs)

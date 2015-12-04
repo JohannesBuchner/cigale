@@ -2,6 +2,8 @@
 
 ## Unreleased
 ### Added
+- When using the savefluxes module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for savefluxes to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory.
+
 ### Changed
 ### Fixed
 ### Optimised
