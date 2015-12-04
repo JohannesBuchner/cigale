@@ -130,11 +130,9 @@ class SaveFluxes(AnalysisModule):
         info.sort()
         n_info = len(info)
 
-        model_fluxes = (RawArray(ctypes.c_double,
-                                 n_params * n_filters),
+        model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),
                         (n_params, n_filters))
-        model_parameters = (RawArray(ctypes.c_double,
-                                     n_params * n_info),
+        model_parameters = (RawArray(ctypes.c_double, n_params * n_info),
                             (n_params, n_info))
 
         initargs = (params, filters, save_sed, info, model_fluxes,

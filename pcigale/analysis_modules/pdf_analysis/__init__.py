@@ -176,11 +176,9 @@ class PdfAnalysis(AnalysisModule):
         # not write on the same section.
         # We put the shape in a tuple along with the RawArray because workers
         # need to know the shape to create the numpy array from the RawArray.
-        model_fluxes = (RawArray(ctypes.c_double,
-                                 n_params * n_filters),
+        model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),
                         (n_params, n_filters))
-        model_variables = (RawArray(ctypes.c_double,
-                                    n_params * n_variables),
+        model_variables = (RawArray(ctypes.c_double, n_params * n_variables),
                            (n_params, n_variables))
 
         initargs = (params, filters, analysed_variables_nolog, model_fluxes,

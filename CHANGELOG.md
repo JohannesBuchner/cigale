@@ -11,7 +11,7 @@
 
 ## 0.8.0 (2015-12-01)
 ### Added
-- The evaluation of the parameters is always done linearly. This can be a problem when estimating the SFR or the stellar mass for instance as it is usual to estimate their log rather. Because the log is non-linear, the likelihood-weigthed mean of the log is not the log of the likelihood-weighted mean. Therefore the estimation of the log of these parameters has to be done during the analysis step. This is now possible. The variables to be analysed in log just need to be indicated with the suffix "_log", for instance "stellar.m_star_log". (Médéric Boquien, idea suggested by Samir Salim)
+- The evaluation of the parameters is always done linearly. This can be a problem when estimating the SFR or the stellar mass for instance as it is usual to estimate their log rather. Because the log is non-linear, the likelihood-weighted mean of the log is not the log of the likelihood-weighted mean. Therefore the estimation of the log of these parameters has to be done during the analysis step. This is now possible. The variables to be analysed in log just need to be indicated with the suffix "_log", for instance "stellar.m_star_log". (Médéric Boquien, idea suggested by Samir Salim)
 
 ### Fixed
 - Running the scripts in parallel trigger a deadlock on OS X with python 3.5. A workaround has been implemented. (Médéric Boquien)
@@ -108,7 +108,7 @@
 ## 0.5.1 (2015-04-28)
 
 ### Changed
-- Set the default dale2014 AGN fraction to 0 to avoid the accidentl inclusion of AGN. (Denis Burgarella)
+- Set the default dale2014 AGN fraction to 0 to avoid the accidental inclusion of AGN. (Denis Burgarella)
 - Modify the name of the averaged SFR: two averaged SFRs over 10 (sfh.sfr10Myrs) and 100Myrs (sfh.sfr100Myrs). (Denis Burgarella)
 - Improve the documentation of the savefluxes module. (Denis Burgarella)
 
