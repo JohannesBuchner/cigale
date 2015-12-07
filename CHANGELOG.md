@@ -2,14 +2,12 @@
 
 ## Unreleased
 ### Added
-- When using the savefluxes module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for savefluxes to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory. (Médéric Boquien)
+- When using the savefluxes module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for savefluxes to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory.
 
 ### Changed
 ### Fixed
-- To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
-
 ### Optimised
-- Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
+- Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise.
 
 ## 0.8.0 (2015-12-01)
 ### Added
