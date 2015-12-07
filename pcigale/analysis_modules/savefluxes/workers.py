@@ -87,7 +87,7 @@ def fluxes(idx):
         gbl_model_fluxes[idx, :] = np.full(len(gbl_filters), np.nan)
         gbl_model_info[idx, :] = np.full(len(gbl_variables), np.nan)
     else:
-        gbl_model_info[idx, :] = np.array([sed.compute_fnu(filter_) for
+        gbl_model_fluxes[idx, :] = np.array([sed.compute_fnu(filter_) for
                                            filter_ in gbl_filters])
         gbl_model_info[idx, :] = np.array([sed.info[name] for name in
                                            gbl_variables])
