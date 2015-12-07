@@ -399,7 +399,17 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
     scaling: array
         scaling of the models to obtain the minimum χ²
     """
+    limits = lim_flag and np.any(obs_errors <= 0.)
+
     scaling = _compute_scaling(model_fluxes, obs_fluxes, obs_errors)
+    # Some observations may not have flux values in some filter(s), but
+    # they can have upper limit(s).
+    if limits == True:
+        scaling_orig = scaling.copy()
+        for imod in range(len(model_fluxes)):
+            scaling[imod] = optimize.root(dchi2_over_ds2, scaling[imod],
+                                          args=(obs_fluxes, obs_errors,
+                                                model_fluxes[imod, :])).x
 
     # χ² of the comparison of each model to each observation.
     chi2 = np.zeros(model_fluxes.shape[0])
@@ -410,11 +420,7 @@ def compute_chi2(model_fluxes, obs_fluxes, obs_errors, lim_flag):
 
     # Some observations may not have flux values in some filter(s), but
     # they can have upper limit(s).
-    if (lim_flag and np.any(obs_errors <= 0.)) == True:
-        for imod in range(len(model_fluxes)):
-            scaling[imod] = optimize.root(dchi2_over_ds2, scaling[imod],
-                                          args=(obs_fluxes, obs_errors,
-                                                model_fluxes[imod, :])).x
+    if limits == True:
         mask_lim = (obs_errors <= 0.)
         chi2 += -2. * np.sum(
             np.log(
