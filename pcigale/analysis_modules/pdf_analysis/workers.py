@@ -256,7 +256,7 @@ def analysis(idx, obs):
         # likelihood as weight.
         for i, variable in enumerate(gbl_analysed_variables):
             if variable.endswith('_log'):
-                variable = variable.strip('_log')
+                variable = variable[:-4]
                 _ = np.log10
                 maxstd = lambda mean, std: max(0.02, std)
             else:
