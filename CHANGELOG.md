@@ -6,6 +6,9 @@
 
 ### Changed
 ### Fixed
+- To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
+- When estimating a parameter in log, these were not scaled appropriately and taken in log when saving the related χ². (Médéric Boquien)
+
 ### Optimised
 - Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
 

@@ -287,13 +287,9 @@ def analysis(idx, obs):
         if gbl_save['best_sed']:
             save_best_sed(obs['id'], sed, scaling[best_index_z])
         if gbl_save['chi2']:
-            for i, variable in enumerate(gbl_analysed_variables):
-                if variable in sed.mass_proportional_info:
-                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i] *
-                              scaling, chi2 / (nobs - 1))
-                else:
-                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i],
-                              chi2 / (nobs - 1))
+            save_chi2(obs['id'], gbl_analysed_variables,
+                      sed.mass_proportional_info, gbl_model_variables[wz, :],
+                      scaling, chi2 / (nobs - 1))
         if gbl_save['pdf']:
             for i, variable in enumerate(gbl_analysed_variables):
                 if variable in sed.mass_proportional_info:

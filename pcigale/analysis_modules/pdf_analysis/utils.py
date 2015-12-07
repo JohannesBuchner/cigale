@@ -83,7 +83,7 @@ def save_pdf(obsid, name, model_variable, likelihood):
         table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, name))
 
 
-def save_chi2(obsid, name, model_variable, chi2):
+def _save_chi2(obsid, name, model_variable, chi2):
     """Save the best reduced χ² versus an analysed variable
 
     Parameters
@@ -101,6 +101,37 @@ def save_chi2(obsid, name, model_variable, chi2):
     table = Table((Column(model_variable, name=name),
                    Column(chi2, name="chi2")))
     table.write(OUT_DIR + "{}_{}_chi2.fits".format(obsid, name))
+
+
+def save_chi2(obsid, names, mass_proportional, model_variables, scaling, chi2):
+    """Save the best reduced χ² versus analysed variables
+
+    Parameters
+    ----------
+    obsid: string
+        Name of the object. Used to prepend the output file name
+    name: list of strings
+        Analysed variables names
+    model_variables: array
+        Values of the model variables
+    scaling: array
+        Scaling factors of the models
+    chi2:
+        Reduced χ²
+    """
+    for i, name in enumerate(names):
+        if name.endswith('_log'):
+            if name[:-4] in mass_proportional:
+                model_variable = np.log10(model_variables[:, i] * scaling)
+            else:
+                model_variable = np.log10(model_variables[:, i])
+        else:
+            if name in mass_proportional:
+                model_variable = model_variables[:, i] * scaling
+            else:
+                model_variable = model_variables
+
+        _save_chi2(obsid, name, model_variable, chi2)
 
 
 def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,
