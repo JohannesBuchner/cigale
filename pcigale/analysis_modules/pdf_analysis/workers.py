@@ -291,14 +291,9 @@ def analysis(idx, obs):
                       sed.mass_proportional_info, gbl_model_variables[wz, :],
                       scaling, chi2 / (nobs - 1))
         if gbl_save['pdf']:
-            for i, variable in enumerate(gbl_analysed_variables):
-                if variable in sed.mass_proportional_info:
-                    save_pdf(obs['id'], variable,
-                             gbl_model_variables[wz, i][wlikely] *
-                             scaling[wlikely], likelihood)
-                else:
-                    save_pdf(obs['id'], variable,
-                             gbl_model_variables[wz, i][wlikely], likelihood)
+            save_pdf(obs['id'], gbl_analysed_variables,
+                     sed.mass_proportional_info, gbl_model_variables[wz, :],
+                     scaling, likelihood, wlikely)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1

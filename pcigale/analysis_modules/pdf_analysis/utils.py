@@ -32,7 +32,7 @@ def save_best_sed(obsid, sed, norm):
     sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
 
 
-def save_pdf(obsid, name, model_variable, likelihood):
+def _save_pdf(obsid, name, model_variable, likelihood):
     """Compute and save the PDF to a FITS file
 
     We estimate the probability density functions (PDF) of the parameter from
@@ -81,6 +81,39 @@ def save_pdf(obsid, name, model_variable, likelihood):
             Column(pdf_prob, name="probability density")
         ))
         table.write(OUT_DIR + "{}_{}_pdf.fits".format(obsid, name))
+
+
+def save_pdf(obsid, names, mass_proportional, model_variables, scaling,
+             likelihood, wlikely):
+    """Compute and save the PDF of analysed variables
+
+    Parameters
+    ----------
+    obsid: string
+        Name of the object. Used to prepend the output file name
+    names: list of strings
+        Analysed variables names
+    model_variables: array
+        Values of the model variables
+    likelihood: 1D array
+        Likelihood of the "likely" models
+
+    """
+    for i, name in enumerate(names):
+        if name.endswith('_log'):
+            if name[:-4] in mass_proportional:
+                model_variable = np.log10(model_variables[:, i][wlikely] *
+                                          scaling[wlikely])
+            else:
+                model_variable = np.log10(model_variables[:, i][wlikely])
+        else:
+            if name in mass_proportional:
+                model_variable = (model_variables[:, i][wlikely] *
+                                  scaling[wlikely])
+            else:
+                model_variable = model_variables[:, i][wlikely]
+
+        _save_pdf(obsid, name, model_variable, likelihood)
 
 
 def _save_chi2(obsid, name, model_variable, chi2):
