@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8.1 (2015-12-07)
+### Fixed
+-  To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
+
 ## 0.8.0 (2015-11-01)
 ### Added
 - The evaluation of the parameters is always done linearly. This can be a problem when estimating the SFR or the stellar mass for instance as it is usual to estimate their log rather. Because the log is non-linear, the likelihood-weigthed mean of the log is not the log of the likelihood-weighted mean. Therefore the estimation of the log of these parameters has to be done during the analysis step. This is now possible. The variables to be analysed in log just need to be indicated with the suffix "_log", for instance "stellar.m_star_log". (Médéric Boquien, idea suggested by Samir Salim)
