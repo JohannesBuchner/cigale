@@ -34,7 +34,7 @@ import numpy as np
 
 from ...utils import read_table
 from .. import AnalysisModule, complete_obs_table
-from .utils import save_table_analysis, save_table_best, analyse_chi2
+from .utils import save_results, analyse_chi2
 from ...warehouse import SedWarehouse
 from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
@@ -224,12 +224,9 @@ class PdfAnalysis(AnalysisModule):
 
         print("\nSaving results...")
 
-        save_table_analysis('analysis_results.txt', obs_table['id'],
-                            analysed_variables, analysed_averages,
-                            analysed_std)
-        save_table_best('best_models.txt', obs_table['id'], best_chi2,
-                        best_chi2_red, best_parameters, best_fluxes, filters,
-                        info)
+        save_results("results", obs_table['id'], analysed_variables,
+                     analysed_averages, analysed_std, best_chi2, best_chi2_red,
+                     best_parameters, best_fluxes, filters, info)
 
         if mock_flag is True:
 
@@ -270,12 +267,10 @@ class PdfAnalysis(AnalysisModule):
 
             print("\nSaving results...")
 
-            save_table_analysis('analysis_mock_results.txt', mock_table['id'],
-                                analysed_variables, analysed_averages,
-                                analysed_std)
-            save_table_best('best_mock_models.txt', mock_table['id'],
-                            best_chi2, best_chi2_red, best_parameters,
-                            best_fluxes, filters, info)
+            save_results("results_mock", mock_table['id'], analysed_variables,
+                         analysed_averages, analysed_std, best_chi2,
+                         best_chi2_red, best_parameters, best_fluxes, filters,
+                         info)
 
         print("Run completed!")
 

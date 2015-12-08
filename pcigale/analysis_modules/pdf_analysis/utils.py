@@ -167,94 +167,76 @@ def save_chi2(obsid, names, mass_proportional, model_variables, scaling, chi2):
         _save_chi2(obsid, name, model_variable, chi2)
 
 
-def save_table_analysis(filename, obsid, analysed_variables, analysed_averages,
-                        analysed_std):
-    """Save the estimated values derived from the analysis of the PDF
+def save_results(filename, obsid, bayes_variables, bayes_mean, bayes_std, chi2,
+                 chi2_red, best, fluxes, filters, info_keys):
+    """Save the estimated values derived from the analysis of the PDF and the
+    parameters associated with the best fit. An simple text file and a FITS
+    file are generated.
 
     Parameters
     ----------
-    filename: name of the file to save
-        Name of the output file
+    filename: string
+        Name of the output file without the extension
     obsid: table column
         Names of the objects
-    analysed_variables: list
+    bayes_variables: list
         Analysed variable names
-    analysed_averages: RawArray
+    bayes_mean: RawArray
         Analysed variables values estimates
-    analysed_std: RawArray
+    bayes_std: RawArray
         Analysed variables errors estimates
-
-    """
-    np_analysed_averages = np.ctypeslib.as_array(analysed_averages[0])
-    np_analysed_averages = np_analysed_averages.reshape(analysed_averages[1])
-
-    np_analysed_std = np.ctypeslib.as_array(analysed_std[0])
-    np_analysed_std = np_analysed_std.reshape(analysed_std[1])
-
-    result_table = Table()
-    result_table.add_column(Column(obsid.data, name="observation_id"))
-    for index, variable in enumerate(analysed_variables):
-        result_table.add_column(Column(
-            np_analysed_averages[:, index],
-            name=variable
-        ))
-        result_table.add_column(Column(
-            np_analysed_std[:, index],
-            name=variable+"_err"
-        ))
-    result_table.write(OUT_DIR + filename, format='ascii.fixed_width',
-                       delimiter=None)
-
-
-def save_table_best(filename, obsid, chi2, chi2_red, variables, fluxes,
-                    filters, info_keys):
-    """Save the values corresponding to the best fit
-
-    Parameters
-    ----------
-    filename: name of the file to save
-        Name of the output file
-    obsid: table column
-        Names of the objects
     chi2: RawArray
         Best χ² for each object
     chi2_red: RawArray
         Best reduced χ² for each object
-    variables: RawArray
-        All variables corresponding to a SED
+    best: RawArray
+        All variables corresponding to the best SED
     fluxes: RawArray
-        Fluxes in all bands for each object
+        Fluxes in all bands for the best SED
     filters: list
         Filters used to compute the fluxes
     info_keys: list
         Parameters names
 
     """
+    np_bayes_mean = np.ctypeslib.as_array(bayes_mean[0])
+    np_bayes_mean = np_bayes_mean.reshape(bayes_mean[1])
+
+    np_bayes_std = np.ctypeslib.as_array(bayes_std[0])
+    np_bayes_std = np_bayes_std.reshape(bayes_std[1])
+
     np_fluxes = np.ctypeslib.as_array(fluxes[0])
     np_fluxes = np_fluxes.reshape(fluxes[1])
 
-    np_variables = np.ctypeslib.as_array(variables[0])
-    np_variables = np_variables.reshape(variables[1])
+    np_best = np.ctypeslib.as_array(best[0])
+    np_best = np_best.reshape(best[1])
 
     np_chi2 = np.ctypeslib.as_array(chi2[0])
 
     np_chi2_red = np.ctypeslib.as_array(chi2_red[0])
 
-    best_model_table = Table()
-    best_model_table.add_column(Column(obsid.data, name="observation_id"))
-    best_model_table.add_column(Column(np_chi2, name="chi_square"))
-    best_model_table.add_column(Column(np_chi2_red, name="reduced_chi_square"))
+    table = Table()
 
-    for index, name in enumerate(info_keys):
-        column = Column(np_variables[:, index], name=name)
-        best_model_table.add_column(column)
+    table.add_column(Column(obsid.data, name="id"))
 
-    for index, name in enumerate(filters):
-        column = Column(np_fluxes[:, index], name=name, unit='mJy')
-        best_model_table.add_column(column)
+    for idx, name in enumerate(bayes_variables):
+        table.add_column(Column(np_bayes_mean[:, idx], name="bayes."+name))
+        table.add_column(Column(np_bayes_std[:, idx],
+                         name="bayes."+name+"_err"))
 
-    best_model_table.write(OUT_DIR + filename, format='ascii.fixed_width',
-                           delimiter=None)
+    table.add_column(Column(np_chi2, name="best.chi_square"))
+    table.add_column(Column(np_chi2_red, name="best.reduced_chi_square"))
+
+    for idx, name in enumerate(info_keys):
+        table.add_column(Column(np_best[:, idx], name="best."+name))
+
+    for idx, name in enumerate(filters):
+        table.add_column(Column(np_fluxes[:, idx], name="best."+name,
+                                unit='mJy'))
+
+    table.write(OUT_DIR+filename+".txt", format='ascii.fixed_width',
+                delimiter=None)
+    table.write(OUT_DIR+filename+".fits", format='fits')
 
 
 def dchi2_over_ds2(s, obs_fluxes, obs_errors, mod_fluxes):
