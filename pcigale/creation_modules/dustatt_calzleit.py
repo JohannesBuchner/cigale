@@ -166,6 +166,16 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     # UV bump
     attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
 
+    # As the powerlaw slope changes E(B-V), we correct this so that the curve
+    # always has the same E(B-V) as the starburst curve. This ensures that the
+    # E(B-V) requested by the user is the actual E(B-V) of the curve.
+    wl_BV = np.array([440., 550.])
+    EBV_calz = ((k_calzetti2000(wl_BV) * power_law(wl_BV, 0.)) +
+                uv_bump(wl_BV, bump_wave, bump_width, bump_ampl))
+    EBV = ((k_calzetti2000(wl_BV) * power_law(wl_BV, power_slope)) +
+           uv_bump(wl_BV, bump_wave, bump_width, bump_ampl))
+    attenuation *= (EBV_calz[1]-EBV_calz[0]) / (EBV[1]-EBV[0])
+
     return attenuation
 
 

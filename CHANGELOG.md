@@ -8,6 +8,7 @@
 - The estimates of the physical parameters from the analysis of the PDF and from the best fit were recorded in separate files. This can be bothersome when trying to compare quantities from different files. Rather, we generate a single file containing all quantities. The ones estimated from the analysis of the PDF are prefixed with "bayes" and the ones from the best fit with "best". (Médéric Boquien)
 - To homogenize input and output files, the "observation_id" has been changed to "id" in the output files. (Médéric Boquien)
 - The output files providing estimates of the physical properties are now generated both in the form of text and FITS files. (Médéric Boquien)
+- When using the dustatt_calzleit module, choosing ẟ≠0 leads to an effective E(B-V) different from the one set by the user. Now the E(B-V) will always correspond to the one specified by the user. This means that at fixed E(B-V), A(V) depends on ẟ. (Médéric Boquien)
 
 ### Fixed
 - To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
