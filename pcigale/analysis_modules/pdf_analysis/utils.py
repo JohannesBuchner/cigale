@@ -162,7 +162,7 @@ def save_chi2(obsid, names, mass_proportional, model_variables, scaling, chi2):
             if name in mass_proportional:
                 model_variable = model_variables[:, i] * scaling
             else:
-                model_variable = model_variables
+                model_variable = model_variables[:, i]
 
         _save_chi2(obsid, name, model_variable, chi2)
 
