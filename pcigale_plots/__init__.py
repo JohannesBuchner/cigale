@@ -30,7 +30,7 @@ __version__ = "0.1-alpha"
 
 
 # Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.txt"
+BEST_MODEL_FILE = "results.fits"
 # Directory where the output files are stored
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
@@ -124,9 +124,9 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
         obs_fluxes_err = np.array([obs[filt+'_err']
                                    for filt in filters.keys()])
-        mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
+        mod_fluxes = np.array([mod["best."+filt] for filt in filters.keys()])
         z = np.around(obs['redshift'], decimals=2)
-        DL = mod['universe.luminosity_distance']
+        DL = mod['best.universe.luminosity_distance']
 
         if sed_type == 'lum':
             xmin = PLOT_L_MIN
@@ -300,7 +300,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
                             format(obs['id'], np.round(obs['redshift'],
                                    decimals=3),
-                                   np.round(mod['reduced_chi_square'],
+                                   np.round(mod['best.reduced_chi_square'],
                                             decimals=2)))
             if nologo is False:
                 image = plt.imread(pkg_resources.resource_filename(__name__,
@@ -348,7 +348,7 @@ def sed(config, sed_type, nologo):
     """Plot the best SED with associated observed and modelled fluxes.
     """
     obs = read_table(config.configuration['data_file'])
-    mod = Table.read(OUT_DIR + BEST_MODEL_FILE, format='ascii')
+    mod = Table.read(OUT_DIR + BEST_MODEL_FILE)
 
     with Database() as base:
         filters = OrderedDict([(name, base.get_filter(name))

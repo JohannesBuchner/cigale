@@ -22,8 +22,8 @@ from pcigale.session.configuration import Configuration
 __version__ = "0.1-alpha"
 
 # Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.txt"
-MOCK_OUTPUT_FILE = "analysis_mock_results.txt"
+BEST_MODEL_FILE = "results.fits"
+MOCK_OUTPUT_FILE = "results_mock.fits"
 # Directory where the output files are stored
 OUT_DIR = "out/"
 
@@ -93,14 +93,14 @@ def mock(config, nologo):
     """
 
     try:
-        exact = Table.read(OUT_DIR + BEST_MODEL_FILE, format='ascii')
+        exact = Table.read(OUT_DIR + BEST_MODEL_FILE)
     except FileNotFoundError:
         print("Best models file {} not found.".format(OUT_DIR +
                                                       BEST_MODEL_FILE))
         sys.exit(1)
 
     try:
-        estimated = Table.read(OUT_DIR + MOCK_OUTPUT_FILE, format='ascii')
+        estimated = Table.read(OUT_DIR + MOCK_OUTPUT_FILE)
     except FileNotFoundError:
         print("Mock models file {} not found.".format(OUT_DIR +
                                                       MOCK_OUTPUT_FILE))
