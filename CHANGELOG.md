@@ -16,6 +16,7 @@
 - When estimating a parameter in log, these were not scaled appropriately and taken in log when saving the related χ² and PDF. (Médéric Boquien)
 - In the presence of upper limits, correct the scaling factor of the models to the observations before computing the χ², not after. (Médéric Boquien)
 - When called without arguments, pcigale-plots would crash and display the backtrace. Now it displays the a short help showing how to use it. (Médéric Boquien)
+- For sfh2exp, when setting the scale of the SFH with sfr0, the normalisation was incorrect by a factor exp(-1/tau_main). (Médéric Boquien)
 
 ### Optimised
 - Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
