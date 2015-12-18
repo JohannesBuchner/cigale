@@ -10,6 +10,7 @@
 - The output files providing estimates of the physical properties are now generated both in the form of text and FITS files. (Médéric Boquien)
 - When using the dustatt_calzleit module, choosing ẟ≠0 leads to an effective E(B-V) different from the one set by the user. Now the E(B-V) will always correspond to the one specified by the user. This means that at fixed E(B-V), A(V) depends on ẟ. (Médéric Boquien)
 - The pcigale-mock tool has been merged into pcigale-plots; the mock plots can be obtained with the "mock" command.
+- The sfhdelayed module is now initialised with _init_code() to be consistent with the way things are done in other modules. This should give a slight speedup under some sircumstances too. (Médéric Boquien)
 
 ### Fixed
 - To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
