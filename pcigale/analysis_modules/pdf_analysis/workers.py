@@ -8,6 +8,7 @@
 
 import time
 
+from astropy.cosmology import WMAP7 as cosmology
 import numpy as np
 import scipy.stats as st
 
@@ -195,14 +196,28 @@ def analysis(idx, obs):
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
+    obs_z = obs['redshift']
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
-    if obs['redshift'] >= 0.:
+    if obs_z >= 0.:
         # We pick the the models with the closest redshift using a slice to
         # work on views of the arrays and not on copies to save on RAM.
-        wz = slice(np.abs(obs['redshift'] - gbl_z).argmin(), None, gbl_z.size)
+        idx_z = np.abs(obs_z - gbl_z).argmin()
+        model_z = gbl_z[idx_z]
+        wz = slice(idx_z, None, gbl_z.size)
+
+        # The mass-dependent physical properties are computed assuming the
+        # redshift of the model. However because we round the observed redshifts
+        # to two decimals, there can be a difference of 0.005 in redshift
+        # between the models and the actual observation. At low redshift, this
+        # can cause a discrepancy in the mass-dependent physical properties:
+        # ~0.35 dex at z=0.010 vs 0.015 for instance. Therefore we correct these
+        # physical quantities by multiplying them by corr_dz.
+        corr_dz = (cosmology.luminosity_distance(obs_z).value /
+                   cosmology.luminosity_distance(model_z).value)**2.
     else:  # We do not know the redshift so we use the full grid
         wz = slice(0, None, 1)
+        corr_dz = 1.
 
     chi2, scaling = compute_chi2(gbl_model_fluxes[wz, :], obs_fluxes,
                                  obs_errors, gbl_lim_flag)
@@ -250,7 +265,7 @@ def analysis(idx, obs):
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
-            sed.info[key] *= scaling[best_index_z]
+            sed.info[key] *= scaling[best_index_z] * corr_dz
 
         # We compute the weighted average and standard deviation using the
         # likelihood as weight.
@@ -265,7 +280,8 @@ def analysis(idx, obs):
 
             if variable in sed.mass_proportional_info:
                 mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]
-                                           * scaling[wlikely]), likelihood)
+                                           * scaling[wlikely] * corr_dz),
+                                           likelihood)
             else:
                 mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]),
                                            likelihood)
@@ -289,11 +305,11 @@ def analysis(idx, obs):
         if gbl_save['chi2']:
             save_chi2(obs['id'], gbl_analysed_variables,
                       sed.mass_proportional_info, gbl_model_variables[wz, :],
-                      scaling, chi2 / (nobs - 1))
+                      scaling * corr_dz, chi2 / (nobs - 1))
         if gbl_save['pdf']:
             save_pdf(obs['id'], gbl_analysed_variables,
                      sed.mass_proportional_info, gbl_model_variables[wz, :],
-                     scaling, likelihood, wlikely)
+                     scaling * corr_dz, likelihood, wlikely)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
