@@ -213,8 +213,14 @@ def analysis(idx, obs):
         # can cause a discrepancy in the mass-dependent physical properties:
         # ~0.35 dex at z=0.010 vs 0.015 for instance. Therefore we correct these
         # physical quantities by multiplying them by corr_dz.
-        corr_dz = (cosmology.luminosity_distance(obs_z).value /
-                   cosmology.luminosity_distance(model_z).value)**2.
+        if model_z == obs_z:
+            corr_dz = 1.
+        else:
+            if model_z > 0.:
+                corr_dz = (cosmology.luminosity_distance(obs_z).value /
+                           cosmology.luminosity_distance(model_z).value)**2.
+            else:
+                corr_dz = (cosmology.luminosity_distance(obs_z).value * 1e5)**2.
     else:  # We do not know the redshift so we use the full grid
         wz = slice(0, None, 1)
         corr_dz = 1.
