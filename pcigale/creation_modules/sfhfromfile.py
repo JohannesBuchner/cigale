@@ -41,7 +41,7 @@ class SfhFromFile(CreationModule):
         ("sfr_column", (
             "integer",
             "List of column numbers where the star formation rates will "
-            "be read..",
+            "be read.",
             None
         )),
         ("age", (
