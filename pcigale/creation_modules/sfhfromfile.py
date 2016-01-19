@@ -71,7 +71,7 @@ class SfhFromFile(CreationModule):
         time_grid = table.columns[0].data
 
         sfr_column_number = int(self.parameters['sfr_column'])
-        sfr = table.columns[sfr_column_number].data
+        sfr = table.columns[sfr_column_number].data.astype(np.float)
 
         age = int(self.parameters['age'])
         normalise = (self.parameters["normalise"].lower() == "true")
