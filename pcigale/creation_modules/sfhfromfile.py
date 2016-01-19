@@ -34,19 +34,20 @@ class SfhFromFile(CreationModule):
         ("filename", (
             "str",
             "Name of the file containing the SFH. The first column must be "
-            "the time [Myr] and the other column must contain the SFR "
+            "the time in Myr, starting from 0 with a step of 1 Myr. The other
+            "columns must contain the SFR in Msun/yr."
             "[Msun/yr].",
             None
         )),
         ("sfr_column", (
             "integer",
-            "List of column numbers where the star formation rates will "
-            "be read.",
+            "List of column indices of the SFR. The first SFR column has the "
+            "index 1.",
             None
         )),
         ("age", (
             "integer",
-            "Age [Myr] where each SFH will be looked at.",
+            "Age in Myr at which the SFH will be looked at.",
             None
         )),
         ("normalise", (
@@ -68,7 +69,13 @@ class SfhFromFile(CreationModule):
         filename = self.parameters['filename']
         table = read_table(filename)
 
-        time_grid = table.columns[0].data
+        time_grid = table.columns[0].data.astype(np.int)
+
+        if time_grid[0] != 0:
+            raise Exception("The time grid must start from 0.")
+        if np.all(time_grid[1:]-time_grid[:-1] == 1) == False:
+            raise Exception("The time step must be 1 Myr. Computed models will "
+                            "be wrong.")
 
         sfr_column_number = int(self.parameters['sfr_column'])
         sfr = table.columns[sfr_column_number].data.astype(np.float)
