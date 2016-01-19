@@ -19,6 +19,7 @@
 - When called without arguments, pcigale-plots would crash and display the backtrace. Now it displays the a short help showing how to use it. (Médéric Boquien)
 - For sfh2exp, when setting the scale of the SFH with sfr0, the normalisation was incorrect by a factor exp(-1/tau_main). (Médéric Boquien)
 - The mass-dependent physical properties are computed assuming the redshift of the model. However because we round the observed redshifts to two decimals, there can be a difference of 0.005 in redshift between the models and the actual observation if CIGALE computes the list of redshifts itself. At low redshift, this can cause a discrepancy in the mass-dependent physical properties: ~0.35 dex at z=0.010 vs 0.015 for instance. Therefore we now evaluate these physical quantities at the observed redshift at full precision. (Médéric Boquien, issue reported by Samir Salim)
+- In the sfhfromfile module, an extraneous offset in the column index made that it took the previous column as the SFR rather than the selected column. (Médéric Boquien)
 
 ### Optimised
 - Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
