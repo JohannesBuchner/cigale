@@ -126,8 +126,9 @@ class PdfAnalysis(AnalysisModule):
 
         # Initalise variables from input arguments.
         analysed_variables = config["analysed_variables"]
-        analysed_variables_nolog = [''.join(variable.rsplit('_log', 1)) for
-                                    variable in analysed_variables]
+        analysed_variables_nolog = [variable[:-4] if variable.endswith('_log')
+                                    else variable for variable in
+                                    analysed_variables]
         n_variables = len(analysed_variables)
         save = {key: config["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
