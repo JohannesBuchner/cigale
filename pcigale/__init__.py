@@ -8,7 +8,7 @@ import multiprocessing as mp
 import sys
 
 from .session.configuration import Configuration
-from .analysis_modules import get_module as get_analysis_module
+from .analysis_modules import get_module
 from .analysis_modules.utils import ParametersHandler
 
 __version__ = "0.1-alpha"
@@ -46,18 +46,8 @@ def check(config):
 def run(config):
     """Run the analysis.
     """
-    data_file = config.configuration['data_file']
-    column_list = config.configuration['column_list']
-    creation_modules = config.configuration['creation_modules']
-    creation_modules_params = config.configuration['creation_modules_params']
-    analysis_module = get_analysis_module(config.configuration[
-        'analysis_method'])
-    analysis_module_params = config.configuration['analysis_method_params']
-    cores = config.configuration['cores']
-
-    analysis_module.process(data_file, column_list, creation_modules,
-                            creation_modules_params, analysis_module_params,
-                            cores)
+    analysis_module = get_module(config.configuration['analysis_method'])
+    analysis_module.process(config.configuration)
 
 
 def main():

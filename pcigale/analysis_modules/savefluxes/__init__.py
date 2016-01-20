@@ -67,8 +67,7 @@ class SaveFluxes(AnalysisModule):
         ))
     ])
 
-    def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, parameters, cores):
+    def process(self, conf):
         """Process with the savedfluxes analysis.
 
         All the possible theoretical SED are created and the fluxes in the
@@ -77,34 +76,25 @@ class SaveFluxes(AnalysisModule):
 
         Parameters
         ----------
-        data_file: string
-            Name of the file containing the observations to fit.
-        column_list: list of strings
-            Name of the columns from the data file to use for the analysis.
-        creation_modules: list of strings
-            List of the module names (in the right order) to use for creating
-            the SEDs.
-        creation_modules_params: list of dictionaries
-            List of the parameter dictionaries for each module.
-        parameters: dictionary
-            Dictionary containing the parameters.
-        cores: integer
-            Number of cores to run the analysis on
-
+        conf: dictionary
+            Contents of pcigale.ini in the form of a dictionary
         """
 
         # Rename the output directory if it exists
         backup_dir()
-        out_file = parameters["output_file"]
-        out_format = parameters["output_format"]
-        save_sed = parameters["save_sed"].lower() == "true"
+        creation_modules = conf['creation_modules']
+        creation_modules_params = conf['creation_modules_params']
+        out_file = conf['analysis_method_params']["output_file"]
+        out_format = conf['analysis_method_params']["output_format"]
+        save_sed = conf['analysis_method_params']["save_sed"].lower() == "true"
 
-        filters = [name for name in column_list if not name.endswith('_err')]
+        filters = [name for name in conf['column_list'] if not
+                   name.endswith('_err')]
         n_filters = len(filters)
 
         w_redshifting = creation_modules.index('redshifting')
         if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
-            obs_table = read_table(data_file)
+            obs_table = read_table(conf['data_file'])
             z = np.unique(np.around(obs_table['redshift'],
                                     decimals=REDSHIFT_DECIMALS))
             creation_modules_params[w_redshifting]['redshift'] = z
@@ -118,14 +108,14 @@ class SaveFluxes(AnalysisModule):
         params = ParametersHandler(creation_modules, creation_modules_params)
         n_params = params.size
 
-        if parameters["variables"] == '':
+        if conf['analysis_method_params']["variables"] == '':
             # Retrieve an arbitrary SED to obtain the list of output parameters
             warehouse = SedWarehouse()
             sed = warehouse.get_sed(creation_modules, params.from_index(0))
             info = list(sed.info.keys())
             del warehouse, sed
         else:
-            info = parameters["variables"]
+            info = conf['analysis_method_params']["variables"]
             n_info = len(info)
         info.sort()
         n_info = len(info)
@@ -137,12 +127,13 @@ class SaveFluxes(AnalysisModule):
 
         initargs = (params, filters, save_sed, info, model_fluxes,
                     model_parameters, time.time(), mp.Value('i', 0))
-        if cores == 1:  # Do not create a new process
+        if conf['cores'] == 1:  # Do not create a new process
             init_worker_fluxes(*initargs)
             for idx in range(n_params):
                 worker_fluxes(idx)
         else:  # Analyse observations in parallel
-            with mp.Pool(processes=cores, initializer=init_worker_fluxes,
+            with mp.Pool(processes=conf['cores'],
+                         initializer=init_worker_fluxes,
                          initargs=initargs) as pool:
                 pool.map(worker_fluxes, range(n_params))
 

@@ -90,8 +90,7 @@ class PdfAnalysis(AnalysisModule):
         ))
     ])
 
-    def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, config, cores):
+    def process(self, conf):
         """Process with the psum analysis.
 
         The analysis is done in two steps which can both run on multiple
@@ -102,19 +101,8 @@ class PdfAnalysis(AnalysisModule):
 
         Parameters
         ----------
-        data_file: string
-            Name of the file containing the observations to fit.
-        column_list: list of strings
-            Name of the columns from the data file to use for the analysis.
-        creation_modules: list of strings
-            List of the module names (in the right order) to use for creating
-            the SEDs.
-        creation_modules_params: list of dictionaries
-            List of the parameter dictionaries for each module.
-        config: dictionary
-            Dictionary containing the configuration.
-        core: integer
-            Number of cores to run the analysis on
+        conf: dictionary
+            Contents of pcigale.ini in the form of a dictionary
 
         """
         np.seterr(invalid='ignore')
@@ -125,23 +113,27 @@ class PdfAnalysis(AnalysisModule):
         backup_dir()
 
         # Initalise variables from input arguments.
-        analysed_variables = config["analysed_variables"]
+        creation_modules = conf['creation_modules']
+        creation_modules_params = conf['creation_modules_params']
+        analysed_variables = conf['analysis_method_params']["analysed_variables"]
         analysed_variables_nolog = [variable[:-4] if variable.endswith('_log')
                                     else variable for variable in
                                     analysed_variables]
         n_variables = len(analysed_variables)
-        save = {key: config["save_{}".format(key)].lower() == "true"
+        save = {key: conf['analysis_method_params']["save_{}".format(key)].lower() == "true"
                 for key in ["best_sed", "chi2", "pdf"]}
-        lim_flag = config["lim_flag"].lower() == "true"
-        mock_flag = config["mock_flag"].lower() == "true"
+        lim_flag = conf['analysis_method_params']["lim_flag"].lower() == "true"
+        mock_flag = conf['analysis_method_params']["mock_flag"].lower() == "true"
 
-        filters = [name for name in column_list if not name.endswith('_err')]
+        filters = [name for name in conf['column_list'] if not
+                   name.endswith('_err')]
         n_filters = len(filters)
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
-        obs_table = complete_obs_table(read_table(data_file), column_list,
-                                       filters, TOLERANCE, lim_flag)
+        obs_table = complete_obs_table(read_table(conf['data_file']),
+                                       conf['column_list'], filters, TOLERANCE,
+                                       lim_flag)
         n_obs = len(obs_table)
 
         w_redshifting = creation_modules.index('redshifting')
@@ -184,12 +176,12 @@ class PdfAnalysis(AnalysisModule):
 
         initargs = (params, filters, analysed_variables_nolog, model_fluxes,
                     model_variables, time.time(), mp.Value('i', 0))
-        if cores == 1:  # Do not create a new process
+        if conf['cores'] == 1:  # Do not create a new process
             init_worker_sed(*initargs)
             for idx in range(n_params):
                 worker_sed(idx)
         else:  # Compute the models in parallel
-            with mp.Pool(processes=cores, initializer=init_worker_sed,
+            with mp.Pool(processes=conf['cores'], initializer=init_worker_sed,
                          initargs=initargs) as pool:
                 pool.map(worker_sed, range(n_params))
 
@@ -212,12 +204,13 @@ class PdfAnalysis(AnalysisModule):
                     analysed_averages, analysed_std, best_fluxes,
                     best_parameters, best_chi2, best_chi2_red, save, lim_flag,
                     n_obs)
-        if cores == 1:  # Do not create a new process
+        if conf['cores'] == 1:  # Do not create a new process
             init_worker_analysis(*initargs)
             for idx, obs in enumerate(obs_table):
                 worker_analysis(idx, obs)
         else:  # Analyse observations in parallel
-            with mp.Pool(processes=cores, initializer=init_worker_analysis,
+            with mp.Pool(processes=conf['cores'],
+                         initializer=init_worker_analysis,
                          initargs=initargs) as pool:
                 pool.starmap(worker_analysis, enumerate(obs_table))
 
