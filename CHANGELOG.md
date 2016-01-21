@@ -12,6 +12,7 @@
 - The pcigale-mock tool has been merged into pcigale-plots; the mock plots can be obtained with the "mock" command.
 - The sfhdelayed module is now initialised with _init_code() to be consistent with the way things are done in other modules. This should give a slight speedup under some sircumstances too. (Médéric Boquien)
 - In sfhfromfile, the specification of the time grid was vague and therefore could lead to incorrect results if it was not properly formatted by the end user. The description has been clarified and we now check that the time starts from 0 and that the time step is always 1 Myr. If it is not the case we raise an exception. (Médéric Boquien)
+- When the redshift is not indicated in pcigale.ini, the analysis module fills the list of redshifts from the redshifts indicated in the input flux file. This is inefficient as analysis modules should have have to modify the configuration. Now this is done when interpreting pcigale.ini before calling the relevant analysis module. As a side effect, "pigale check" now returns the total number of models that cigale will compute rather than the number of models per redshift bin. (Médéric Boquien)
 
 ### Fixed
 - To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)

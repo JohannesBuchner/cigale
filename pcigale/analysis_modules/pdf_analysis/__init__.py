@@ -45,8 +45,6 @@ from ..utils import ParametersHandler, backup_dir
 
 # Tolerance threshold under which any flux or error is considered as 0.
 TOLERANCE = 1e-12
-# Limit the redshift to this number of decimals
-REDSHIFT_DECIMALS = 2
 
 
 class PdfAnalysis(AnalysisModule):
@@ -137,12 +135,7 @@ class PdfAnalysis(AnalysisModule):
         n_obs = len(obs_table)
 
         w_redshifting = creation_modules.index('redshifting')
-        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
-            z = np.unique(np.around(obs_table['redshift'],
-                                    decimals=REDSHIFT_DECIMALS))
-            creation_modules_params[w_redshifting]['redshift'] = z
-        else:
-            z = np.array(creation_modules_params[w_redshifting]['redshift'])
+        z = np.array(creation_modules_params[w_redshifting]['redshift'])
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create

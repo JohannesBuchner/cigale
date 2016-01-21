@@ -29,10 +29,6 @@ from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
 
 
-# Limit the redshift to this number of decimals
-REDSHIFT_DECIMALS = 2
-
-
 class SaveFluxes(AnalysisModule):
     """Save fluxes analysis module
 
@@ -91,14 +87,6 @@ class SaveFluxes(AnalysisModule):
         filters = [name for name in conf['column_list'] if not
                    name.endswith('_err')]
         n_filters = len(filters)
-
-        w_redshifting = creation_modules.index('redshifting')
-        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
-            obs_table = read_table(conf['data_file'])
-            z = np.unique(np.around(obs_table['redshift'],
-                                    decimals=REDSHIFT_DECIMALS))
-            creation_modules_params[w_redshifting]['redshift'] = z
-            del obs_table, z
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create

@@ -18,6 +18,9 @@ from ..utils import read_table
 from .. import creation_modules
 from .. import analysis_modules
 
+# Limit the redshift to this number of decimals
+REDSHIFT_DECIMALS = 2
+
 
 def list_modules(package_name):
     """Lists the modules available in a package
@@ -259,6 +262,10 @@ class Configuration(object):
         """
         configuration = {}
 
+        # Before building the configuration dictionary, we ensure that all the
+        # fields are filled
+        self.complete_conf()
+
         for section in ['data_file', 'column_list', 'creation_modules',
                         'analysis_method']:
             configuration[section] = self.config[section]
@@ -314,3 +321,20 @@ class Configuration(object):
                     self.config['creation_modules']]):
                 print("{} Options are: {}.".
                       format(comments[module], ', '.join(modules[module])))
+
+    def complete_conf(self):
+        """Complete the configuration when there is missing information that is
+        to be extracted from other sources such as the input file (redshifts)
+        or the output parameters (single run)
+        """
+
+        z_mod = self.config['sed_creation_modules']['redshifting']['redshift']
+        if type(z_mod) is str and not z_mod:
+            if self.config['data_file']:
+                obs_table = read_table(self.config['data_file'])
+                z = np.unique(np.around(obs_table['redshift'],
+                                        decimals=REDSHIFT_DECIMALS))
+                self.config['sed_creation_modules']['redshifting']['redshift'] = z
+            else:
+                raise Exception("No flux file and no redshift indicated. "
+                                "The spectra cannot be computed. Aborting.")
