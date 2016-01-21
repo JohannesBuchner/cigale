@@ -14,6 +14,8 @@ parameters.
 The data file is used only to get the list of fluxes to be computed.
 
 """
+
+from collections import OrderedDict
 import ctypes
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -36,7 +38,7 @@ class SaveFluxes(AnalysisModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("variables", (
             "array of strings",
             "List of the physical properties to save. Leave empty to save all "

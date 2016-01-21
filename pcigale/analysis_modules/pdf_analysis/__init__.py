@@ -25,6 +25,7 @@ reduced χ²) is given for each observation.
 
 """
 
+from collections import OrderedDict
 import ctypes
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -50,7 +51,7 @@ TOLERANCE = 1e-12
 class PdfAnalysis(AnalysisModule):
     """PDF analysis module"""
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("analysed_variables", (
             "array of strings",
             "List of the physical properties to estimate. Leave empty to "

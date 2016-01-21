@@ -18,6 +18,8 @@ is changed, this module may need to be adapted.
 
 """
 
+from collections import OrderedDict
+
 import numpy as np
 from scipy.constants import parsec
 from scipy.misc import factorial
@@ -141,7 +143,7 @@ class Redshifting(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("redshift", (
             "float",
             "Redshift to apply to the galaxy. Leave empty to use the redshifts"
