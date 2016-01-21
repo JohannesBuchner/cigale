@@ -13,10 +13,13 @@ from glob import glob  # To allow the use of glob() in "eval..."
 import pkg_resources
 import numpy as np
 
+from ..analysis_modules.utils import ParametersHandler
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules
 from .. import analysis_modules
+from ..warehouse import SedWarehouse
+
 
 # Limit the redshift to this number of decimals
 REDSHIFT_DECIMALS = 2
@@ -264,7 +267,7 @@ class Configuration(object):
 
         # Before building the configuration dictionary, we ensure that all the
         # fields are filled
-        self.complete_conf()
+        self.complete_redshifts()
 
         for section in ['data_file', 'column_list', 'creation_modules',
                         'analysis_method']:
@@ -279,6 +282,31 @@ class Configuration(object):
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
             configuration['creation_modules_params'].append(module_params)
+
+        if (self.config['analysis_method'] == 'savefluxes' and
+            not self.config['analysis_configuration']['variables']):
+            warehouse = SedWarehouse()
+            params = ParametersHandler(configuration['creation_modules'],
+                                       configuration['creation_modules_params'])
+            sed = warehouse.get_sed(configuration['creation_modules'],
+                                    params.from_index(0))
+            info = list(sed.info.keys())
+            info.sort()
+            self.config['analysis_configuration']['variables'] = info
+        elif (self.config['analysis_method'] == 'pdf_analysis' and
+              not self.config['analysis_configuration']['analysed_variables']):
+            warehouse = SedWarehouse()
+            params = ParametersHandler(configuration['creation_modules'],
+                                       configuration['creation_modules_params'])
+            sed = warehouse.get_sed(configuration['creation_modules'],
+                                    params.from_index(0))
+            info = list(sed.info.keys())
+            info.sort()
+            self.config['analysis_configuration']['analysed_variables'] = info
+        else:
+            raise Exception("Cannot determine which physical variables are to"
+                            "be computed with the {} module.").format(
+                            configuration['analysis_method'])
 
         # Analysis method parameters
         configuration['analysis_method_params'] = \
@@ -322,10 +350,9 @@ class Configuration(object):
                 print("{} Options are: {}.".
                       format(comments[module], ', '.join(modules[module])))
 
-    def complete_conf(self):
-        """Complete the configuration when there is missing information that is
-        to be extracted from other sources such as the input file (redshifts)
-        or the output parameters (single run)
+    def complete_redshifts(self):
+        """Complete the configuration when the redshifts are missing from the
+        configuration file and must be extracted from the input flux file.
         """
 
         z_mod = self.config['sed_creation_modules']['redshifting']['redshift']

@@ -24,7 +24,6 @@ import numpy as np
 from .. import AnalysisModule
 from ..utils import ParametersHandler, backup_dir, save_fluxes
 from ...utils import read_table
-from ...warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
 
@@ -40,9 +39,10 @@ class SaveFluxes(AnalysisModule):
     parameter_list = dict([
         ("variables", (
             "array of strings",
-            "List of variables to be saved. If the list is left empty, all"
-            "variables will be saved.",
-            ['']
+            "List of the physical properties to save. Leave empty to save all "
+            "the physical properties (not recommended when there are many "
+            "models).",
+            None
         )),
         ("output_file", (
             "string",
@@ -80,9 +80,9 @@ class SaveFluxes(AnalysisModule):
         backup_dir()
         creation_modules = conf['creation_modules']
         creation_modules_params = conf['creation_modules_params']
-        out_file = conf['analysis_method_params']["output_file"]
-        out_format = conf['analysis_method_params']["output_format"]
-        save_sed = conf['analysis_method_params']["save_sed"].lower() == "true"
+        out_file = conf['analysis_method_params']['output_file']
+        out_format = conf['analysis_method_params']['output_format']
+        save_sed = conf['analysis_method_params']['save_sed'].lower() == "true"
 
         filters = [name for name in conf['column_list'] if not
                    name.endswith('_err')]
@@ -96,16 +96,7 @@ class SaveFluxes(AnalysisModule):
         params = ParametersHandler(creation_modules, creation_modules_params)
         n_params = params.size
 
-        if conf['analysis_method_params']["variables"] == '':
-            # Retrieve an arbitrary SED to obtain the list of output parameters
-            warehouse = SedWarehouse()
-            sed = warehouse.get_sed(creation_modules, params.from_index(0))
-            info = list(sed.info.keys())
-            del warehouse, sed
-        else:
-            info = conf['analysis_method_params']["variables"]
-            n_info = len(info)
-        info.sort()
+        info = conf['analysis_method_params']['variables']
         n_info = len(info)
 
         model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),

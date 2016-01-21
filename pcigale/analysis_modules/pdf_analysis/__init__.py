@@ -53,8 +53,9 @@ class PdfAnalysis(AnalysisModule):
     parameter_list = dict([
         ("analysed_variables", (
             "array of strings",
-            "List of the variables (in the SEDs info dictionaries) for which "
-            "the statistical analysis will be done.",
+            "List of the physical properties to estimate. Leave empty to "
+            "analyse all the physical properties (not recommended when there "
+            "are many models).",
             ["sfh.sfr", "sfh.sfr10Myrs", "sfh.sfr100Myrs"]
         )),
         ("save_best_sed", (
