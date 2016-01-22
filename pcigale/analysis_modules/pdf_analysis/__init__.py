@@ -41,7 +41,8 @@ from .workers import sed as worker_sed
 from .workers import init_sed as init_worker_sed
 from .workers import init_analysis as init_worker_analysis
 from .workers import analysis as worker_analysis
-from ..utils import ParametersHandler, backup_dir
+from ..utils import backup_dir
+from ...handlers.parameters_handler import ParametersHandler
 
 
 # Tolerance threshold under which any flux or error is considered as 0.
@@ -144,7 +145,7 @@ class PdfAnalysis(AnalysisModule):
         # a list of parameters as they are computed on-the-fly. It also has
         # nice goodies such as finding the index of the first parameter to
         # have changed between two indices or the number of models.
-        params = ParametersHandler(creation_modules, creation_modules_params)
+        params = ParametersHandler(conf)
         n_params = params.size
 
         # Retrieve an arbitrary SED to obtain the list of output parameters

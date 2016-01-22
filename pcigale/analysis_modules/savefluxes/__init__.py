@@ -24,10 +24,11 @@ import time
 import numpy as np
 
 from .. import AnalysisModule
-from ..utils import ParametersHandler, backup_dir, save_fluxes
+from ..utils import backup_dir, save_fluxes
 from ...utils import read_table
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
+from ...handlers.parameters_handler import ParametersHandler
 
 
 class SaveFluxes(AnalysisModule):
@@ -80,8 +81,6 @@ class SaveFluxes(AnalysisModule):
 
         # Rename the output directory if it exists
         backup_dir()
-        creation_modules = conf['creation_modules']
-        creation_modules_params = conf['creation_modules_params']
         out_file = conf['analysis_method_params']['output_file']
         out_format = conf['analysis_method_params']['output_format']
         save_sed = conf['analysis_method_params']['save_sed'].lower() == "true"
@@ -95,7 +94,7 @@ class SaveFluxes(AnalysisModule):
         # a list of parameters as they are computed on-the-fly. It also has
         # nice goodies such as finding the index of the first parameter to
         # have changed between two indices or the number of models.
-        params = ParametersHandler(creation_modules, creation_modules_params)
+        params = ParametersHandler(conf)
         n_params = params.size
 
         info = conf['analysis_method_params']['variables']

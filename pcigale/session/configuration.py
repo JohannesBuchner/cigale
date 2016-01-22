@@ -13,7 +13,7 @@ from glob import glob  # To allow the use of glob() in "eval..."
 import pkg_resources
 import numpy as np
 
-from ..analysis_modules.utils import ParametersHandler
+from ..handlers.parameters_handler import ParametersHandler
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules
@@ -286,8 +286,7 @@ class Configuration(object):
         if (self.config['analysis_method'] == 'savefluxes' and
             not self.config['analysis_configuration']['variables']):
             warehouse = SedWarehouse()
-            params = ParametersHandler(configuration['creation_modules'],
-                                       configuration['creation_modules_params'])
+            params = ParametersHandler(configuration)
             sed = warehouse.get_sed(configuration['creation_modules'],
                                     params.from_index(0))
             info = list(sed.info.keys())
@@ -296,8 +295,7 @@ class Configuration(object):
         elif (self.config['analysis_method'] == 'pdf_analysis' and
               not self.config['analysis_configuration']['analysed_variables']):
             warehouse = SedWarehouse()
-            params = ParametersHandler(configuration['creation_modules'],
-                                       configuration['creation_modules_params'])
+            params = ParametersHandler(configuration)
             sed = warehouse.get_sed(configuration['creation_modules'],
                                     params.from_index(0))
             info = list(sed.info.keys())
