@@ -8,6 +8,10 @@ import collections
 import itertools
 import numpy as np
 
+from astropy.table import Table
+
+from ..utils import read_table
+
 
 class ParametersHandler(object):
     """Class to abstract the call to the relevant parameters handler depending
@@ -127,3 +131,84 @@ class ParametersHandlerGrid(object):
                 return module_idx
 
         return len(self.shape)
+
+
+class ParametersHandlerFile(object):
+    """Class to generate a parameters handler for list of parameters given in an
+    input file."""
+
+    def __init__(self, configuration):
+        """Instantiate the class.
+
+        Parameters
+        ----------
+        configuration: dictionary
+            Contains the name of the file containing the parameters
+
+        """
+        table = read_table(configuration['parameters_file'])
+        table.sort(table.colnames)
+
+        self.modules = []
+        for colname in table.colnames:
+            module = colname.split('.', 1)[0]
+            if module not in self.modules:
+                self.modules.append(module)
+
+        self.parameters = [table[[colname for colname in table.colnames if
+                                  colname.startswith(module)]]
+                           for module in self.modules]
+
+        for module_table in self.parameters:
+            for colname in t.colnames:
+                t[colname].name = colname.split('.', 1)[1]
+
+        del table
+
+    def from_index(self, index):
+        """Provides the parameters of a model given an index.
+
+        Parameters
+        ----------
+        index: int
+            index of the model for which we want the parameters
+
+        Returns
+        -------
+        params: list
+            Parameters of the model corresponding to the index
+
+        """
+
+        # As we have a simple file, this corresponds to the line number
+        params = [{name: self.parameters[idx_module][name][index] for name in
+                   self.parameters[idx_module].colnames} for idx_module, module
+                  in enumerate(self.modules)]
+
+        return params
+
+    def index_module_changed(self, index1, index2):
+        """Find the index of the first module affected by a change of parameters.
+
+        Parameters
+        ----------
+        index1: int
+            First index
+        index2: int
+            Second index
+
+        Returns
+        -------
+        module_idx: int
+            Index of the first module that has a different parameter
+
+        """
+
+        params1 = [table[index1].as_void() for table in self.parameters]
+        params2 = [table[index2].as_void() for table in self.parameters]
+
+        idx = next((i for i, (param1, param2) in
+                    enumerate(zip(params1, params2)) if param1 != param2),
+                   len(self.modules))
+
+        return idx
