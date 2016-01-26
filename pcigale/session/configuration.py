@@ -133,6 +133,16 @@ class Configuration(object):
             "uncertainties must be in mJy. This file is optional to generate "
             "the configuration file, in particular for the savefluxes module.")
 
+        self.config['parameters_file'] = ""
+        self.config.comments['parameters_file'] = [""] + wrap(
+            "Optional file containing the list of physical parameters. Each "
+            "column must be in the form module_name.parameter_name, with each "
+            "line behind a different model. The columns must be in the order "
+            "the modules will be called. The redshift column must be the last "
+            "one. Finally, if this parameters is not left empty, cigale will "
+            "not interpret the configuration parameters given in pcigale.ini. "
+            "They will be given only for information.")
+
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = ([""] +
             ["Order of the modules use for SED creation. Available modules:"] +
@@ -267,10 +277,11 @@ class Configuration(object):
 
         # Before building the configuration dictionary, we ensure that all the
         # fields are filled
-        self.complete_redshifts()
+        if not self.config['parameters_file']:
+            self.complete_redshifts()
 
-        for section in ['data_file', 'column_list', 'creation_modules',
-                        'analysis_method']:
+        for section in ['data_file', 'parameters_file', 'column_list',
+                        'creation_modules', 'analysis_method']:
             configuration[section] = self.config[section]
         configuration['cores'] = int(self.config['cores'])
 
@@ -287,7 +298,7 @@ class Configuration(object):
             not self.config['analysis_configuration']['variables']):
             warehouse = SedWarehouse()
             params = ParametersHandler(configuration)
-            sed = warehouse.get_sed(configuration['creation_modules'],
+            sed = warehouse.get_sed(params.modules,
                                     params.from_index(0))
             info = list(sed.info.keys())
             info.sort()
@@ -296,7 +307,7 @@ class Configuration(object):
               not self.config['analysis_configuration']['analysed_variables']):
             warehouse = SedWarehouse()
             params = ParametersHandler(configuration)
-            sed = warehouse.get_sed(configuration['creation_modules'],
+            sed = warehouse.get_sed(params.modules,
                                     params.from_index(0))
             info = list(sed.info.keys())
             info.sort()

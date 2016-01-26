@@ -26,6 +26,9 @@ class ParametersHandler(object):
     possible by weeding out partial models that will not be used anymore."""
 
     def __new__(object, configuration):
+        if configuration['parameters_file']:
+            return ParametersHandlerFile(configuration)
+        else:
             return ParametersHandlerGrid(configuration)
 
 
