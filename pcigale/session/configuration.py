@@ -25,26 +25,6 @@ from ..warehouse import SedWarehouse
 REDSHIFT_DECIMALS = 2
 
 
-def list_modules(package_name):
-    """Lists the modules available in a package
-
-    Parameters
-    ----------
-    package_name: string
-        Name of the package (e.g. pcigale.creation_modules).
-
-    Returns
-    -------
-    module_name: array of strings
-        List of the available modules.
-
-    """
-    directory = pkg_resources.resource_filename(package_name, '')
-    module_names = [name for _, name, _ in pkgutil.iter_modules([directory])]
-
-    return module_names
-
-
 def evaluate_description(description):
     """Evaluate a description from the config file as a list.
 
