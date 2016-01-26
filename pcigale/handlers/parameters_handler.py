@@ -160,13 +160,25 @@ class ParametersHandlerFile(object):
             if module not in self.modules:
                 self.modules.append(module)
 
-        self.parameters = [table[[colname for colname in table.colnames if
-                                  colname.startswith(module)]]
-                           for module in self.modules]
-
-        for module_table in self.parameters:
-            for colname in t.colnames:
-                t[colname].name = colname.split('.', 1)[1]
+        # The parameters file is read using astropy.Table. Unfortunately, it
+        # stores strings as np.str_, which is not marshalable, which means we
+        # cannot use the list of parameter to build a key for the cache. This
+        # overcome this, rather than using the table directly, we split it into
+        # several dictionaries, one for each module. Each dictionary contains
+        # the arguments in the form of lists that we convert to the right type:
+        # float for numbers and str for strings.
+        self.parameters = []
+        for module in self.modules:
+            dict_params = {}
+            for colname in table.colnames:
+                if colname.startswith(module):
+                    parname = colname.split('.', 1)[1]
+                    if type(table[colname][0]) is np.str_:
+                        dict_params[parname] = [str(val) for val in
+                                                 table[colname]]
+                    else:
+                        dict_params[parname] = list(table[colname])
+            self.parameters.append(dict_params)
 
         del table
 
@@ -187,7 +199,7 @@ class ParametersHandlerFile(object):
 
         # As we have a simple file, this corresponds to the line number
         params = [{name: self.parameters[idx_module][name][index] for name in
-                   self.parameters[idx_module].colnames} for idx_module, module
+                   self.parameters[idx_module]} for idx_module, module
                   in enumerate(self.modules)]
 
         return params
