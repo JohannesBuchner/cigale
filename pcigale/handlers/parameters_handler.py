@@ -152,6 +152,8 @@ class ParametersHandlerFile(object):
         table = read_table(configuration['parameters_file'])
         table.sort(table.colnames)
 
+        self.size = len(table)
+
         self.modules = []
         for colname in table.colnames:
             module = colname.split('.', 1)[0]
