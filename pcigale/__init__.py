@@ -8,8 +8,8 @@ import multiprocessing as mp
 import sys
 
 from .session.configuration import Configuration
-from .analysis_modules import get_module as get_analysis_module
-from .analysis_modules.utils import ParametersHandler
+from .analysis_modules import get_module
+from .handlers.parameters_handler import ParametersHandler
 
 __version__ = "0.1-alpha"
 
@@ -36,28 +36,17 @@ def check(config):
     """
     # TODO: Check if all the parameters that don't have default values are
     # given for each module.
-    print("With this configuration, pcigale must compute {} "
-          "SEDs.".format(ParametersHandler(
-                             config.configuration['creation_modules'],
-                             config.configuration['creation_modules_params']
-                             ).size))
+    configuration = config.configuration
+    print("With this configuration cigale will compute {} "
+          "models.".format(ParametersHandler(configuration).size))
 
 
 def run(config):
     """Run the analysis.
     """
-    data_file = config.configuration['data_file']
-    column_list = config.configuration['column_list']
-    creation_modules = config.configuration['creation_modules']
-    creation_modules_params = config.configuration['creation_modules_params']
-    analysis_module = get_analysis_module(config.configuration[
-        'analysis_method'])
-    analysis_module_params = config.configuration['analysis_method_params']
-    cores = config.configuration['cores']
-
-    analysis_module.process(data_file, column_list, creation_modules,
-                            creation_modules_params, analysis_module_params,
-                            cores)
+    configuration = config.configuration
+    analysis_module = get_module(configuration['analysis_method'])
+    analysis_module.process(configuration)
 
 
 def main():

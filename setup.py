@@ -20,13 +20,12 @@ class custom_build(build):
 entry_points = {
     'console_scripts': ['pcigale = pcigale:main',
                         'pcigale-plots = pcigale_plots:main',
-                        'pcigale-filters = pcigale_filters:main',
-                        'pcigale-mock = pcigale_mock:main']
+                        'pcigale-filters = pcigale_filters:main']
 }
 
 setup(
     name="pcigale",
-    version="0.7.0",
+    version="0.8.0",
     packages=find_packages(exclude=["database_builder"]),
 
     install_requires=['numpy', 'scipy', 'sqlalchemy', 'matplotlib',
@@ -36,8 +35,7 @@ setup(
 
     cmdclass={"build": custom_build},
     package_data={'pcigale': ['data/data.db'],
-                  'pcigale_plots': ['data/CIGALE.png'],
-                  'pcigale_mock': ['data/CIGALE.png']},
+                  'pcigale_plots': ['data/CIGALE.png']},
 
     author="The CIGALE team",
     author_email="cigale@lam.fr",

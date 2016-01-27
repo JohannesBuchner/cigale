@@ -2,12 +2,50 @@
 
 ## Unreleased
 ### Added
+- When using the savefluxes module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for savefluxes to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory. (Médéric Boquien)
+- Similarly to the savefluxes module, in the pdf_analysis module if the list of physical properties is left empty, all physical parameters are now analysed. (Médéric Boquien)
+- It is now possible to pass the parameters of the models to be computed from a file rather than having to indicate them in pcigale.ini. This means that the models do not necessarily need to be computed on a systematic grid of parameters. The name of the file is passed as an argument to the parameters\_file keyword in pcigale.ini. If this is done, the creation\_modules argument is ignored. Finally, the file must be formatted as following: each row is a different model and each column a different parameter. They must follow the naming scheme: module\_name.parameter\_name, that is "bc03.imf" for instance. (Médéric Boquien)
+
 ### Changed
+- The estimates of the physical parameters from the analysis of the PDF and from the best fit were recorded in separate files. This can be bothersome when trying to compare quantities from different files. Rather, we generate a single file containing all quantities. The ones estimated from the analysis of the PDF are prefixed with "bayes" and the ones from the best fit with "best". (Médéric Boquien)
+- To homogenize input and output files, the "observation_id" has been changed to "id" in the output files. (Médéric Boquien)
+- The output files providing estimates of the physical properties are now generated both in the form of text and FITS files. (Médéric Boquien)
+- When using the dustatt_calzleit module, choosing ẟ≠0 leads to an effective E(B-V) different from the one set by the user. Now the E(B-V) will always correspond to the one specified by the user. This means that at fixed E(B-V), A(V) depends on ẟ. (Médéric Boquien)
+- The pcigale-mock tool has been merged into pcigale-plots; the mock plots can be obtained with the "mock" command.
+- The sfhdelayed module is now initialised with _init_code() to be consistent with the way things are done in other modules. This should give a slight speedup under some sircumstances too. (Médéric Boquien)
+- In sfhfromfile, the specification of the time grid was vague and therefore could lead to incorrect results if it was not properly formatted by the end user. The description has been clarified and we now check that the time starts from 0 and that the time step is always 1 Myr. If it is not the case we raise an exception. (Médéric Boquien)
+- When the redshift is not indicated in pcigale.ini, the analysis module fills the list of redshifts from the redshifts indicated in the input flux file. This is inefficient as analysis modules should have have to modify the configuration. Now this is done when interpreting pcigale.ini before calling the relevant analysis module. As a side effect, "pigale check" now returns the total number of models that cigale will compute rather than the number of models per redshift bin. (Médéric Boquien)
+
+### Fixed
+- To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
+- When estimating a parameter in log, these were not scaled appropriately and taken in log when saving the related χ² and PDF. (Médéric Boquien)
+- In the presence of upper limits, correct the scaling factor of the models to the observations before computing the χ², not after. (Médéric Boquien)
+- When called without arguments, pcigale-plots would crash and display the backtrace. Now it displays the a short help showing how to use it. (Médéric Boquien)
+- For sfh2exp, when setting the scale of the SFH with sfr0, the normalisation was incorrect by a factor exp(-1/tau_main). (Médéric Boquien)
+- The mass-dependent physical properties are computed assuming the redshift of the model. However because we round the observed redshifts to two decimals, there can be a difference of 0.005 in redshift between the models and the actual observation if CIGALE computes the list of redshifts itself. At low redshift, this can cause a discrepancy in the mass-dependent physical properties: ~0.35 dex at z=0.010 vs 0.015 for instance. Therefore we now evaluate these physical quantities at the observed redshift at full precision. (Médéric Boquien, issue reported by Samir Salim)
+- In the sfhfromfile module, an extraneous offset in the column index made that it took the previous column as the SFR rather than the selected column. (Médéric Boquien)
+- In sfhfromfile, if the SFR is made of integers cigale crashed. Now we systematically convert it to float. (Médéric Boquien)
+- The order of the parameters for the analysis modules would change each time a new pcigale.ini was generated. Now the order is fixed. (Médéric Boquien)
+
+### Optimised
+- Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
+- The sfhfromfile module is now fully initialised when it is instantiated rather than doing so when processing the SED. This should be especially sensitive when processing different SED. (Médéric Boquien)
+
+## 0.8.1 (2015-12-07)
+### Fixed
+-  To estimate parameters in log, pcigale determines which variables end with the "_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
+
+## 0.8.0 (2015-12-01)
+### Added
+- The evaluation of the parameters is always done linearly. This can be a problem when estimating the SFR or the stellar mass for instance as it is usual to estimate their log rather. Because the log is non-linear, the likelihood-weighted mean of the log is not the log of the likelihood-weighted mean. Therefore the estimation of the log of these parameters has to be done during the analysis step. This is now possible. The variables to be analysed in log just need to be indicated with the suffix "_log", for instance "stellar.m_star_log". (Médéric Boquien, idea suggested by Samir Salim)
+
 ### Fixed
 - Running the scripts in parallel trigger a deadlock on OS X with python 3.5. A workaround has been implemented. (Médéric Boquien)
 - When no dust emission module is used, pcigale genconf complains that no dust attenuation module is used. Correctly specify dust emission and not attenuation. (Médéric Boquien and Laure Ciesla)
+- Allowing more flexibility to read ASCII files broke the handling of FITS files. It is now fixed. (Yannick Roehlly)
 
-### Optimised
+### Changed
+- The attenuation.ebvs\_main and attenuation.ebvs\_old parameters are no longer present as they were duplicates of attenuation.E\_BVs.stellar.old and attenuation.E\_BVs.stellar.young (that are still available).
 
 ## 0.7.0 (2015-11-19)
 ### Added
@@ -96,7 +134,7 @@
 ## 0.5.1 (2015-04-28)
 
 ### Changed
-- Set the default dale2014 AGN fraction to 0 to avoid the accidentl inclusion of AGN. (Denis Burgarella)
+- Set the default dale2014 AGN fraction to 0 to avoid the accidental inclusion of AGN. (Denis Burgarella)
 - Modify the name of the averaged SFR: two averaged SFRs over 10 (sfh.sfr10Myrs) and 100Myrs (sfh.sfr100Myrs). (Denis Burgarella)
 - Improve the documentation of the savefluxes module. (Denis Burgarella)
 

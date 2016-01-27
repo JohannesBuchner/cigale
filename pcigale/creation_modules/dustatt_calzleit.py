@@ -166,6 +166,16 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     # UV bump
     attenuation += uv_bump(wavelength, bump_wave, bump_width, bump_ampl)
 
+    # As the powerlaw slope changes E(B-V), we correct this so that the curve
+    # always has the same E(B-V) as the starburst curve. This ensures that the
+    # E(B-V) requested by the user is the actual E(B-V) of the curve.
+    wl_BV = np.array([440., 550.])
+    EBV_calz = ((k_calzetti2000(wl_BV) * power_law(wl_BV, 0.)) +
+                uv_bump(wl_BV, bump_wave, bump_width, bump_ampl))
+    EBV = ((k_calzetti2000(wl_BV) * power_law(wl_BV, power_slope)) +
+           uv_bump(wl_BV, bump_wave, bump_width, bump_ampl))
+    attenuation *= (EBV_calz[1]-EBV_calz[0]) / (EBV[1]-EBV[0])
+
     return attenuation
 
 
@@ -243,7 +253,8 @@ class CalzLeit(CreationModule):
         ebvs = {}
         wavelength = sed.wavelength_grid
         ebvs['young'] = float(self.parameters["E_BVs_young"])
-        ebvs['old'] = float(self.parameters["E_BVs_old_factor"]) * ebvs['young']
+        ebvs_old_factor = float(self.parameters["E_BVs_old_factor"])
+        ebvs['old'] = ebvs_old_factor * ebvs['young']
         uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
         uv_bump_width = float(self.parameters["uv_bump_width"])
         uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
@@ -294,8 +305,7 @@ class CalzLeit(CreationModule):
             sed.add_info("attenuation." + filt,
                          -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
-        sed.add_info('attenuation.ebvs_main', ebvs['old'])
-        sed.add_info('attenuation.ebvs_young', ebvs['young'])
+        sed.add_info('attenuation.ebvs_old_factor', ebvs_old_factor)
         sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
         sed.add_info('attenuation.uv_bump_width', uv_bump_width)
         sed.add_info('attenuation.uv_bump_amplitude', uv_bump_amplitude)

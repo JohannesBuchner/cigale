@@ -31,7 +31,7 @@ class SfhQuench(CreationModule):
     parameter_list = OrderedDict([
         ("quenching_age", (
             "integer",
-            "Age of the galaxy at which the quenching happens in Myr.",
+            "Look-back time when the quenching happens in Myr.",
             0
         )),
         ("quenching_factor", (

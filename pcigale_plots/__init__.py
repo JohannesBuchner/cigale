@@ -9,6 +9,7 @@
 import argparse
 from itertools import product, repeat
 from collections import OrderedDict
+import sys
 
 from astropy.table import Table
 import matplotlib
@@ -20,6 +21,7 @@ import numpy as np
 import os
 import pkg_resources
 from scipy.constants import c
+from scipy import stats
 from pcigale.data import Database
 from pcigale.utils import read_table
 from pcigale.session.configuration import Configuration
@@ -29,7 +31,8 @@ __version__ = "0.1-alpha"
 
 
 # Name of the file containing the best models information
-BEST_MODEL_FILE = "best_models.txt"
+BEST_RESULTS = "results.fits"
+MOCK_RESULTS = "results_mock.fits"
 # Directory where the output files are stored
 OUT_DIR = "out/"
 # Wavelength limits (restframe) when plotting the best SED.
@@ -123,9 +126,9 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
         obs_fluxes = np.array([obs[filt] for filt in filters.keys()])
         obs_fluxes_err = np.array([obs[filt+'_err']
                                    for filt in filters.keys()])
-        mod_fluxes = np.array([mod[filt] for filt in filters.keys()])
+        mod_fluxes = np.array([mod["best."+filt] for filt in filters.keys()])
         z = np.around(obs['redshift'], decimals=2)
-        DL = mod['universe.luminosity_distance']
+        DL = mod['best.universe.luminosity_distance']
 
         if sed_type == 'lum':
             xmin = PLOT_L_MIN
@@ -299,7 +302,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
             figure.suptitle("Best model for {} at z = {}. Reduced $\chi^2$={}".
                             format(obs['id'], np.round(obs['redshift'],
                                    decimals=3),
-                                   np.round(mod['reduced_chi_square'],
+                                   np.round(mod['best.reduced_chi_square'],
                                             decimals=2)))
             if nologo is False:
                 image = plt.imread(pkg_resources.resource_filename(__name__,
@@ -313,6 +316,54 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                   format(obs['id']))
     else:
         print("No SED found for {}. No plot created.".format(obs['id']))
+
+
+def _mock_worker(exact, estimated, param, nologo):
+    """Plot the exact and estimated values of a parameter for the mock analysis
+
+    Parameters
+    ----------
+    exact: Table column
+        Exact values of the parameter.
+    estimated: Table column
+        Estimated values of the parameter.
+    param: string
+        Name of the parameter
+    nologo: boolean
+        Do not add the logo when set to true.
+
+    """
+
+    range_exact = np.linspace(np.min(exact), np.max(exact), 100)
+
+    # We compute the linear regression
+    if (np.min(exact) < np.max(exact)):
+        slope, intercept, r_value, p_value, std_err = stats.linregress(exact,
+                                                                       estimated)
+    else:
+        slope = 0.0
+        intercept = 1.0
+        r_value = 0.0
+
+    plt.errorbar(exact, estimated, marker='.', label=param, color='k',
+                 linestyle='None', capsize=0.)
+    plt.plot(range_exact, range_exact, color='r', label='1-to-1')
+    plt.plot(range_exact, slope * range_exact + intercept, color='b',
+             label='exact-fit $r^2$ = {:.2f}'.format(r_value**2))
+    plt.xlabel('Exact')
+    plt.ylabel('Estimated')
+    plt.title(param)
+    plt.legend(loc='best', fancybox=True, framealpha=0.5, numpoints=1)
+    plt.minorticks_on()
+    if nologo is False:
+        image = plt.imread(pkg_resources.resource_filename(__name__,
+                                                           "data/CIGALE.png"))
+        plt.figimage(image, 510, 55, origin='upper', zorder=10, alpha=1)
+
+    plt.tight_layout()
+    plt.savefig(OUT_DIR + 'mock_{}.pdf'.format(param))
+
+    plt.close()
 
 
 def chi2(config):
@@ -347,7 +398,7 @@ def sed(config, sed_type, nologo):
     """Plot the best SED with associated observed and modelled fluxes.
     """
     obs = read_table(config.configuration['data_file'])
-    mod = Table.read(OUT_DIR + BEST_MODEL_FILE, format='ascii')
+    mod = Table.read(OUT_DIR + BEST_RESULTS)
 
     with Database() as base:
         filters = OrderedDict([(name, base.get_filter(name))
@@ -357,6 +408,38 @@ def sed(config, sed_type, nologo):
     with mp.Pool(processes=config.configuration['cores']) as pool:
         pool.starmap(_sed_worker, zip(obs, mod, repeat(filters),
                                       repeat(sed_type), repeat(nologo)))
+        pool.close()
+        pool.join()
+
+
+def mock(config, nologo):
+    """Plot the comparison of input/output values of analysed variables.
+    """
+
+    try:
+        exact = Table.read(OUT_DIR + BEST_RESULTS)
+    except FileNotFoundError:
+        print("Best models file {} not found.".format(OUT_DIR + BEST_RESULTS))
+        sys.exit(1)
+
+    try:
+        estimated = Table.read(OUT_DIR + MOCK_RESULTS)
+    except FileNotFoundError:
+        print("Mock models file {} not found.".format(OUT_DIR + MOCK_RESULTS))
+        sys.exit(1)
+
+    params = config.configuration['analysis_method_params']['analysed_variables']
+
+    for param in params:
+        if param.endswith('_log'):
+            param = "best."+param
+            exact[param] = np.log10(exact[param[:-4]])
+
+    arguments = ((exact["best."+param], estimated["bayes."+param], param, nologo)
+                 for param in params)
+
+    with mp.Pool(processes=config.configuration['cores']) as pool:
+        pool.starmap(_mock_worker, arguments)
         pool.close()
         pool.join()
 
@@ -387,6 +470,10 @@ def main():
     sed_parser.add_argument('--nologo', action="store_true")
     sed_parser.set_defaults(parser='sed')
 
+    sed_parser = subparsers.add_parser('mock', help=mock.__doc__)
+    sed_parser.add_argument('--nologo', action="store_true")
+    sed_parser.set_defaults(parser='mock')
+
     args = parser.parse_args()
 
     if args.config_file:
@@ -394,9 +481,14 @@ def main():
     else:
         config = Configuration()
 
-    if args.parser == 'chi2':
-        chi2(config)
-    elif args.parser == 'pdf':
-        pdf(config)
-    elif args.parser == 'sed':
-        sed(config, args.type, args.nologo)
+    if len(sys.argv) == 1:
+        parser.print_usage()
+    else:
+        if args.parser == 'chi2':
+            chi2(config)
+        elif args.parser == 'pdf':
+            pdf(config)
+        elif args.parser == 'sed':
+            sed(config, args.type, args.nologo)
+        elif args.parser == 'mock':
+            mock(config, args.nologo)

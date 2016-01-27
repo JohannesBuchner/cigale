@@ -13,30 +13,16 @@ from glob import glob  # To allow the use of glob() in "eval..."
 import pkg_resources
 import numpy as np
 
+from ..handlers.parameters_handler import ParametersHandler
 from ..data import Database
 from ..utils import read_table
 from .. import creation_modules
 from .. import analysis_modules
+from ..warehouse import SedWarehouse
 
 
-def list_modules(package_name):
-    """Lists the modules available in a package
-
-    Parameters
-    ----------
-    package_name: string
-        Name of the package (e.g. pcigale.creation_modules).
-
-    Returns
-    -------
-    module_name: array of strings
-        List of the available modules.
-
-    """
-    directory = pkg_resources.resource_filename(package_name, '')
-    module_names = [name for _, name, _ in pkgutil.iter_modules([directory])]
-
-    return module_names
+# Limit the redshift to this number of decimals
+REDSHIFT_DECIMALS = 2
 
 
 def evaluate_description(description):
@@ -126,6 +112,16 @@ class Configuration(object):
             "'_err' suffix for the uncertainties. The fluxes and the "
             "uncertainties must be in mJy. This file is optional to generate "
             "the configuration file, in particular for the savefluxes module.")
+
+        self.config['parameters_file'] = ""
+        self.config.comments['parameters_file'] = [""] + wrap(
+            "Optional file containing the list of physical parameters. Each "
+            "column must be in the form module_name.parameter_name, with each "
+            "line behind a different model. The columns must be in the order "
+            "the modules will be called. The redshift column must be the last "
+            "one. Finally, if this parameters is not left empty, cigale will "
+            "not interpret the configuration parameters given in pcigale.ini. "
+            "They will be given only for information.")
 
         self.config['creation_modules'] = []
         self.config.comments['creation_modules'] = ([""] +
@@ -259,8 +255,13 @@ class Configuration(object):
         """
         configuration = {}
 
-        for section in ['data_file', 'column_list', 'creation_modules',
-                        'analysis_method']:
+        # Before building the configuration dictionary, we ensure that all the
+        # fields are filled
+        if not self.config['parameters_file']:
+            self.complete_redshifts()
+
+        for section in ['data_file', 'parameters_file', 'column_list',
+                        'creation_modules', 'analysis_method']:
             configuration[section] = self.config[section]
         configuration['cores'] = int(self.config['cores'])
 
@@ -272,6 +273,29 @@ class Configuration(object):
                     self.config['sed_creation_modules'][module].items():
                 module_params[key] = evaluate_description(value)
             configuration['creation_modules_params'].append(module_params)
+
+        if (self.config['analysis_method'] == 'savefluxes' and
+            not self.config['analysis_configuration']['variables']):
+            warehouse = SedWarehouse()
+            params = ParametersHandler(configuration)
+            sed = warehouse.get_sed(params.modules,
+                                    params.from_index(0))
+            info = list(sed.info.keys())
+            info.sort()
+            self.config['analysis_configuration']['variables'] = info
+        elif (self.config['analysis_method'] == 'pdf_analysis' and
+              not self.config['analysis_configuration']['analysed_variables']):
+            warehouse = SedWarehouse()
+            params = ParametersHandler(configuration)
+            sed = warehouse.get_sed(params.modules,
+                                    params.from_index(0))
+            info = list(sed.info.keys())
+            info.sort()
+            self.config['analysis_configuration']['analysed_variables'] = info
+        else:
+            raise Exception("Cannot determine which physical variables are to"
+                            "be computed with the {} module.").format(
+                            configuration['analysis_method'])
 
         # Analysis method parameters
         configuration['analysis_method_params'] = \
@@ -314,3 +338,19 @@ class Configuration(object):
                     self.config['creation_modules']]):
                 print("{} Options are: {}.".
                       format(comments[module], ', '.join(modules[module])))
+
+    def complete_redshifts(self):
+        """Complete the configuration when the redshifts are missing from the
+        configuration file and must be extracted from the input flux file.
+        """
+
+        z_mod = self.config['sed_creation_modules']['redshifting']['redshift']
+        if type(z_mod) is str and not z_mod:
+            if self.config['data_file']:
+                obs_table = read_table(self.config['data_file'])
+                z = np.unique(np.around(obs_table['redshift'],
+                                        decimals=REDSHIFT_DECIMALS))
+                self.config['sed_creation_modules']['redshifting']['redshift'] = z
+            else:
+                raise Exception("No flux file and no redshift indicated. "
+                                "The spectra cannot be computed. Aborting.")

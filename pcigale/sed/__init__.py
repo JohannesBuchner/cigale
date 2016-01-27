@@ -38,13 +38,6 @@ from .io.vo import save_sed_to_vo
 from ..data import Database
 
 
-
-# Time lapse used to compute the average star formation rate. We use a
-# constant to keep it easily changeable for advanced user while limiting the
-# number of parameters. The value is in Myr.
-AV_LAPSE = 100
-
-
 class SED(object):
     """Spectral Energy Distribution with associated information
     """

@@ -76,8 +76,8 @@ class Sfh2Exp(CreationModule):
         normalise = (self.parameters["normalise"].lower() == "true")
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        self.time_grid = np.arange(1, age + 1)
-        time_grid_burst = np.arange(1, self.burst_age + 1)
+        self.time_grid = np.arange(age)
+        time_grid_burst = np.arange(self.burst_age)
 
         # SFR for each component
         self.sfr = np.exp(-self.time_grid / self.tau_main)
@@ -88,7 +88,7 @@ class Sfh2Exp(CreationModule):
 
         # We add the age burst exponential for ages superior to age -
         # burst_age
-        self.sfr[-time_grid_burst[-1]:] += sfr_burst
+        self.sfr[-(time_grid_burst[-1]+1):] += sfr_burst
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.

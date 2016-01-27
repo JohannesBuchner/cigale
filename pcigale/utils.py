@@ -32,7 +32,7 @@ def read_table(file_):
 
     """
     try:
-        table = Table.read(file_, delimiter='\s')
+        table = Table.read(file_)
     except Exception:  # astropy should raise a specific exception
         try:
             table = Table.read(file_, format="ascii", delimiter='\s')

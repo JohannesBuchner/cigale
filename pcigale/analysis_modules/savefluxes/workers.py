@@ -13,7 +13,8 @@ from ...warehouse import SedWarehouse
 from ..utils import OUT_DIR
 
 
-def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
+def init_fluxes(params, filters, save_sed, variables, fluxes, info, t_begin,
+                n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -26,6 +27,8 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
         Contains the names of the filters to compute the fluxes.
     save_sed: boolean
         Indicates whether the SED should be saved.
+    variables: list
+        List of variables to be computed
     fluxes: RawArray and tuple containing the shape
         Fluxes of individual models. Shared among workers.
     n_computed: Value
@@ -36,7 +39,7 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
     """
     global gbl_model_fluxes, gbl_model_info, gbl_n_computed, gbl_t_begin
     global gbl_params, gbl_previous_idx, gbl_filters, gbl_save_sed
-    global gbl_warehouse, gbl_keys
+    global gbl_warehouse, gbl_variables
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -55,9 +58,10 @@ def init_fluxes(params, filters, save_sed, fluxes, info, t_begin, n_computed):
 
     gbl_save_sed = save_sed
 
+    gbl_variables = variables
+
     gbl_warehouse = SedWarehouse()
 
-    gbl_keys = None
 
 def fluxes(idx):
     """Worker process to retrieve a SED and affect the relevant data to shared
@@ -79,20 +83,17 @@ def fluxes(idx):
     sed = gbl_warehouse.get_sed(gbl_params.modules,
                                 gbl_params.from_index(idx))
 
-    if gbl_save_sed is True:
-        sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
-
     if 'sfh.age' in sed.info and sed.info['sfh.age'] > sed.info['universe.age']:
         gbl_model_fluxes[idx, :] = np.full(len(gbl_filters), np.nan)
+        gbl_model_info[idx, :] = np.full(len(gbl_variables), np.nan)
     else:
         gbl_model_fluxes[idx, :] = np.array([sed.compute_fnu(filter_) for
-                                             filter_ in gbl_filters])
+                                           filter_ in gbl_filters])
+        gbl_model_info[idx, :] = np.array([sed.info[name] for name in
+                                           gbl_variables])
 
-    if gbl_keys is None:
-        gbl_keys = list(sed.info.keys())
-        gbl_keys.sort()
-    gbl_model_info[idx, :] = np.array([sed.info[k] for k in gbl_keys])
-
+    if gbl_save_sed is True:
+        sed.to_votable(OUT_DIR + "{}_best_model.xml".format(idx))
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value

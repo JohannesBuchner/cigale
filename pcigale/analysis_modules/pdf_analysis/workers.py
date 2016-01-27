@@ -8,6 +8,7 @@
 
 import time
 
+from astropy.cosmology import WMAP7 as cosmology
 import numpy as np
 import scipy.stats as st
 
@@ -16,8 +17,7 @@ from .utils import (save_best_sed, save_pdf, save_chi2, compute_chi2,
 from ...warehouse import SedWarehouse
 
 
-def init_sed(params, filters, analysed, redshifts, fluxes, variables,
-             t_begin, n_computed):
+def init_sed(params, filters, analysed, fluxes, variables, t_begin, n_computed):
     """Initializer of the pool of processes. It is mostly used to convert
     RawArrays into numpy arrays. The latter are defined as global variables to
     be accessible from the workers.
@@ -30,8 +30,6 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
         Contains the names of the filters to compute the fluxes.
     analysed: list
         Variable names to be analysed.
-    redshifts: RawArray and tuple containing the shape
-        Redshifts of individual models. Shared among workers.
     fluxes: RawArray and tuple containing the shape
         Fluxes of individual models. Shared among workers.
     variables: RawArray and tuple containing the shape
@@ -42,11 +40,9 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
         Time of the beginning of the computation.
 
     """
-    global gbl_model_redshifts, gbl_model_fluxes, gbl_model_variables
-    global gbl_n_computed, gbl_t_begin, gbl_params, gbl_previous_idx
-    global gbl_filters, gbl_analysed_variables, gbl_warehouse
-
-    gbl_model_redshifts = np.ctypeslib.as_array(redshifts[0])
+    global gbl_model_fluxes, gbl_model_variables, gbl_n_computed, gbl_t_begin
+    global gbl_params, gbl_previous_idx, gbl_filters, gbl_analysed_variables
+    global gbl_warehouse
 
     gbl_model_fluxes = np.ctypeslib.as_array(fluxes[0])
     gbl_model_fluxes = gbl_model_fluxes.reshape(fluxes[1])
@@ -67,7 +63,7 @@ def init_sed(params, filters, analysed, redshifts, fluxes, variables,
     gbl_warehouse = SedWarehouse()
 
 
-def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
+def init_analysis(params, filters, analysed, z, fluxes, variables,
                   t_begin, n_computed, analysed_averages, analysed_std,
                   best_fluxes, best_parameters, best_chi2, best_chi2_red, save,
                   lim_flag, n_obs):
@@ -83,7 +79,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         Contains filters to compute the fluxes.
     analysed: list
         Variable names to be analysed
-    redshifts: RawArray and tuple containing the shape.
+    z: RawArray and tuple containing the shape.
         Redshifts of individual models. Shared among workers.
     fluxes: RawArray
         Fluxes of individual models. Shared among workers.
@@ -112,9 +108,8 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
         Number of observations.
 
     """
-    init_sed(params, filters, analysed, redshifts, fluxes, variables,
-             t_begin, n_computed)
-    global gbl_redshifts, gbl_analysed_averages, gbl_analysed_std
+    init_sed(params, filters, analysed, fluxes, variables, t_begin, n_computed)
+    global gbl_z, gbl_analysed_averages, gbl_analysed_std
     global gbl_best_fluxes, gbl_best_parameters, gbl_best_chi2
     global gbl_best_chi2_red, gbl_save, gbl_n_obs, gbl_lim_flag, gbl_keys
 
@@ -134,8 +129,7 @@ def init_analysis(params, filters, analysed, redshifts, fluxes, variables,
 
     gbl_best_chi2_red = np.ctypeslib.as_array(best_chi2_red[0])
 
-    gbl_redshifts = gbl_model_redshifts[np.unique(gbl_model_redshifts,
-                                                  return_index=True)[1]]
+    gbl_z = z
 
     gbl_save = save
     gbl_lim_flag = lim_flag
@@ -174,8 +168,6 @@ def sed(idx):
                                                 for name in
                                                 gbl_analysed_variables])
 
-    gbl_model_redshifts[idx] = sed.info['universe.redshift']
-
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
         n_computed = gbl_n_computed.value
@@ -204,15 +196,34 @@ def analysis(idx, obs):
 
     obs_fluxes = np.array([obs[name] for name in gbl_filters])
     obs_errors = np.array([obs[name + "_err"] for name in gbl_filters])
+    obs_z = obs['redshift']
     nobs = np.where(np.isfinite(obs_fluxes))[0].size
 
-    if obs['redshift'] >= 0.:
+    if obs_z >= 0.:
         # We pick the the models with the closest redshift using a slice to
         # work on views of the arrays and not on copies to save on RAM.
-        wz = slice(np.abs(obs['redshift'] - gbl_redshifts).argmin(), None,
-                   gbl_redshifts.size)
+        idx_z = np.abs(obs_z - gbl_z).argmin()
+        model_z = gbl_z[idx_z]
+        wz = slice(idx_z, None, gbl_z.size)
+
+        # The mass-dependent physical properties are computed assuming the
+        # redshift of the model. However because we round the observed redshifts
+        # to two decimals, there can be a difference of 0.005 in redshift
+        # between the models and the actual observation. At low redshift, this
+        # can cause a discrepancy in the mass-dependent physical properties:
+        # ~0.35 dex at z=0.010 vs 0.015 for instance. Therefore we correct these
+        # physical quantities by multiplying them by corr_dz.
+        if model_z == obs_z:
+            corr_dz = 1.
+        else:
+            if model_z > 0.:
+                corr_dz = (cosmology.luminosity_distance(obs_z).value /
+                           cosmology.luminosity_distance(model_z).value)**2.
+            else:
+                corr_dz = (cosmology.luminosity_distance(obs_z).value * 1e5)**2.
     else:  # We do not know the redshift so we use the full grid
         wz = slice(0, None, 1)
+        corr_dz = 1.
 
     chi2, scaling = compute_chi2(gbl_model_fluxes[wz, :], obs_fluxes,
                                  obs_errors, gbl_lim_flag)
@@ -260,19 +271,29 @@ def analysis(idx, obs):
 
         # We correct the mass-dependent parameters
         for key in sed.mass_proportional_info:
-            sed.info[key] *= scaling[best_index_z]
+            sed.info[key] *= scaling[best_index_z] * corr_dz
 
         # We compute the weighted average and standard deviation using the
         # likelihood as weight.
         for i, variable in enumerate(gbl_analysed_variables):
-            if variable in sed.mass_proportional_info:
-                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely]
-                                           * scaling[wlikely], likelihood)
+            if variable.endswith('_log'):
+                variable = variable[:-4]
+                _ = np.log10
+                maxstd = lambda mean, std: max(0.02, std)
             else:
-                mean, std = weighted_param(gbl_model_variables[wz, i][wlikely],
+                _ = lambda x: x
+                maxstd = lambda mean, std: max(0.05 * mean, std)
+
+            if variable in sed.mass_proportional_info:
+                mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]
+                                           * scaling[wlikely] * corr_dz),
                                            likelihood)
+            else:
+                mean, std = weighted_param(_(gbl_model_variables[wz, i][wlikely]),
+                                           likelihood)
+
             gbl_analysed_averages[idx, i] = mean
-            gbl_analysed_std[idx, i] = max(0.05 * mean, std)
+            gbl_analysed_std[idx, i] = maxstd(mean, std)
 
         gbl_best_fluxes[idx, :] = gbl_model_fluxes[best_index, :] \
             * scaling[best_index_z]
@@ -288,22 +309,13 @@ def analysis(idx, obs):
         if gbl_save['best_sed']:
             save_best_sed(obs['id'], sed, scaling[best_index_z])
         if gbl_save['chi2']:
-            for i, variable in enumerate(gbl_analysed_variables):
-                if variable in sed.mass_proportional_info:
-                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i] *
-                              scaling, chi2 / (nobs - 1))
-                else:
-                    save_chi2(obs['id'], variable, gbl_model_variables[wz, i],
-                              chi2 / (nobs - 1))
+            save_chi2(obs['id'], gbl_analysed_variables,
+                      sed.mass_proportional_info, gbl_model_variables[wz, :],
+                      scaling * corr_dz, chi2 / (nobs - 1))
         if gbl_save['pdf']:
-            for i, variable in enumerate(gbl_analysed_variables):
-                if variable in sed.mass_proportional_info:
-                    save_pdf(obs['id'], variable,
-                             gbl_model_variables[wz, i][wlikely] *
-                             scaling[wlikely], likelihood)
-                else:
-                    save_pdf(obs['id'], variable,
-                             gbl_model_variables[wz, i][wlikely], likelihood)
+            save_pdf(obs['id'], gbl_analysed_variables,
+                     sed.mass_proportional_info, gbl_model_variables[wz, :],
+                     scaling * corr_dz, likelihood, wlikely)
 
     with gbl_n_computed.get_lock():
         gbl_n_computed.value += 1
