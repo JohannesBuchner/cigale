@@ -292,10 +292,6 @@ class Configuration(object):
             info = list(sed.info.keys())
             info.sort()
             self.config['analysis_configuration']['analysed_variables'] = info
-        else:
-            raise Exception("Cannot determine which physical variables are to"
-                            "be computed with the {} module.").format(
-                            configuration['analysis_method'])
 
         # Analysis method parameters
         configuration['analysis_method_params'] = \
