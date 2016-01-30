@@ -114,8 +114,6 @@ class PdfAnalysis(AnalysisModule):
         backup_dir()
 
         # Initalise variables from input arguments.
-        creation_modules = conf['creation_modules']
-        creation_modules_params = conf['sed_modules_params']
         variables = conf['analysis_params']["variables"]
         variables_nolog = [variable[:-4] if variable.endswith('_log') else
                            variable for variable in variables]
@@ -123,7 +121,6 @@ class PdfAnalysis(AnalysisModule):
         save = {key: conf['analysis_params']["save_{}".format(key)] for key in
                 ["best_sed", "chi2", "pdf"]}
         lim_flag = conf['analysis_params']["lim_flag"]
-        mock_flag = conf['analysis_params']["mock_flag"]
 
         filters = [name for name in conf['bands'] if not
                    name.endswith('_err')]
@@ -136,7 +133,7 @@ class PdfAnalysis(AnalysisModule):
                                        lim_flag)
         n_obs = len(obs_table)
 
-        z = np.array(creation_modules_params['redshifting']['redshift'])
+        z = np.array(conf['sed_modules_params']['redshifting']['redshift'])
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create
@@ -148,7 +145,7 @@ class PdfAnalysis(AnalysisModule):
 
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
-        sed = warehouse.get_sed(creation_modules, params.from_index(0))
+        sed = warehouse.get_sed(conf['creation_modules'], params.from_index(0))
         info = list(sed.info.keys())
         info.sort()
         n_info = len(info)
@@ -216,7 +213,7 @@ class PdfAnalysis(AnalysisModule):
                      analysed_std, best_chi2, best_chi2_red, best_parameters,
                      best_fluxes, filters, info)
 
-        if mock_flag is True:
+        if conf['analysis_params']['mock_flag'] is True:
 
             print("\nMock analysis...")
 
