@@ -81,9 +81,9 @@ class SaveFluxes(AnalysisModule):
 
         # Rename the output directory if it exists
         backup_dir()
-        out_file = conf['analysis_method_params']['output_file']
-        out_format = conf['analysis_method_params']['output_format']
-        save_sed = conf['analysis_method_params']['save_sed'].lower() == "true"
+        out_file = conf['analysis_params']['output_file']
+        out_format = conf['analysis_params']['output_format']
+        save_sed = conf['analysis_params']['save_sed']
 
         filters = [name for name in conf['column_list'] if not
                    name.endswith('_err')]
@@ -97,7 +97,7 @@ class SaveFluxes(AnalysisModule):
         params = ParametersHandler(conf)
         n_params = params.size
 
-        info = conf['analysis_method_params']['variables']
+        info = conf['analysis_params']['variables']
         n_info = len(info)
 
         model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),

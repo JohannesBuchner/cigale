@@ -37,16 +37,20 @@ def check(config):
     # TODO: Check if all the parameters that don't have default values are
     # given for each module.
     configuration = config.configuration
-    print("With this configuration cigale will compute {} "
-          "models.".format(ParametersHandler(configuration).size))
+
+    if configuration:
+        print("With this configuration cigale will compute {} "
+              "models.".format(ParametersHandler(configuration).size))
 
 
 def run(config):
     """Run the analysis.
     """
     configuration = config.configuration
-    analysis_module = get_module(configuration['analysis_method'])
-    analysis_module.process(configuration)
+
+    if configuration:
+        analysis_module = get_module(configuration['analysis_method'])
+        analysis_module.process(configuration)
 
 
 def main():

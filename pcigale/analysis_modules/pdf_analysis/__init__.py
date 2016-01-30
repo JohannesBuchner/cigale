@@ -66,13 +66,13 @@ class PdfAnalysis(AnalysisModule):
             False
         )),
         ("save_chi2", (
-            "boolean{}",
+            "boolean()",
             "If true, for each observation and each analysed variable save "
             "the reduced chi2.",
             False
         )),
         ("save_pdf", (
-            "boolean{}",
+            "boolean()",
             "If true, for each observation and each analysed variable save "
             "the probability density function.",
             False
@@ -115,16 +115,16 @@ class PdfAnalysis(AnalysisModule):
 
         # Initalise variables from input arguments.
         creation_modules = conf['creation_modules']
-        creation_modules_params = conf['creation_modules_params']
-        analysed_variables = conf['analysis_method_params']["analysed_variables"]
+        creation_modules_params = conf['sed_modules_params']
+        analysed_variables = conf['analysis_params']["analysed_variables"]
         analysed_variables_nolog = [variable[:-4] if variable.endswith('_log')
                                     else variable for variable in
                                     analysed_variables]
         n_variables = len(analysed_variables)
-        save = {key: conf['analysis_method_params']["save_{}".format(key)].lower() == "true"
-                for key in ["best_sed", "chi2", "pdf"]}
-        lim_flag = conf['analysis_method_params']["lim_flag"].lower() == "true"
-        mock_flag = conf['analysis_method_params']["mock_flag"].lower() == "true"
+        save = {key: conf['analysis_params']["save_{}".format(key)] for key in
+                ["best_sed", "chi2", "pdf"]}
+        lim_flag = conf['analysis_params']["lim_flag"]
+        mock_flag = conf['analysis_params']["mock_flag"]
 
         filters = [name for name in conf['column_list'] if not
                    name.endswith('_err')]
@@ -137,8 +137,7 @@ class PdfAnalysis(AnalysisModule):
                                        lim_flag)
         n_obs = len(obs_table)
 
-        w_redshifting = creation_modules.index('redshifting')
-        z = np.array(creation_modules_params[w_redshifting]['redshift'])
+        z = np.array(creation_modules_params['redshifting']['redshift'])
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create

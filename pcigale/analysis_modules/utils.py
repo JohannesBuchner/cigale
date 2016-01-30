@@ -33,6 +33,7 @@ def backup_dir(directory=OUT_DIR):
         ))
     os.mkdir(directory)
     shutil.copyfile('pcigale.ini', directory + 'pcigale.ini')
+    shutil.copyfile('pcigale.ini.spec', directory + 'pcigale.ini.spec')
 
 
 def save_fluxes(model_fluxes, model_parameters, filters, names, filename,

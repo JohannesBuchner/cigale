@@ -46,8 +46,8 @@ class ParametersHandlerGrid(object):
 
         """
         self.modules = configuration['creation_modules']
-        self.parameters = [self._param_dict_combine(dictionary) for dictionary
-                           in configuration['creation_modules_params']]
+        self.parameters = [self._param_dict_combine(configuration['sed_modules_params'][module])
+                           for module in self.modules]
         self.shape = tuple(len(parameter) for parameter in self.parameters)
         self.size = int(np.product(self.shape))
 

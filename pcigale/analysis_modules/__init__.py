@@ -71,7 +71,7 @@ class AnalysisModule(object):
         KeyError: when not all the needed parameters are given.
 
         """
-        parameters = configuration['analysis_method_params']
+        parameters = configuration['analysis_params']
         # For parameters that are present on the parameter_list with a default
         # value and that are not in the parameters dictionary, we add them
         # with their default value.
