@@ -236,6 +236,15 @@ class CalzLeit(CreationModule):
 
     def _init_code(self):
         """Get the filters from the database"""
+        self.ebvs = {}
+        self.ebvs['young'] = float(self.parameters["E_BVs_young"])
+        self.ebvs_old_factor = float(self.parameters["E_BVs_old_factor"])
+        self.ebvs['old'] = self.ebvs_old_factor * self.ebvs['young']
+        self.uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
+        self.uv_bump_width = float(self.parameters["uv_bump_width"])
+        self.uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
+        self.powerlaw_slope = float(self.parameters["powerlaw_slope"])
+
         self.filter_list = [item.strip() for item in
                             self.parameters["filters"].split("&")]
         # We cannot compute the attenuation until we know the wavelengths. Yet,
@@ -250,24 +259,18 @@ class CalzLeit(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        ebvs = {}
         wavelength = sed.wavelength_grid
-        ebvs['young'] = float(self.parameters["E_BVs_young"])
-        ebvs_old_factor = float(self.parameters["E_BVs_old_factor"])
-        ebvs['old'] = ebvs_old_factor * ebvs['young']
-        uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
-        uv_bump_width = float(self.parameters["uv_bump_width"])
-        uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
-        powerlaw_slope = float(self.parameters["powerlaw_slope"])
 
         # Fλ fluxes (only from continuum) in each filter before attenuation.
         flux_noatt = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
-            self.sel_attenuation = a_vs_ebv(wavelength, uv_bump_wavelength,
-                                            uv_bump_width, uv_bump_amplitude,
-                                            powerlaw_slope)
+            self.sel_attenuation = a_vs_ebv(wavelength,
+                                            self.uv_bump_wavelength,
+                                            self.uv_bump_width,
+                                            self.uv_bump_amplitude,
+                                            self.powerlaw_slope)
 
         attenuation_total = 0.
         contribs = [contrib for contrib in sed.contribution_names if
@@ -275,16 +278,16 @@ class CalzLeit(CreationModule):
         for contrib in contribs:
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
-            attenuated_luminosity = (luminosity * 10 **
-                                     (ebvs[age] * self.sel_attenuation / -2.5))
+            attenuated_luminosity = (luminosity * 10. ** (self.ebvs[age] *
+                                     self.sel_attenuation / -2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
-            attenuation = -1 * np.trapz(attenuation_spectrum, wavelength)
+            attenuation = -1. * np.trapz(attenuation_spectrum, wavelength)
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.E_BVs." + contrib, ebvs[age])
+            sed.add_info("attenuation.E_BVs." + contrib, self.ebvs[age])
             sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
@@ -305,11 +308,11 @@ class CalzLeit(CreationModule):
             sed.add_info("attenuation." + filt,
                          -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
-        sed.add_info('attenuation.ebvs_old_factor', ebvs_old_factor)
-        sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
-        sed.add_info('attenuation.uv_bump_width', uv_bump_width)
-        sed.add_info('attenuation.uv_bump_amplitude', uv_bump_amplitude)
-        sed.add_info('attenuation.powerlaw_slope', powerlaw_slope)
+        sed.add_info('attenuation.ebvs_old_factor', self.ebvs_old_factor)
+        sed.add_info('attenuation.uv_bump_wavelength', self.uv_bump_wavelength)
+        sed.add_info('attenuation.uv_bump_width', self.uv_bump_width)
+        sed.add_info('attenuation.uv_bump_amplitude', self.uv_bump_amplitude)
+        sed.add_info('attenuation.powerlaw_slope', self.powerlaw_slope)
 
 # CreationModule to be returned by get_module
 Module = CalzLeit

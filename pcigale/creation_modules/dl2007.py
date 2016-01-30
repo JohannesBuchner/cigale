@@ -63,10 +63,10 @@ class DL2007(CreationModule):
     def _init_code(self):
         """Get the model out of the database"""
 
-        self.qpah = self.parameters["qpah"]
-        self.umin = self.parameters["umin"]
-        self.umax = self.parameters["umax"]
-        self.gamma = self.parameters["gamma"]
+        self.qpah = float(self.parameters["qpah"])
+        self.umin = float(self.parameters["umin"])
+        self.umax = float(self.parameters["umax"])
+        self.gamma = float(self.parameters["gamma"])
 
         with Database() as database:
             self.model_minmin = database.get_dl2007(self.qpah, self.umin,

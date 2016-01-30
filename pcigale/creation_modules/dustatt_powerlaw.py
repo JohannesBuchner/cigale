@@ -152,6 +152,15 @@ class PowerLawAtt(CreationModule):
     ])
 
     def _init_code(self):
+        self.av = {}
+        self.av['young'] = float(self.parameters["Av_young"])
+        self.av_old_factor = float(self.parameters["Av_old_factor"])
+        self.av['old'] = self.av_old_factor * self.av['young']
+        self.uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
+        self.uv_bump_width = float(self.parameters["uv_bump_width"])
+        self.uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
+        self.powerlaw_slope = float(self.parameters["powerlaw_slope"])
+
         self.filter_list = [item.strip() for item in
                             self.parameters["filters"].split("&")]
         # We cannot compute the attenuation until we know the wavelengths. Yet,
@@ -166,24 +175,17 @@ class PowerLawAtt(CreationModule):
         sed: pcigale.sed.SED object
 
         """
-        av = {}
         wavelength = sed.wavelength_grid
-        av['young'] = float(self.parameters["Av_young"])
-        av_old_factor = float(self.parameters["Av_old_factor"])
-        av['old'] = av_old_factor * av['young']
-        uv_bump_wavelength = float(self.parameters["uv_bump_wavelength"])
-        uv_bump_width = float(self.parameters["uv_bump_width"])
-        uv_bump_amplitude = float(self.parameters["uv_bump_amplitude"])
-        powerlaw_slope = float(self.parameters["powerlaw_slope"])
 
         # Fλ fluxes (only from continuum)) in each filter before attenuation.
         flux_noatt = {filt: sed.compute_fnu(filt) for filt in self.filter_list}
 
         # Compute attenuation curve
         if self.sel_attenuation is None:
-            self.sel_attenuation = alambda_av(wavelength, powerlaw_slope,
-                                              uv_bump_wavelength,
-                                              uv_bump_width, uv_bump_amplitude)
+            self.sel_attenuation = alambda_av(wavelength, self.powerlaw_slope,
+                                              self.uv_bump_wavelength,
+                                              self.uv_bump_width,
+                                              self.uv_bump_amplitude)
 
         attenuation_total = 0.
         contribs = [contrib for contrib in sed.contribution_names if
@@ -191,8 +193,8 @@ class PowerLawAtt(CreationModule):
         for contrib in contribs:
             age = contrib.split('.')[-1].split('_')[-1]
             luminosity = sed.get_lumin_contribution(contrib)
-            attenuated_luminosity = (luminosity * 10 **
-                                     (av[age] * self.sel_attenuation / -2.5))
+            attenuated_luminosity = (luminosity * 10. **
+                                     (self.av[age]*self.sel_attenuation/-2.5))
             attenuation_spectrum = attenuated_luminosity - luminosity
             # We integrate the amount of luminosity attenuated (-1 because the
             # spectrum is negative).
@@ -200,16 +202,16 @@ class PowerLawAtt(CreationModule):
             attenuation_total += attenuation
 
             sed.add_module(self.name, self.parameters)
-            sed.add_info("attenuation.Av." + contrib, av[age])
+            sed.add_info("attenuation.Av." + contrib, self.av[age])
             sed.add_info("attenuation." + contrib, attenuation, True)
             sed.add_contribution("attenuation." + contrib, wavelength,
                                  attenuation_spectrum)
 
-        sed.add_info("attenuation.av_old_factor", av_old_factor)
-        sed.add_info('attenuation.uv_bump_wavelength', uv_bump_wavelength)
-        sed.add_info('attenuation.uv_bump_width', uv_bump_width)
-        sed.add_info("attenuation.uv_bump_amplitude", uv_bump_amplitude)
-        sed.add_info("attenuation.powerlaw_slope", powerlaw_slope)
+        sed.add_info("attenuation.av_old_factor", self.av_old_factor)
+        sed.add_info('attenuation.uv_bump_wavelength', self.uv_bump_wavelength)
+        sed.add_info('attenuation.uv_bump_width', self.uv_bump_width)
+        sed.add_info("attenuation.uv_bump_amplitude", self.uv_bump_amplitude)
+        sed.add_info("attenuation.powerlaw_slope", self.powerlaw_slope)
 
         # Total attenuation
         if 'dust.luminosity' in sed.info:

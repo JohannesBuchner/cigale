@@ -50,8 +50,8 @@ class Radio(CreationModule):
     def _init_code(self):
         """Build the model for a given set of parameters."""
 
-        qir = float(self.parameters["qir"])
-        alpha = float(self.parameters["alpha"])
+        self.qir = float(self.parameters["qir"])
+        self.alpha = float(self.parameters["alpha"])
 
         # We define various constants necessary to compute the model. For
         # consistency, we define the speed of light in nm s¯¹ rather than in
@@ -60,11 +60,11 @@ class Radio(CreationModule):
         # We define the wavelength range for the non thermal emission
         self.wave = np.logspace(5., 9., 1000.)
         # We compute the synchrotron emission normalised at 21cm
-        self.lumin_nonthermal = ((1./self.wave)**(-alpha + 2) /
-                                 (1./2.1e8)**(-alpha + 2))
+        self.lumin_nonthermal = ((1./self.wave)**(-self.alpha + 2.) /
+                                 (1./2.1e8)**(-self.alpha + 2.))
         # Normalisation factor from the FIR/radio correlation to apply to the
         # IR luminosity
-        S21cm = (1. / (10**qir*3.75e12)) * (c/(2.1e8)**2)
+        S21cm = (1. / (10.**self.qir*3.75e12)) * (c/(2.1e8)**2)
         self.lumin_nonthermal *= S21cm
 
     def process(self, sed):
@@ -80,8 +80,8 @@ class Radio(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("radio.qir", self.parameters["qir"])
-        sed.add_info("radio.alpha", self.parameters["alpha"])
+        sed.add_info("radio.qir", self.qir)
+        sed.add_info("radio.alpha", self.alpha)
         sed.add_contribution('radio_nonthermal', self.wave,
                              self.lumin_nonthermal * luminosity)
 

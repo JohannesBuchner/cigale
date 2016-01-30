@@ -86,16 +86,18 @@ class Fritz2006(CreationModule):
 
     def _init_code(self):
         """Get the template set out of the database"""
-        r_ratio = self.parameters["r_ratio"]
-        tau = self.parameters["tau"]
-        beta = self.parameters["beta"]
-        gamma = self.parameters["gamma"]
-        opening_angle = (180. - self.parameters["opening_angle"]) / 2.
-        psy = self.parameters["psy"]
+        self.r_ratio = float(self.parameters["r_ratio"])
+        self.tau = float(self.parameters["tau"])
+        self.beta = float(self.parameters["beta"])
+        self.gamma = float(self.parameters["gamma"])
+        self.opening_angle = (180. - self.parameters["opening_angle"]) / 2.
+        self.psy = float(self.parameters["psy"])
+        self.fracAGN = float(self.parameters["fracAGN"])
 
         with Database() as base:
-            self.fritz2006 = base.get_fritz2006(r_ratio, tau, beta, gamma,
-                                                opening_angle, psy)
+            self.fritz2006 = base.get_fritz2006(self.r_ratio, self.tau,
+                                                self.beta, self.gamma,
+                                                self.opening_angle, self.psy)
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -111,20 +113,20 @@ class Fritz2006(CreationModule):
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
-        fracAGN = self.parameters["fracAGN"]
+
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('agn.r_ratio', self.parameters["r_ratio"])
-        sed.add_info('agn.tau', self.parameters["tau"])
-        sed.add_info('agn.beta', self.parameters["beta"])
-        sed.add_info('agn.gamma', self.parameters["gamma"])
+        sed.add_info('agn.r_ratio', self.r_ratio)
+        sed.add_info('agn.tau', self.tau)
+        sed.add_info('agn.beta', self.beta)
+        sed.add_info('agn.gamma', self.gamma)
         sed.add_info('agn.opening_angle', self.parameters["opening_angle"])
-        sed.add_info('agn.psy', self.parameters["psy"])
-        sed.add_info('agn.fracAGN', self.parameters["fracAGN"])
+        sed.add_info('agn.psy', self.psy)
+        sed.add_info('agn.fracAGN', self.fracAGN)
 
         # Compute the AGN luminosity
-        if fracAGN < 1.:
-            agn_power = luminosity * (1./(1.-fracAGN) - 1.)
+        if self.fracAGN < 1.:
+            agn_power = luminosity * (1./(1.-self.fracAGN) - 1.)
             l_agn_therm = agn_power
             l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt,
                                    x=self.fritz2006.wave)

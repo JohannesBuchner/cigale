@@ -48,15 +48,15 @@ class SFHDelayed(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         ))
     ])
 
     def _init_code(self):
         self.tau_main = float(self.parameters["tau_main"])
         age = int(self.parameters["age"])
-        sfr_A = int(self.parameters["sfr_A"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+        sfr_A = float(self.parameters["sfr_A"])
+        normalise = bool(self.parameters["normalise"])
 
         # Time grid and SFR
         self.time_grid = np.arange(age)
@@ -80,7 +80,6 @@ class SFHDelayed(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.

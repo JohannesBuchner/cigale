@@ -45,9 +45,14 @@ class SfhQuench(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         ))
     ])
+
+    def _init_code(self):
+        self.quenching_age = int(self.parameters["quenching_age"])
+        self.quenching_factor = float(self.parameters["quenching_factor"])
+        self.normalise = bool(self.parameters["normalise"])
 
     def process(self, sed):
         """
@@ -56,33 +61,28 @@ class SfhQuench(CreationModule):
         sed : pcigale.sed.SED object
 
         """
-        quenching_age = int(self.parameters["quenching_age"])
-        quenching_factor = float(self.parameters["quenching_factor"])
-        normalise = (self.parameters["normalise"].lower() == "true")
-
         # Read the star formation history of the SED
         time, sfr = sed.sfh
 
-        if quenching_age > time[-1]:
+        if self.quenching_age > time[-1]:
             raise Exception("[sfh_quenching] The quenching age is greater "
                             "than the galaxy age. Please fix your parameters.")
-
 
         # We assume the time in the star formation history is evenly spaced to
         # compute the reverse index (i.e. from the end of the array) of the SFH
         # step corresponding to the quenching age.
         # We make the computation only if the quenching age and the quenching
         # factor are not 0.
-        if quenching_age and quenching_factor:
+        if self.quenching_age > 0 and self.quenching_factor > 0.:
             age_lapse = time[1] - time[0]
-            quenching_idx = np.int(quenching_age/age_lapse)
+            quenching_idx = np.int(self.quenching_age/age_lapse)
             sfr[-quenching_idx:] = sfr[-quenching_idx] * (
-                1 - quenching_factor)
+                1 - self.quenching_factor)
 
             # Compute the galaxy mass and normalise the SFH to 1 solar mass
             # produced if asked to.
             sfr_integrated = np.sum(sfr) * 1e6
-            if normalise:
+            if self.normalise:
                 sfr /= sfr_integrated
                 sfr_integrated = 1.
 
@@ -91,8 +91,8 @@ class SfhQuench(CreationModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.add_info("sfh.quenching_age", quenching_age)
-        sed.add_info("sfh.quenching_factor", quenching_factor)
+        sed.add_info("sfh.quenching_age", self.quenching_age)
+        sed.add_info("sfh.quenching_factor", self.quenching_factor)
 
 # CreationModule to be returned by get_module
 Module = SfhQuench

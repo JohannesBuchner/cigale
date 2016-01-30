@@ -60,10 +60,11 @@ class Dale2014(CreationModule):
         the quasar
         The energy attenuated is re-injected in model_sb only.
         """
-        alpha = self.parameters["alpha"]
+        self.fracAGN = float(self.parameters["fracAGN"])
+        self.alpha = float(self.parameters["alpha"])
 
         with Database() as database:
-            self.model_sb = database.get_dale2014(0.00, alpha)
+            self.model_sb = database.get_dale2014(0.00, self.alpha)
             self.model_quasar = database.get_dale2014(1.00, 0.0)
 
     def process(self, sed):
@@ -79,21 +80,18 @@ class Dale2014(CreationModule):
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
-        frac_agn = self.parameters["fracAGN"]
-
-        if frac_agn < 1.:
-            L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
+        if self.fracAGN < 1.:
+            L_AGN = luminosity * (1./(1.-self.fracAGN) - 1.)
         else:
-            raise Exception("AGN fraction is exactly 1. Behaviour "
-                            "undefined.")
+            raise Exception("AGN fraction is exactly 1. Behaviour undefined.")
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("agn.fracAGN_dale2014", self.parameters["fracAGN"])
-        sed.add_info("dust.alpha", self.parameters["alpha"])
+        sed.add_info("agn.fracAGN_dale2014", self.fracAGN)
+        sed.add_info("dust.alpha", self.alpha)
 
         sed.add_contribution('dust', self.model_sb.wave,
                              luminosity * self.model_sb.lumin)
-        if frac_agn != 0.:
+        if self.fracAGN != 0.:
             sed.add_contribution('agn', self.model_quasar.wave,
                                  L_AGN * self.model_quasar.lumin)
 

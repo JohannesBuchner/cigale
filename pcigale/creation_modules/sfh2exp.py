@@ -62,7 +62,7 @@ class Sfh2Exp(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         )),
     ])
 
@@ -72,8 +72,8 @@ class Sfh2Exp(CreationModule):
         self.f_burst = float(self.parameters["f_burst"])
         self.burst_age = int(self.parameters["burst_age"])
         age = int(self.parameters["age"])
-        sfr_0 = int(self.parameters["sfr_0"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+        sfr_0 = float(self.parameters["sfr_0"])
+        normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
         self.time_grid = np.arange(age)

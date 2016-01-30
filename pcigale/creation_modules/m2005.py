@@ -63,15 +63,18 @@ class M2005(CreationModule):
 
     def _init_code(self):
         """Read the SSP from the database."""
-        if self.parameters["imf"] == 0:
-            imf = 'salp'
-        elif self.parameters["imf"] == 1:
-            imf = 'krou'
+        self.imf = int(self.parameters["imf"])
+        self.metallicity = float(self.parameters["metallicity"])
+        self.separation_age = int(self.parameters["separation_age"])
+
+        if self.imf == 0:
+            with Database() as database:
+                self.ssp = database.get_m2005('salp', self.metallicity)
+        elif self.imf == 1:
+            with Database() as database:
+                self.ssp = database.get_m2005('krou', self.metallicity)
         else:
-            raise Exception("IMF #{} unknown".format(self.parameters["imf"]))
-        metallicity = float(self.parameters["metallicity"])
-        with Database() as database:
-            self.ssp = database.get_m2005(imf, metallicity)
+            raise Exception("IMF #{} unknown".format(self.imf))
 
     def process(self, sed):
         """Add the convolution of a Maraston 2005 SSP to the SED
@@ -82,9 +85,6 @@ class M2005(CreationModule):
             SED object.
 
         """
-        imf = self.parameters["imf"]
-        metallicity = float(self.parameters["metallicity"])
-        separation_age = int(self.parameters["separation_age"])
         sfh_time, sfh_sfr = sed.sfh
         ssp = self.ssp
 
@@ -94,20 +94,20 @@ class M2005(CreationModule):
         # First, we process the young population (age lower than the
         # separation age.)
         young_sfh = np.copy(sfh_sfr)
-        young_sfh[sfh_age > separation_age] = 0
+        young_sfh[sfh_age > self.separation_age] = 0
         young_masses, young_spectrum = ssp.convolve(sfh_time, young_sfh)
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
         old_sfh = np.copy(sfh_sfr)
-        old_sfh[sfh_age <= separation_age] = 0
+        old_sfh[sfh_age <= self.separation_age] = 0
         old_masses, old_spectrum = ssp.convolve(sfh_time, old_sfh)
 
         sed.add_module(self.name, self.parameters)
 
-        sed.add_info('stellar.imf', imf)
-        sed.add_info('stellar.metallicity', metallicity)
-        sed.add_info('stellar.old_young_separation_age', separation_age)
+        sed.add_info('stellar.imf', self.imf)
+        sed.add_info('stellar.metallicity', self.metallicity)
+        sed.add_info('stellar.old_young_separation_age', self.separation_age)
 
         sed.add_info('stellar.mass_total_old', old_masses[0], True)
         sed.add_info('stellar.mass_alive_old', old_masses[1], True)

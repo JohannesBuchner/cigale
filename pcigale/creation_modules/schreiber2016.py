@@ -51,11 +51,11 @@ class Schreiber2016(CreationModule):
     def _init_code(self):
         """Get the model out of the database"""
 
-        tdust = self.parameters["tdust"]
-        fpah = self.parameters["fpah"]
+        self.tdust = float(self.parameters["tdust"])
+        self.fpah = float(self.parameters["fpah"])
         with Database() as database:
-            self.model_dust = database.get_schreiber2016(0, tdust)
-            self.model_pah = database.get_schreiber2016(1, tdust)
+            self.model_dust = database.get_schreiber2016(0, self.tdust)
+            self.model_pah = database.get_schreiber2016(1, self.tdust)
 
         # The models in memory are in W/nm/kg. At the same time we
         # need to normalize them to 1 W here to easily scale them from the
@@ -64,14 +64,14 @@ class Schreiber2016(CreationModule):
         # mass in W kg¯¹, The gamma parameter does not affect the fact that it
         # is for 1 kg because it represents a mass fraction of each component.
 
-        self.emissivity = np.trapz((1. - fpah) * self.model_dust.lumin +
-                                   fpah * self.model_pah.lumin,
+        self.emissivity = np.trapz((1. - self.fpah) * self.model_dust.lumin +
+                                   self.fpah * self.model_pah.lumin,
                                    x=self.model_dust.wave)
 
         # We want to be able to display the respective contributions of both
         # components, therefore we keep they separately.
-        self.model_dust.lumin *= (1. - fpah) / self.emissivity
-        self.model_pah.lumin *= fpah / self.emissivity
+        self.model_dust.lumin *= (1. - self.fpah) / self.emissivity
+        self.model_pah.lumin *= self.fpah / self.emissivity
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -87,8 +87,8 @@ class Schreiber2016(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('dust.tdust', self.parameters["tdust"])
-        sed.add_info('dust.fpah', self.parameters["fpah"])
+        sed.add_info('dust.tdust', self.tdust)
+        sed.add_info('dust.fpah', self.fpah)
         # To compute the dust mass we simply divide the luminosity by the
         # emissivity and then by the expected MH/Mdust as the emissivity was
         # computed for 1 kg of H. Note that we take 100 here but it should vary

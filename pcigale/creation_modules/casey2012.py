@@ -49,7 +49,8 @@ class Casey2012(CreationModule):
 
     def _init_code(self):
         """Build the model for a given set of parameters."""
-
+        # To compactify the following equations we only assign them to self at
+        # the end of the method
         T = float(self.parameters["temperature"])
         beta = float(self.parameters["beta"])
         alpha = float(self.parameters["alpha"])
@@ -83,6 +84,10 @@ class Casey2012(CreationModule):
         self.lumin_blackbody /= norm
         self.lumin = self.lumin_powerlaw + self.lumin_blackbody
 
+        self.temperature = T
+        self.beta = beta
+        self.alpha = alpha
+
     def process(self, sed):
         """Add the IR re-emission contributions.
 
@@ -96,9 +101,10 @@ class Casey2012(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("dust.temperature", self.parameters["temperature"])
-        sed.add_info("dust.alpha", self.parameters["alpha"])
-        sed.add_info("dust.beta", self.parameters["beta"])
+        sed.add_info("dust.temperature", self.temperature)
+        sed.add_info("dust.beta", self.beta)
+        sed.add_info("dust.alpha", self.alpha)
+
 
         sed.add_contribution('dust.powerlaw', self.wave,
                              luminosity * self.lumin_powerlaw)

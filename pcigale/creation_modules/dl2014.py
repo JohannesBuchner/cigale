@@ -66,10 +66,10 @@ class DL2014(CreationModule):
     def _init_code(self):
         """Get the model out of the database"""
 
-        self.qpah = self.parameters["qpah"]
-        self.umin = self.parameters["umin"]
-        self.alpha = self.parameters["alpha"]
-        self.gamma = self.parameters["gamma"]
+        self.qpah = float(self.parameters["qpah"])
+        self.umin = float(self.parameters["umin"])
+        self.alpha = float(self.parameters["alpha"])
+        self.gamma = float(self.parameters["gamma"])
         self.umax = 1e7
 
         with Database() as database:

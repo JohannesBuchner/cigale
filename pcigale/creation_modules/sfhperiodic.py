@@ -63,17 +63,17 @@ class SfhPeriodic(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         )),
     ])
 
     def _init_code(self):
         self.type_bursts = int(self.parameters["type_bursts"])
         self.delta_bursts = int(self.parameters["delta_bursts"])
-        self.tau_bursts = int(self.parameters["tau_bursts"])
+        self.tau_bursts = float(self.parameters["tau_bursts"])
         age = int(self.parameters["age"])
         sfr_A = float(self.parameters["sfr_A"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+        normalise = bool(self.parameters["normalise"])
 
         self.time_grid = np.arange(0, age)
         self.sfr = np.zeros_like(self.time_grid, dtype=np.float)

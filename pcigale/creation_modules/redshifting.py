@@ -156,6 +156,13 @@ class Redshifting(CreationModule):
         """Compute the age of the Universe at a given redshift
         """
         self.redshift = float(self.parameters["redshift"])
+
+        # Raise an error when applying a negative redshift. This module is
+        # not for blue-shifting.
+        if self.redshift < 0.:
+            raise Exception("The redshift provided is negative <{}>."
+                            .format(redshift))
+
         self.universe_age = cosmology.age(self.redshift).value * 1000.
         if self.redshift == 0.:
             self.luminosity_distance = 10. * parsec
@@ -183,12 +190,6 @@ class Redshifting(CreationModule):
             sed.info['universe.redshift'] > 0.):
             raise Exception("The SED is already redshifted <z={}>."
                             .format(sed.info['universe.redshift']))
-
-        # Raise an error when applying a negative redshift. This module is
-        # not for blue-shifting.
-        if redshift < 0:
-            raise Exception("The redshift provided is negative <{}>."
-                            .format(redshift))
 
         if redshift > 0.:
             # We redshift directly the SED wavelength grid

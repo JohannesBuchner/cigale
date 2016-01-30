@@ -53,13 +53,13 @@ class SfhFromFile(CreationModule):
         ("normalise", (
             "boolean",
             "Normalise the SFH to one solar mass produced at the given age.",
-            "True"
+            True
         ))
     ])
 
     def _init_code(self):
         filename = self.parameters['filename']
-        normalise = (self.parameters["normalise"].lower() == "true")
+        normalise = bool(self.parameters["normalise"])
         age = int(self.parameters['age'])
         self.sfr_column_number = int(self.parameters['sfr_column'])
 
@@ -69,8 +69,8 @@ class SfhFromFile(CreationModule):
         if self.time_grid[0] != 0:
             raise Exception("The time grid must start from 0.")
         if np.all(self.time_grid[1:]-self.time_grid[:-1] == 1) == False:
-            raise Exception("The time step must be 1 Myr. Computed models will "
-                            "be wrong.")
+            raise Exception("The time step must be 1 Myr. Computed models will"
+                            " be wrong.")
 
         # We cut the SFH to the desired age.
         self.sfr = self.sfr[self.time_grid <= age]
