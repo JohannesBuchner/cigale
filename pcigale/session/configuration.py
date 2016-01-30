@@ -294,17 +294,10 @@ class Configuration(object):
     def complete_analysed_parameters(self):
         """Complete the configuration when the variables are missing from the
         configuration file and must be extract from a dummy run."""
-        if self.config['analysis_method'] == 'savefluxes':
-            name = 'variables'
-        elif self.config['analysis_method'] == 'pdf_analysis':
-            name = 'analysed_variables'
-        else:
-            raise Exception("Unknown analysis method")
-
-        if not self.config['analysis_params'][name]:
+        if not self.config['analysis_params']['variables']:
             warehouse = SedWarehouse()
             params = ParametersHandler(self.config.dict())
             sed = warehouse.get_sed(params.modules, params.from_index(0))
             info = list(sed.info.keys())
             info.sort()
-            self.config['analysis_params'][name] = info
+            self.config['analysis_params']['variables'] = info

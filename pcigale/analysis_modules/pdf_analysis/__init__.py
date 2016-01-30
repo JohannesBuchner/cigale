@@ -53,7 +53,7 @@ class PdfAnalysis(AnalysisModule):
     """PDF analysis module"""
 
     parameter_list = OrderedDict([
-        ("analysed_variables", (
+        ("variables", (
             "cigale_string_list()",
             "List of the physical properties to estimate. Leave empty to "
             "analyse all the physical properties (not recommended when there "
@@ -116,11 +116,10 @@ class PdfAnalysis(AnalysisModule):
         # Initalise variables from input arguments.
         creation_modules = conf['creation_modules']
         creation_modules_params = conf['sed_modules_params']
-        analysed_variables = conf['analysis_params']["analysed_variables"]
-        analysed_variables_nolog = [variable[:-4] if variable.endswith('_log')
-                                    else variable for variable in
-                                    analysed_variables]
-        n_variables = len(analysed_variables)
+        variables = conf['analysis_params']["variables"]
+        variables_nolog = [variable[:-4] if variable.endswith('_log') else
+                           variable for variable in variables]
+        n_variables = len(variables)
         save = {key: conf['analysis_params']["save_{}".format(key)] for key in
                 ["best_sed", "chi2", "pdf"]}
         lim_flag = conf['analysis_params']["lim_flag"]
@@ -169,7 +168,7 @@ class PdfAnalysis(AnalysisModule):
         model_variables = (RawArray(ctypes.c_double, n_params * n_variables),
                            (n_params, n_variables))
 
-        initargs = (params, filters, analysed_variables_nolog, model_fluxes,
+        initargs = (params, filters, variables_nolog, model_fluxes,
                     model_variables, time.time(), mp.Value('i', 0))
         if conf['cores'] == 1:  # Do not create a new process
             init_worker_sed(*initargs)
@@ -194,7 +193,7 @@ class PdfAnalysis(AnalysisModule):
         best_chi2 = (RawArray(ctypes.c_double, n_obs), (n_obs))
         best_chi2_red = (RawArray(ctypes.c_double, n_obs), (n_obs))
 
-        initargs = (params, filters, analysed_variables, z, model_fluxes,
+        initargs = (params, filters, variables, z, model_fluxes,
                     model_variables, time.time(), mp.Value('i', 0),
                     analysed_averages, analysed_std, best_fluxes,
                     best_parameters, best_chi2, best_chi2_red, save, lim_flag,
@@ -213,9 +212,9 @@ class PdfAnalysis(AnalysisModule):
 
         print("\nSaving results...")
 
-        save_results("results", obs_table['id'], analysed_variables,
-                     analysed_averages, analysed_std, best_chi2, best_chi2_red,
-                     best_parameters, best_fluxes, filters, info)
+        save_results("results", obs_table['id'], variables, analysed_averages,
+                     analysed_std, best_chi2, best_chi2_red, best_parameters,
+                     best_fluxes, filters, info)
 
         if mock_flag is True:
 
@@ -240,7 +239,7 @@ class PdfAnalysis(AnalysisModule):
             for idx, name in enumerate(filters):
                 mock_table[name] = mock_fluxes[:, idx]
 
-            initargs = (params, filters, analysed_variables, z, model_fluxes,
+            initargs = (params, filters, variables, z, model_fluxes,
                         model_variables, time.time(), mp.Value('i', 0),
                         analysed_averages, analysed_std, best_fluxes,
                         best_parameters, best_chi2, best_chi2_red, save,
@@ -256,7 +255,7 @@ class PdfAnalysis(AnalysisModule):
 
             print("\nSaving results...")
 
-            save_results("results_mock", mock_table['id'], analysed_variables,
+            save_results("results_mock", mock_table['id'], variables,
                          analysed_averages, analysed_std, best_chi2,
                          best_chi2_red, best_parameters, best_fluxes, filters,
                          info)
