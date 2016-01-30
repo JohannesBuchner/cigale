@@ -36,22 +36,22 @@ class MBB(CreationModule):
 
     parameter_list = OrderedDict([
         ("epsilon_mbb", (
-            "float",
-            "Fraction [>= Ø] of L_dust(energy balance) in the MBB",
+            "cigale_list(minvalue=0., maxvalue=1.)",
+            "Fraction [>= 0] of L_dust(energy balance) in the MBB",
             0.5
         )),
         ("t_mbb", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Temperature of black body in K.",
             50.
         )),
         ("beta_mbb", (
-            "float",
+            "cigale_list()",
             "Emissivity index of modified black body.",
             1.5
         )),
         ("energy_balance", (
-            "boolean",
+            "boolean()",
             "Energy balance checked?"
             "If False, Lum[MBB] not taken into account in energy balance",
             False

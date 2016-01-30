@@ -112,38 +112,38 @@ class PowerLawAtt(CreationModule):
 
     parameter_list = OrderedDict([
         ("Av_young", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "V-band attenuation of the young population.",
             1.
         )),
         ("Av_old_factor", (
-            "float",
+            "cigale_list(minvalue=0., maxvalue=1.)",
             "Reduction factor for the V-band attenuation of the old "
             "population compared to the young one (<1).",
             0.44
         )),
         ("uv_bump_wavelength", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Central wavelength of the UV bump in nm.",
             217.5
         )),
         ("uv_bump_width", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Width (FWHM) of the UV bump in nm.",
             35.
         )),
         ("uv_bump_amplitude", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Amplitude of the UV bump. For the Milky Way: 3.",
             0.
         )),
         ("powerlaw_slope", (
-            "float",
+            "cigale_list()",
             "Slope delta of the power law continuum.",
             -0.7
         )),
         ("filters", (
-            "string",
+            "string()",
             "Filters for which the attenuation will be computed and added to "
             "the SED information dictionary. You can give several filter "
             "names separated by a & (don't use commas).",

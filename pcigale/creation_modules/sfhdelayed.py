@@ -30,23 +30,23 @@ class SFHDelayed(CreationModule):
 
     parameter_list = OrderedDict([
         ("tau_main", (
-            "float",
+            "cigale_list()",
             "e-folding time of the main stellar population model in Myr.",
             2000.
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the oldest stars in the galaxy in Myr. The precision "
             "is 1 Myr.",
-            5000.
+            5000
         )),
         ("sfr_A", (
-            "float",
+            "float(min=0.)",
             "Multiplicative factor controlling the amplitude of SFR.",
             1.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
             True
         ))

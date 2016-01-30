@@ -34,13 +34,18 @@ class DL2014(CreationModule):
 
     parameter_list = OrderedDict([
         ('qpah', (
-            'float',
+            'cigale_list(options=0.47 & 1.12 & 1.77 & 2.50 & 3.19 & 3.90 & '
+            '4.58 & 5.26 & 5.95 & 6.63 & 7.32)',
             "Mass fraction of PAH. Possible values are: 0.47, 1.12, 1.77, "
             "2.50, 3.19, 3.90, 4.58, 5.26, 5.95, 6.63, 7.32.",
             2.50
         )),
         ('umin', (
-            'float',
+            'cigale_list(options=0.10 & 0.12 & 0.15 & 0.17 & 0.20 & 0.25 & '
+            '0.30 & 0.35 & 0.40 & 0.50 & 0.60 & 0.70 & 0.80 & 1.00 & 1.20 & '
+            '1.50 & 1.70 & 2.00 & 2.50 & 3.00 & 3.50 & 4.00 & 5.00 & 6.00 & '
+            '7.00 & 8.00 & 10.00 & 12.00 & 15.00 & 17.00 & 20.00 & 25.00 & '
+            '30.00 & 35.00 & 40.00 & 50.00)',
             "Minimum radiation field. Possible values are: 0.100, 0.120, "
             "0.150, 0.170, 0.200, 0.250, 0.300, 0.350, 0.400, 0.500, 0.600, "
             "0.700, 0.800, 1.000, 1.200, 1.500, 1.700, 2.000, 2.500, 3.000, "
@@ -49,14 +54,16 @@ class DL2014(CreationModule):
             1.0
         )),
         ('alpha', (
-            'float',
+            'cigale_list(options=1.0 & 1.1 & 1.2 & 1.3 & 1.4 & 1.5 & 1.6 & '
+            '1.7 & 1.8 & 1.9 & 2.0 & 2.1 & 2.2 & 2.3 & 2.4 & 2.5 & 2.6 & '
+            '2.7 & 2.8 & 2.9 & 3.0)',
             "Powerlaw slope dU/dM propto U^alpha. Possible values are: 1.0, "
             "1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, "
             "2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0.",
             2.0
         )),
         ('gamma', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "Fraction illuminated from Umin to Umax. Possible values between "
             "0 and 1.",
             0.1

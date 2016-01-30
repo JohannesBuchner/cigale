@@ -41,25 +41,25 @@ class SaveFluxes(AnalysisModule):
 
     parameter_list = OrderedDict([
         ("variables", (
-            "array of strings",
+            "cigale_string_list()",
             "List of the physical properties to save. Leave empty to save all "
             "the physical properties (not recommended when there are many "
             "models).",
             None
         )),
         ("output_file", (
-            "string",
+            "string()",
             "Name of the output file that contains the parameters of the "
             "model(s) and the flux densities in the bands",
             "computed_fluxes.txt"
         )),
         ("save_sed", (
-            "boolean",
+            "boolean()",
             "If True, save the generated spectrum for each model.",
-            "False"
+            False
         )),
         ("output_format", (
-            "string",
+            "string()",
             "Format of the output file. Any format supported by astropy.table "
             "e.g. votable or ascii.",
             "ascii"

@@ -29,38 +29,38 @@ class Sfh2Exp(CreationModule):
 
     parameter_list = OrderedDict([
         ("tau_main", (
-            "float",
+            "cigale_list()",
             "e-folding time of the main stellar population model in Myr.",
             6000.
         )),
         ("tau_burst", (
-            "float",
+            "cigale_list()",
             "e-folding time of the late starburst population model in Myr.",
             50.
         )),
         ("f_burst", (
-            "float",
+            "cigale_list(minvalue=0., maxvalue=0.9999)",
             "Mass fraction of the late burst population.",
             0.01
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the main stellar population in the galaxy in Myr."
             "The precision is 1 Myr.",
-            5000.
+            5000
         )),
         ("burst_age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=1.)",
             "Age of the late burst in Myr. Precision is 1 Myr.",
-            20.
+            20
         )),
         ("sfr_0", (
-            "float",
+            "float(min=0)",
             "Value of SFR at t = 0 in M_sun/yr.",
             1.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
             True
         )),

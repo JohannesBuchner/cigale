@@ -54,37 +54,37 @@ class PdfAnalysis(AnalysisModule):
 
     parameter_list = OrderedDict([
         ("analysed_variables", (
-            "array of strings",
+            "cigale_string_list()",
             "List of the physical properties to estimate. Leave empty to "
             "analyse all the physical properties (not recommended when there "
             "are many models).",
             ["sfh.sfr", "sfh.sfr10Myrs", "sfh.sfr100Myrs"]
         )),
         ("save_best_sed", (
-            "boolean",
+            "boolean()",
             "If true, save the best SED for each observation to a file.",
             False
         )),
         ("save_chi2", (
-            "boolean",
+            "boolean{}",
             "If true, for each observation and each analysed variable save "
             "the reduced chi2.",
             False
         )),
         ("save_pdf", (
-            "boolean",
+            "boolean{}",
             "If true, for each observation and each analysed variable save "
             "the probability density function.",
             False
         )),
         ("lim_flag", (
-            "boolean",
+            "boolean()",
             "If true, for each object check whether upper limits are present "
             "and analyse them.",
             False
         )),
         ("mock_flag", (
-            "boolean",
+            "boolean()",
             "If true, for each object we create a mock object "
             "and analyse them.",
             False

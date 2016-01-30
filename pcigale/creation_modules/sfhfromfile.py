@@ -32,7 +32,7 @@ class SfhFromFile(CreationModule):
 
     parameter_list = OrderedDict([
         ("filename", (
-            "str",
+            "string()",
             "Name of the file containing the SFH. The first column must be "
             "the time in Myr, starting from 0 with a step of 1 Myr. The other "
             "columns must contain the SFR in Msun/yr."
@@ -40,18 +40,18 @@ class SfhFromFile(CreationModule):
             None
         )),
         ("sfr_column", (
-            "integer",
+            "cigale_list(dtype=int)",
             "List of column indices of the SFR. The first SFR column has the "
             "index 1.",
             None
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age in Myr at which the SFH will be looked at.",
             None
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to one solar mass produced at the given age.",
             True
         ))

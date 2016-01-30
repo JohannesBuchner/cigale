@@ -145,7 +145,7 @@ class Redshifting(CreationModule):
 
     parameter_list = OrderedDict([
         ("redshift", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Redshift to apply to the galaxy. Leave empty to use the redshifts"
             " from the input file.",
             None

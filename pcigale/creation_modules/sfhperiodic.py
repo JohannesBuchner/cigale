@@ -31,37 +31,37 @@ class SfhPeriodic(CreationModule):
 
     parameter_list = OrderedDict([
         ("type_bursts", (
-            "integer",
+            "cigale_list(dtype=int, options=0. & 1. & 2.)",
             "Type of the individual star formation episodes. 0: exponential, "
             "1: delayed, 2: rectangle.",
             0
         )),
         ("delta_bursts", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Elapsed time between the beginning of each burst in Myr. The "
             "precision is 1 Myr.",
             50
         )),
         ("tau_bursts", (
-            "integer",
+            "cigale_list()",
             "Duration (rectangle) or e-folding time of all short events in "
             "Myr. The precision is 1 Myr.",
-            20
+            20.
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the main stellar population in the galaxy in Myr. The "
             "precision is 1 Myr.",
             1000
         )),
         ("sfr_A", (
-            "float",
+            "float(min=0.)",
             "Multiplicative factor controlling the amplitude of SFR (valid "
             "for each event).",
             1.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
             True
         )),

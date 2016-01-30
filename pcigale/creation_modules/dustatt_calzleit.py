@@ -192,7 +192,7 @@ class CalzLeit(CreationModule):
 
     parameter_list = OrderedDict([
         ("E_BVs_young", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "E(B-V)*, the colour excess of the stellar continuum light for "
             "the young population. BEWARE that if you add a power law with "
             "a slope different from 0, this E(B-V)* no longer equals "
@@ -200,33 +200,33 @@ class CalzLeit(CreationModule):
             0.3
         )),
         ("E_BVs_old_factor", (
-            "float",
+            "cigale_list(minvalue=0., maxvalue=1.)",
             "Reduction factor for the E(B-V)* of the old population compared "
             "to the young one (<1).",
             0.44
         )),
         ("uv_bump_wavelength", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Central wavelength of the UV bump in nm.",
             217.5
         )),
         ("uv_bump_width", (
-            "float",
+            "cigale_list()",
             "Width (FWHM) of the UV bump in nm.",
             35.
         )),
         ("uv_bump_amplitude", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Amplitude of the UV bump. For the Milky Way: 3.",
             0.
         )),
         ("powerlaw_slope", (
-            "float",
+            "cigale_list()",
             "Slope delta of the power law modifying the attenuation curve.",
             0.
         )),
         ("filters", (
-            "string",
+            "string()",
             "Filters for which the attenuation will be computed and added to "
             "the SED information dictionary. You can give several filter "
             "names separated by a & (don't use commas).",

@@ -31,17 +31,17 @@ class Casey2012(CreationModule):
 
     parameter_list = OrderedDict([
         ("temperature", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Temperature of the dust in K.",
-            35
+            35.
         )),
         ("beta", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Emissivity index of the dust.",
             1.6
         )),
         ("alpha", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Mid-infrared powerlaw slope.",
             2.
         ))

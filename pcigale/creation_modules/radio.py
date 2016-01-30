@@ -36,12 +36,12 @@ class Radio(CreationModule):
 
     parameter_list = OrderedDict([
         ("qir", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "The value of the FIR/radio correlation coefficient.",
             2.58
         )),
         ("alpha", (
-            "float",
+            "cigale_list()",
             "The slope of the power-law synchrotron emission.",
             0.8
         ))

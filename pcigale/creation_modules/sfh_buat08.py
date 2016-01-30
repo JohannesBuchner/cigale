@@ -39,19 +39,19 @@ class SfhBuat08(CreationModule):
 
     parameter_list = OrderedDict([
         ("velocity", (
-            "float",
+            "cigale_list(minvalue=80., maxvalue=360.)",
             "Rotational velocity of the galaxy in km/s. Must be between 80 "
             "and 360 (included).",
             200.
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the oldest stars in the galaxy. The precision "
             "is 1 Myr.",
-            5000.
+            5000
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
             True
         ))

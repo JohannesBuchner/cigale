@@ -29,27 +29,27 @@ class NebularEmission(CreationModule):
 
     parameter_list = OrderedDict([
         ('logU', (
-            'float',
+            'cigale_list(options=-3. & -2. & -1.)',
             "Ionisation parameter",
             -2.
         )),
         ('f_esc', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "Fraction of Lyman continuum photons escaping the galaxy",
             0.
         )),
         ('f_dust', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "Fraction of Lyman continuum photons absorbed by dust",
             0.
         )),
         ('lines_width', (
-            'float',
+            'cigale_list(minvalue=0.)',
             "Line width in km/s",
             300.
         )),
         ('emission', (
-            'boolean',
+            'boolean()',
             "Include nebular emission.",
             True
         ))

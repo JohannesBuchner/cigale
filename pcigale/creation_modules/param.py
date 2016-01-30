@@ -39,7 +39,7 @@ class Param(CreationModule):
 
     parameter_list = OrderedDict([
         ("filter_list", (
-            "string",
+            "string()",
             "Filters for which the flux will be computed and added to the SED "
             "information dictionary. You can give several filter names "
             "separated by a & (don't use commas).",

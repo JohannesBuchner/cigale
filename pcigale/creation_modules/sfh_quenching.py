@@ -30,20 +30,20 @@ class SfhQuench(CreationModule):
 
     parameter_list = OrderedDict([
         ("quenching_age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Look-back time when the quenching happens in Myr.",
             0
         )),
         ("quenching_factor", (
-            "float",
+            "cigale_list(minvalue=0., maxvalue=1.)",
             "Quenching factor applied to the SFH. After the quenching time, "
             "the SFR is multiplied by 1 - quenching factor and made constant. "
             "The factor must be between 0 (no quenching) and 1 (no more star "
             "formation).",
-            0
+            0.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
             True
         ))
