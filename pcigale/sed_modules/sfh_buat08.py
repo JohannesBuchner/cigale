@@ -25,10 +25,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SfhBuat08(CreationModule):
+class SfhBuat08(SedModule):
     """Chemical evolution motivated Star Formation History
 
     This module implements a chemical evolution motivated star formation
@@ -101,5 +101,5 @@ class SfhBuat08(CreationModule):
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.velocity", self.velocity)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhBuat08

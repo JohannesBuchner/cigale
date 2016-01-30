@@ -17,10 +17,10 @@ from collections import OrderedDict
 import numpy as np
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class DL2014(CreationModule):
+class DL2014(SedModule):
     """Updated Draine and Li (2007) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -128,5 +128,5 @@ class DL2014(CreationModule):
         sed.add_contribution('dust.Umin_Umax', self.model_minmax.wave,
                              luminosity * self.model_minmax.lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = DL2014

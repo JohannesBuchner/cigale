@@ -17,7 +17,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
 def power_law(wavelength, delta):
@@ -99,7 +99,7 @@ def alambda_av(wavelength, delta, bump_wave, bump_width, bump_ampl):
     return attenuation
 
 
-class PowerLawAtt(CreationModule):
+class PowerLawAtt(SedModule):
     """Power law attenuation module
 
     This module computes the attenuation using a power law
@@ -229,5 +229,5 @@ class PowerLawAtt(CreationModule):
             sed.add_info("attenuation." + filt,
                          -2.5 * np.log10(flux_att[filt] / flux_noatt[filt]))
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = PowerLawAtt

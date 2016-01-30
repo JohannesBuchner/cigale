@@ -21,10 +21,10 @@ from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
 
-from . import CreationModule
+from . import SedModule
 
 
-class MBB(CreationModule):
+class MBB(SedModule):
     """One modified black body IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -130,5 +130,5 @@ class MBB(CreationModule):
         sed.add_contribution('dust.mbb', self.wave,
                              luminosity * self.epsilon * self.lumin_mbb)
 #
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = MBB

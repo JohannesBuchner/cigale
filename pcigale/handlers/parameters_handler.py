@@ -45,7 +45,7 @@ class ParametersHandlerGrid(object):
             Contains the modules in the order they are called
 
         """
-        self.modules = configuration['creation_modules']
+        self.modules = configuration['sed_modules']
         self.parameters = [self._param_dict_combine(configuration['sed_modules_params'][module])
                            for module in self.modules]
         self.shape = tuple(len(parameter) for parameter in self.parameters)

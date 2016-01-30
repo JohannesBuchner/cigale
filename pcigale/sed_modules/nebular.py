@@ -9,10 +9,10 @@ import numpy as np
 import scipy.constants as cst
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class NebularEmission(CreationModule):
+class NebularEmission(SedModule):
     """
     Module computing the nebular emission from the ultraviolet to the
     near-infrared. It includes both the nebular lines and the nubular
@@ -174,5 +174,5 @@ class NebularEmission(CreationModule):
             sed.add_contribution('nebular.continuum_young', cont.wave,
                                  cont.lumin * NLy_young * self.conv_cont)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = NebularEmission

@@ -25,7 +25,7 @@ from scipy.constants import parsec
 from scipy.misc import factorial
 from astropy.cosmology import WMAP7 as cosmology
 
-from . import CreationModule
+from . import SedModule
 
 
 def igm_transmission(wavelength, redshift):
@@ -135,7 +135,7 @@ def igm_transmission(wavelength, redshift):
     return igm_transmission
 
 
-class Redshifting(CreationModule):
+class Redshifting(SedModule):
     """Redshift a SED
 
     This module redshift a rest-frame SED. If the SED is already redshifted, an
@@ -216,5 +216,5 @@ class Redshifting(CreationModule):
                              self.igm_attenuation[key] * sed.luminosity)
         sed.add_module(self.name, self.parameters)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Redshifting

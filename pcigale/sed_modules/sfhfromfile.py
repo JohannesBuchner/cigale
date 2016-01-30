@@ -16,10 +16,10 @@ from collections import OrderedDict
 import numpy as np
 
 from ..utils import read_table
-from . import CreationModule
+from . import SedModule
 
 
-class SfhFromFile(CreationModule):
+class SfhFromFile(SedModule):
     """Module reading the SFH from a file
 
     This module is used to read the Star Formation Histories from a FITS or
@@ -98,5 +98,5 @@ class SfhFromFile(CreationModule):
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.index", self.sfr_column_number)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhFromFile

@@ -15,11 +15,11 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 from ..data import Database
 
 
-class M2005(CreationModule):
+class M2005(SedModule):
     """Maraston (2005) stellar emission module
 
     This SED creation module convolves the SED star formation history with
@@ -139,5 +139,5 @@ class M2005(CreationModule):
                              ssp.wavelength_grid,
                              young_spectrum)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = M2005

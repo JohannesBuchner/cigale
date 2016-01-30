@@ -18,10 +18,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SfhQuench(CreationModule):
+class SfhQuench(SedModule):
     """Star Formation History Quenching
 
     This module implements a quenching of the Star Formation History.
@@ -94,5 +94,5 @@ class SfhQuench(CreationModule):
         sed.add_info("sfh.quenching_age", self.quenching_age)
         sed.add_info("sfh.quenching_factor", self.quenching_factor)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhQuench

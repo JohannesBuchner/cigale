@@ -17,7 +17,7 @@ import validate
 from ..handlers.parameters_handler import ParametersHandler
 from ..data import Database
 from ..utils import read_table
-from .. import creation_modules
+from .. import sed_modules
 from .. import analysis_modules
 from ..warehouse import SedWarehouse
 from . import validation
@@ -87,8 +87,8 @@ class Configuration(object):
             "They will be given only for information.")
         self.spec['parameters_file'] = "string()"
 
-        self.config['creation_modules'] = []
-        self.config.comments['creation_modules'] = ([""] +
+        self.config['sed_modules'] = []
+        self.config.comments['sed_modules'] = ([""] +
             ["Order of the modules use for SED creation. Available modules:"] +
             ["SFH: sfh2exp, sfhdelayed, sfhfromfile, sfhperiodic"] +
             ["SSP: bc03, m2005"] +
@@ -98,7 +98,7 @@ class Configuration(object):
             ["AGN: dale2014, fritz2006"] +
             ["Radio: radio"] +
             ["Redshift: redshifting (mandatory!)"])
-        self.spec['creation_modules'] = "cigale_string_list()"
+        self.spec['sed_modules'] = "cigale_string_list()"
 
         self.config['analysis_method'] = ""
         self.config.comments['analysis_method'] = [""] + wrap(
@@ -168,14 +168,14 @@ class Configuration(object):
             "Configuration of the SED creation modules.")
         self.spec['sed_modules_params'] = {}
 
-        for module_name in self.config['creation_modules']:
+        for module_name in self.config['sed_modules']:
             self.config['sed_modules_params'][module_name] = {}
             self.spec['sed_modules_params'][module_name] = {}
             sub_config = self.config['sed_modules_params'][module_name]
             sub_spec = self.spec['sed_modules_params'][module_name]
 
             for name, (typ, description, default) in \
-                    creation_modules.get_module(
+                    sed_modules.get_module(
                         module_name,
                         blank=True).parameter_list.items():
                 if default is None:
@@ -184,7 +184,7 @@ class Configuration(object):
                 sub_config.comments[name] = wrap(description)
                 sub_spec[name] = typ
             self.config['sed_modules_params'].comments[module_name] = [
-                creation_modules.get_module(module_name, blank=True).comments]
+                sed_modules.get_module(module_name, blank=True).comments]
 
         self.check_modules()
 
@@ -271,7 +271,7 @@ class Configuration(object):
 
         for module in modules:
             if all([user_module not in modules[module] for user_module in
-                    self.config['creation_modules']]):
+                    self.config['sed_modules']]):
                 print("{} Options are: {}.".
                       format(comments[module], ', '.join(modules[module])))
 

@@ -67,7 +67,7 @@ def complete_parameters(given_parameters, parameter_list):
     return result
 
 
-class CreationModule(object):
+class SedModule(object):
     """Abstract class, the pCigale SED creation modules are based on.
     """
 
@@ -163,11 +163,11 @@ def get_module(name, **kwargs):
 
     Returns
     -------
-    a pcigale.creation_modules.Module instance
+    a pcigale.sed_modules.Module instance
     """
 
     try:
-        module = import_module("." + name, 'pcigale.creation_modules')
+        module = import_module("." + name, 'pcigale.sed_modules')
         return module.Module(name=name, **kwargs)
     except ImportError:
         print('Module ' + name + ' does not exist!')

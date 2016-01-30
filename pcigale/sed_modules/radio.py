@@ -22,10 +22,10 @@ from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
 
-from . import CreationModule
+from . import SedModule
 
 
-class Radio(CreationModule):
+class Radio(SedModule):
     """Radio emission
 
     Given the number of Lyman photons, the module computes the free-free
@@ -85,5 +85,5 @@ class Radio(CreationModule):
         sed.add_contribution('radio_nonthermal', self.wave,
                              self.lumin_nonthermal * luminosity)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Radio

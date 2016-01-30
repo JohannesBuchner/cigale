@@ -16,10 +16,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class Sfh2Exp(CreationModule):
+class Sfh2Exp(SedModule):
     """Double decreasing exponential Star Formation History
 
     This module sets the SED star formation history (SFH) as a combination of
@@ -119,5 +119,5 @@ class Sfh2Exp(CreationModule):
         sed.add_info("sfh.f_burst", self.f_burst)
         sed.add_info("sfh.burst_age", self.burst_age)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Sfh2Exp

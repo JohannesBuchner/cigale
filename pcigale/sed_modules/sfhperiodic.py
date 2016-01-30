@@ -18,10 +18,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SfhPeriodic(CreationModule):
+class SfhPeriodic(SedModule):
     """Several regularly-spaced short delayed-SFH SF events
 
     This module sets the SED star formation history (SFH) as a combination of
@@ -122,5 +122,5 @@ class SfhPeriodic(CreationModule):
         sed.add_info("sfh.delta_bursts", self.delta_bursts)
         sed.add_info("sfh.tau_bursts", self.tau_bursts)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhPeriodic

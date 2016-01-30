@@ -14,10 +14,10 @@ This module implements the Dale (2014) infra-red models.
 from collections import OrderedDict
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class Dale2014(CreationModule):
+class Dale2014(SedModule):
     """Dale et al. (2014) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -104,5 +104,5 @@ class Dale2014(CreationModule):
             sed.add_contribution('agn', self.model_quasar.wave,
                                  L_AGN * self.model_quasar.lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Dale2014

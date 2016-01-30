@@ -145,7 +145,7 @@ class PdfAnalysis(AnalysisModule):
 
         # Retrieve an arbitrary SED to obtain the list of output parameters
         warehouse = SedWarehouse()
-        sed = warehouse.get_sed(conf['creation_modules'], params.from_index(0))
+        sed = warehouse.get_sed(conf['sed_modules'], params.from_index(0))
         info = list(sed.info.keys())
         info.sort()
         n_info = len(info)

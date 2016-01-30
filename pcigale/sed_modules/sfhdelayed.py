@@ -17,10 +17,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SFHDelayed(CreationModule):
+class SFHDelayed(SedModule):
     """Delayed tau model for Star Formation History
 
     This module sets the SED star formation history (SFH) proportional to time,
@@ -87,5 +87,5 @@ class SFHDelayed(CreationModule):
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.tau_main", self.tau_main)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SFHDelayed

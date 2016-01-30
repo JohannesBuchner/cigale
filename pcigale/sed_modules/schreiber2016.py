@@ -15,10 +15,10 @@ This module implements the Schreiber et al. (2016) infra-red models.
 from collections import OrderedDict
 import numpy as np
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class Schreiber2016(CreationModule):
+class Schreiber2016(SedModule):
     """Schreiber et al. (2016) templates IR re-emission module
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -104,5 +104,5 @@ class Schreiber2016(CreationModule):
         sed.add_contribution('dust.pah', self.model_pah.wave,
                              luminosity * self.model_pah.lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Schreiber2016

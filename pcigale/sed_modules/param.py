@@ -25,10 +25,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class Param(CreationModule):
+class Param(SedModule):
     """Other parameters
 
     This module does not need any input.
@@ -133,5 +133,5 @@ class Param(CreationModule):
                 True
             )
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Param

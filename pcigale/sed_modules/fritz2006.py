@@ -15,10 +15,10 @@ from collections import OrderedDict
 import numpy as np
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class Fritz2006(CreationModule):
+class Fritz2006(SedModule):
     """Fritz et al. (2006) AGN dust torus emission
 
     The AGN emission is computed from the library of Fritz et al. (2006) from
@@ -152,5 +152,5 @@ class Fritz2006(CreationModule):
         sed.add_contribution('agn.fritz2006_agn', self.fritz2006.wave,
                              agn_power * self.fritz2006.lumin_agn)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Fritz2006

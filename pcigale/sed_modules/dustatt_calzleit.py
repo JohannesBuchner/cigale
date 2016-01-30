@@ -17,7 +17,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
 def k_calzetti2000(wavelength):
@@ -179,7 +179,7 @@ def a_vs_ebv(wavelength, bump_wave, bump_width, bump_ampl, power_slope):
     return attenuation
 
 
-class CalzLeit(CreationModule):
+class CalzLeit(SedModule):
     """Calzetti + Leitherer attenuation module
 
     This module computes the dust attenuation using the
@@ -314,5 +314,5 @@ class CalzLeit(CreationModule):
         sed.add_info('attenuation.uv_bump_amplitude', self.uv_bump_amplitude)
         sed.add_info('attenuation.powerlaw_slope', self.powerlaw_slope)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = CalzLeit

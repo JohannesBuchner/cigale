@@ -16,11 +16,11 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 from ..data import Database
 
 
-class BC03(CreationModule):
+class BC03(SedModule):
     """Bruzual and Charlot (2003) stellar emission module
 
     This SED creation module convolves the SED star formation history with a
@@ -131,5 +131,5 @@ class BC03(CreationModule):
         sed.add_contribution("stellar.old", old_wave, old_lumin)
         sed.add_contribution("stellar.young", young_wave, young_lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = BC03

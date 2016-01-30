@@ -14,10 +14,10 @@ This module reads a SED spectrum from a file.
 from collections import OrderedDict
 
 from ..utils import read_table
-from . import CreationModule
+from . import SedModule
 
 
-class LoadSpecFile(CreationModule):
+class LoadSpecFile(SedModule):
     """Module reading a spectrum from a file and adding it to the SED.
 
     """
@@ -60,5 +60,5 @@ class LoadSpecFile(CreationModule):
             table[self.parameters['l_lambda_column']]
         )
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = LoadSpecFile

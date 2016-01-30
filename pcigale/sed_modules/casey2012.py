@@ -17,10 +17,10 @@ from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
 
-from . import CreationModule
+from . import SedModule
 
 
-class Casey2012(CreationModule):
+class Casey2012(SedModule):
     """Casey (2012) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -111,5 +111,5 @@ class Casey2012(CreationModule):
         sed.add_contribution('dust.blackbody', self.wave,
                              luminosity * self.lumin_blackbody)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Casey2012
