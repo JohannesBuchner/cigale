@@ -70,7 +70,7 @@ class SaveFluxes(AnalysisModule):
         """Process with the savedfluxes analysis.
 
         All the possible theoretical SED are created and the fluxes in the
-        filters from the column_list are computed and saved to a table,
+        filters from the list of bands are computed and saved to a table,
         alongside the parameter values.
 
         Parameters
@@ -85,7 +85,7 @@ class SaveFluxes(AnalysisModule):
         out_format = conf['analysis_params']['output_format']
         save_sed = conf['analysis_params']['save_sed']
 
-        filters = [name for name in conf['column_list'] if not
+        filters = [name for name in conf['bands'] if not
                    name.endswith('_err')]
         n_filters = len(filters)
 

@@ -139,28 +139,27 @@ class Configuration(object):
                 raise Exception("Column redshift not present in input file")
 
             # Finding the known filters in the data table
-            column_list = []
-            for column in obs_table.columns:
-                filter_name = column[:-4] if column.endswith('_err') else column
+            bands = []
+            for band in obs_table.columns:
+                filter_name = band[:-4] if band.endswith('_err') else band
                 if filter_name in filter_list:
-                    column_list.append(column)
+                    bands.append(band)
 
-            # Check that we don't have an error column without the associated
-            # flux
-            for column in column_list:
-                if column.endswith('_err') and (column[:-4]
-                                                not in column_list):
+            # Check that we don't have an band error without the associated
+            # band
+            for band in bands:
+                if band.endswith('_err') and (band[:-4] not in bands):
                     raise Exception("The observation table as a {} column "
-                                    "but no {} column.".format(column,
-                                                               column[:-4]))
+                                    "but no {} column.".format(band,
+                                                               band[:-4]))
 
-            self.config['column_list'] = column_list
+            self.config['bands'] = bands
         else:
-            self.config['column_list'] = ''
-        self.config.comments['column_list'] = [""] + wrap(
-            "List of the columns in the observation data file to use for "
-            "the fitting.")
-        self.spec['column_list'] = "cigale_string_list()"
+            self.config['bands'] = ''
+        self.config.comments['bands'] = [""] + wrap("Bands to consider. To "
+            "consider uncertainties too, the name of the band must be "
+            "indicated with the _err suffix. For instance: FUV, FUV_err.")
+        self.spec['bands'] = "cigale_string_list()"
 
         # SED creation modules configurations. For each module, we generate
         # the configuration section from its parameter list.

@@ -126,14 +126,14 @@ class PdfAnalysis(AnalysisModule):
         lim_flag = conf['analysis_params']["lim_flag"]
         mock_flag = conf['analysis_params']["mock_flag"]
 
-        filters = [name for name in conf['column_list'] if not
+        filters = [name for name in conf['bands'] if not
                    name.endswith('_err')]
         n_filters = len(filters)
 
         # Read the observation table and complete it by adding error where
         # none is provided and by adding the systematic deviation.
         obs_table = complete_obs_table(read_table(conf['data_file']),
-                                       conf['column_list'], filters, TOLERANCE,
+                                       conf['bands'], filters, TOLERANCE,
                                        lim_flag)
         n_obs = len(obs_table)
 
