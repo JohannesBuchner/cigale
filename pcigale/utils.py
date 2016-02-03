@@ -17,6 +17,8 @@ def read_table(file_):
     This function first tries to automatically read the table with astropy,
     if that fails, it tries with the ascii format.
 
+    All the integer columns, except the "id" column, are converted to float.
+
     Parameters
     ----------
     file_: string
@@ -40,4 +42,9 @@ def read_table(file_):
             raise Exception("The file <{}> can not be parsed as a data "
                             "table.".format(file_))
 
-    return table
+    # Convert all the integers to floats.
+    return Table([
+        col.astype(float) if col.name != 'id' and col.dtype == int
+        else col
+        for col in table.columns.values()
+    ])
