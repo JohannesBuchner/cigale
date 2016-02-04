@@ -77,7 +77,7 @@ class BC03(SedModule):
         ssp = self.ssp
 
         # Age of the galaxy at each time of the SFH
-        sfh_age = np.max(sfh_time) - sfh_time
+        sfh_age = sfh_time[::-1]
 
         # First, we process the young population (age lower than the
         # separation age.)
