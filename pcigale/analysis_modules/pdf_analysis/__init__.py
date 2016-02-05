@@ -241,12 +241,13 @@ class PdfAnalysis(AnalysisModule):
                         analysed_averages, analysed_std, best_fluxes,
                         best_parameters, best_chi2, best_chi2_red, save,
                         lim_flag, n_obs)
-            if cores == 1:  # Do not create a new process
+            if conf['cores'] == 1:  # Do not create a new process
                 init_worker_analysis(*initargs)
                 for idx, mock in enumerate(mock_table):
                     worker_analysis(idx, mock)
             else:  # Analyse observations in parallel
-                with mp.Pool(processes=cores, initializer=init_worker_analysis,
+                with mp.Pool(processes=conf['cores'],
+                             initializer=init_worker_analysis,
                              initargs=initargs) as pool:
                     pool.starmap(worker_analysis, enumerate(mock_table))
 
