@@ -35,6 +35,7 @@ from scipy.constants import c, parsec
 
 from . import utils
 from .io.vo import save_sed_to_vo
+from .io.fits import save_sed_to_fits
 from ..data import Database
 
 
@@ -338,6 +339,21 @@ class SED(object):
 
         """
         save_sed_to_vo(self, filename, mass)
+
+    def to_fits(self, prefix, mass=1.):
+        """
+        Save the SED to FITS files.
+
+        Parameters
+        ----------
+        prefix: string
+            Prefix of the fits file containing the path and the id of the model
+        mass: float
+            Galaxy mass in solar masses. When needed, the data will be scaled
+            to this mass
+
+        """
+        save_sed_to_fits(self, prefix, mass)
 
     def copy(self):
         """

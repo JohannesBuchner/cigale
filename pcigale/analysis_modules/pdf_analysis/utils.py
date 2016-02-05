@@ -29,7 +29,7 @@ def save_best_sed(obsid, sed, norm):
         Normalisation factor to scale the scale to the observations
 
     """
-    sed.to_votable(OUT_DIR + "{}_best_model.xml".format(obsid), mass=norm)
+    sed.to_fits(OUT_DIR + "{}".format(obsid), mass=norm)
 
 
 def _save_pdf(obsid, name, model_variable, likelihood):

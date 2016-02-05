@@ -99,7 +99,6 @@ class SaveFluxes(AnalysisModule):
 
         info = conf['analysis_params']['variables']
         n_info = len(info)
-
         model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),
                         (n_params, n_filters))
         model_parameters = (RawArray(ctypes.c_double, n_params * n_info),

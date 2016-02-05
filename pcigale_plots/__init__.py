@@ -115,10 +115,9 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
 
     """
 
-    if os.path.isfile(OUT_DIR + "{}_best_model.xml".format(obs['id'])):
+    if os.path.isfile(OUT_DIR + "{}_best_model.fits".format(obs['id'])):
 
-        sed = Table.read(OUT_DIR + "{}_best_model.xml".format(obs['id']),
-                         table_id="Llambda")
+        sed = Table.read(OUT_DIR + "{}_best_model.fits".format(obs['id']))
 
         filters_wl = np.array([filt.effective_wavelength
                                for filt in filters.values()])
