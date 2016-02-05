@@ -22,10 +22,11 @@ def save_sed_to_fits(sed, prefix, norm=1.):
 
     """
     info = OrderedDict()
-    for name in sed.mass_proportional_info:
-        info[name] = str(norm * sed.info[name])
-    else:
-        info[name] = str(sed.info[name])
+    for name in sed.info:
+        if name in sed.mass_proportional_info:
+            info[name] = str(norm * sed.info[name])
+        else:
+            info[name] = str(sed.info[name])
 
     table = Table(meta=info)
     table['wavelength'] = Column(sed.wavelength_grid, unit="nm")
