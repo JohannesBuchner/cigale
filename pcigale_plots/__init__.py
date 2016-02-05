@@ -370,8 +370,7 @@ def chi2(config):
     """Plot the χ² values of analysed variables.
     """
     input_data = read_table(config.configuration['data_file'])
-    chi2_vars = (config.configuration['analysis_method_params']
-                 ['analysed_variables'])
+    chi2_vars = config.configuration['analysis_params']['variables']
 
     with mp.Pool(processes=config.configuration['cores']) as pool:
         items = product(input_data['id'], chi2_vars)
@@ -384,8 +383,7 @@ def pdf(config):
     """Plot the PDF of analysed variables.
     """
     input_data = read_table(config.configuration['data_file'])
-    pdf_vars = (config.configuration['analysis_method_params']
-                ['analysed_variables'])
+    pdf_vars = config.configuration['analysis_params']['variables']
 
     with mp.Pool(processes=config.configuration['cores']) as pool:
         items = product(input_data['id'], pdf_vars)
@@ -402,7 +400,7 @@ def sed(config, sed_type, nologo):
 
     with Database() as base:
         filters = OrderedDict([(name, base.get_filter(name))
-                               for name in config.configuration['column_list']
+                               for name in config.configuration['bands']
                                if not name.endswith('_err')])
 
     with mp.Pool(processes=config.configuration['cores']) as pool:
@@ -428,7 +426,7 @@ def mock(config, nologo):
         print("Mock models file {} not found.".format(OUT_DIR + MOCK_RESULTS))
         sys.exit(1)
 
-    params = config.configuration['analysis_method_params']['analysed_variables']
+    params = config.configuration['analysis_params']['variables']
 
     for param in params:
         if param.endswith('_log'):
