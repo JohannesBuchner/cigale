@@ -60,10 +60,10 @@ class SfhBuat08(SedModule):
     def _init_code(self):
         self.velocity = float(self.parameters["velocity"])
         self.age = int(self.parameters["age"])
-        self.normalise = bool(self.parameters["normalise"])
+        normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(1, self.age + 1)
+        self.time_grid = np.arange(1, self.age + 1)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])
@@ -77,15 +77,15 @@ class SfhBuat08(SedModule):
         c = np.interp(self.velocity, paper_velocities, paper_cs)
 
         # Main SFR
-        t = time_grid / 1000  # The time is in Gyr in the formulae
-        sfr = 10.**(a + b * np.log10(t) + c * t**.5) / 1.e9
+        t = (self.time_grid+1) / 1000  # The time is in Gyr in the formulae
+        self.sfr = 10.**(a + b * np.log10(t) + c * t**.5) / 1.e9
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        sfr_integrated = np.sum(sfr) * 1e6
-        if self.normalise:
-            sfr /= sfr_integrated
-            sfr_integrated = 1.
+        self.sfr_integrated = np.sum(self.sfr) * 1e6
+        if normalise:
+            self.sfr /= self.sfr_integrated
+            self.sfr_integrated = 1.
 
     def process(self, sed):
         """
@@ -97,7 +97,7 @@ class SfhBuat08(SedModule):
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (time_grid, sfr)
+        sed.sfh = (self.time_grid, self.sfr)
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.velocity", self.velocity)
 
