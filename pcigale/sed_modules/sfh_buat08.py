@@ -63,7 +63,7 @@ class SfhBuat08(SedModule):
         normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        self.time_grid = np.arange(1, self.age + 1)
+        self.time_grid = np.arange(self.age)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])
