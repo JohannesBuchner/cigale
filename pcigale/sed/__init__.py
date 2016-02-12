@@ -92,7 +92,7 @@ class SED(object):
                           force=True)
             self.add_info("sfh.sfr100Myrs", np.mean(sfh_sfr[-100:]), True,
                           force=True)
-            self.add_info("sfh.age", sfh_time[-1], False, force=True)
+            self.add_info("sfh.age", sfh_time[-1]+1, False, force=True)
 
     @property
     def fnu(self):
