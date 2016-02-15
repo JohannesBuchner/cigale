@@ -89,13 +89,13 @@ class M2005(SedModule):
         # separation age.)
         young_sfh = np.copy(sed.sfh)
         young_sfh[:-self.separation_age] = 0.
-        young_masses, young_spectrum = self.ssp.convolve(sfh_time, young_sfh)
+        young_masses, young_spectrum = self.ssp.convolve(young_sfh)
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
         old_sfh = np.copy(sed.sfh)
         old_sfh[-self.separation_age:] = 0.
-        old_masses, old_spectrum = self.ssp.convolve(sfh_time, old_sfh)
+        old_masses, old_spectrum = self.ssp.convolve(old_sfh)
 
         sed.add_module(self.name, self.parameters)
 
