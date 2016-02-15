@@ -7,8 +7,7 @@
 This class represents a Spectral Energy Distribution (SED) as used by pcigale.
 Such SED is characterised by:
 
-- sfh: a tuple (time [Myr], Star Formation Rate [Msun/yr]) representing the
-  Star Formation History of the galaxy.
+- sfh: the Star Formation History of the galaxy.
 
 - modules: a list of tuples (module name, parameter dictionary) containing all
   the pcigale modules the SED 'went through'.
@@ -84,15 +83,15 @@ class SED(object):
         # it's needed.
         self._sfh = value
 
-        if value:
-            sfh_time, sfh_sfr = value
+        if value is not None:
+            sfh_sfr = value
             self._sfh = value
             self.add_info("sfh.sfr", sfh_sfr[-1], True, force=True)
             self.add_info("sfh.sfr10Myrs", np.mean(sfh_sfr[-10:]), True,
                           force=True)
             self.add_info("sfh.sfr100Myrs", np.mean(sfh_sfr[-100:]), True,
                           force=True)
-            self.add_info("sfh.age", sfh_time[-1]+1, False, force=True)
+            self.add_info("sfh.age", sfh_sfr.size, False, force=True)
 
     @property
     def fnu(self):
@@ -364,7 +363,7 @@ class SED(object):
         """
         sed = SED()
         if self._sfh is not None:
-            sed._sfh = (self._sfh[0], self._sfh[1])
+            sed._sfh = self._sfh
         sed.modules = self.modules[:]
         if self.wavelength_grid is not None:
             sed.wavelength_grid = self.wavelength_grid.copy()

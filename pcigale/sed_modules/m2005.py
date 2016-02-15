@@ -85,23 +85,17 @@ class M2005(SedModule):
             SED object.
 
         """
-        sfh_time, sfh_sfr = sed.sfh
-        ssp = self.ssp
-
-        # Age of the galaxy at each time of the SFH
-        sfh_age = sfh_time[::-1]
-
         # First, we process the young population (age lower than the
         # separation age.)
-        young_sfh = np.copy(sfh_sfr)
-        young_sfh[sfh_age > self.separation_age] = 0
-        young_masses, young_spectrum = ssp.convolve(sfh_time, young_sfh)
+        young_sfh = np.copy(sed.sfh)
+        young_sfh[:-self.separation_age] = 0.
+        young_masses, young_spectrum = self.ssp.convolve(sfh_time, young_sfh)
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
-        old_sfh = np.copy(sfh_sfr)
-        old_sfh[sfh_age <= self.separation_age] = 0
-        old_masses, old_spectrum = ssp.convolve(sfh_time, old_sfh)
+        old_sfh = np.copy(sed.sfh)
+        old_sfh[-self.separation_age:] = 0.
+        old_masses, old_spectrum = self.ssp.convolve(sfh_time, old_sfh)
 
         sed.add_module(self.name, self.parameters)
 

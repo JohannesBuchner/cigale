@@ -62,9 +62,9 @@ class SfhQuench(SedModule):
 
         """
         # Read the star formation history of the SED
-        time, sfr = sed.sfh
+        sfr = sed.sfh
 
-        if self.quenching_age > time[-1]:
+        if self.quenching_age > sfr.size:
             raise Exception("[sfh_quenching] The quenching age is greater "
                             "than the galaxy age. Please fix your parameters.")
 
@@ -74,10 +74,8 @@ class SfhQuench(SedModule):
         # We make the computation only if the quenching age and the quenching
         # factor are not 0.
         if self.quenching_age > 0 and self.quenching_factor > 0.:
-            age_lapse = time[1] - time[0]
-            quenching_idx = np.int(self.quenching_age/age_lapse)
-            sfr[-quenching_idx:] = sfr[-quenching_idx] * (
-                1 - self.quenching_factor)
+            sfr[-self.quenching_age:] = sfr[-quenching_idx] * (
+                1. - self.quenching_factor)
 
             # Compute the galaxy mass and normalise the SFH to 1 solar mass
             # produced if asked to.
@@ -86,7 +84,7 @@ class SfhQuench(SedModule):
                 sfr /= sfr_integrated
                 sfr_integrated = 1.
 
-            sed.sfh = (time, sfr)
+            sed.sfh = sfr
             sed.add_info("sfh.integrated", sfr_integrated, True, force=True)
 
         sed.add_module(self.name, self.parameters)

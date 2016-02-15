@@ -70,23 +70,16 @@ class M2005(object):
         self.mass_table = mass_table
         self.spec_table = spec_table
 
-    def convolve(self, sfh_time, sfh_sfr):
+    def convolve(self, sfh):
         """Convolve the SSP with a Star Formation History
 
-        Given a SFH (an time grid and the corresponding star formation rate
-        SFR), this method convolves the mass distribution and the SSP spectrum
-        along the whole SFR.
-
-        The time grid of the SFH is expected to be ordered and must not run
-        beyond 13.7 Gyr (the maximum time for Maraston 2005 SSP).
+        Given an SFH, this method convolves the masses and the spectra of the
+        SSPs.
 
         Parameters
         ----------
-        sfh_time: array of floats
-            Time grid [Myr)] of the star formation history. It must start at 0
-            and not run beyond 13.7 Gyr, with a step of 1 Myr.
-        sfh_sfr: array of floats
-            Star Formation Rates in Msun/yr at each time of the SFH time grid.
+        sfh: array of floats
+            Star Formation History in Msun/yr.
 
         Returns
         -------
@@ -104,20 +97,15 @@ class M2005(object):
                 - spectra[1]: luminosity in W/nm
 
         """
-        # We make sure the time grid starts from 0. Otherwise the selection of
-        # the SSP will be wrong.
-        if sfh_time[0] != 0:
-            raise Exception("Age grid must start from 0. Exiting.")
-
         # As both the SFH and the SSP (limited to the age of the SFH) data now
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:, :sfh_time[-1] + 1]
-        spec_table = self.spec_table[:, :sfh_time[-1] + 1]
+        mass_table = self.mass_table[:, :sfh.size]
+        spec_table = self.spec_table[:, :sfh.size]
 
         # The 1.e6 factor is because the SFH is in solar mass per year.
-        masses = 1.e6 * np.dot(mass_table, sfh_sfr[::-1])
-        spectra = 1.e6 * np.dot(spec_table, sfh_sfr[::-1])
+        masses = 1.e6 * np.dot(mass_table, sfh[::-1])
+        spectra = 1.e6 * np.dot(spec_table, sfh[::-1])
 
         return masses, spectra

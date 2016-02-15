@@ -75,16 +75,16 @@ class SfhPeriodic(SedModule):
         sfr_A = float(self.parameters["sfr_A"])
         normalise = bool(self.parameters["normalise"])
 
-        self.time_grid = np.arange(0, age)
-        self.sfr = np.zeros_like(self.time_grid, dtype=np.float)
+        time_grid = np.arange(0, age)
+        self.sfr = np.zeros_like(time_grid, dtype=np.float)
 
         if self.type_bursts == 0:
-            burst = np.exp(-self.time_grid/self.tau_bursts)
+            burst = np.exp(-time_grid/self.tau_bursts)
         elif self.type_bursts == 1:
-            burst = np.exp(-self.time_grid/self.tau_bursts) * \
-                    self.time_grid/self.tau_bursts**2
+            burst = np.exp(-time_grid/self.tau_bursts) * \
+                    time_grid/self.tau_bursts**2
         elif self.type_bursts == 2:
-            burst = np.zeros_like(self.time_grid)
+            burst = np.zeros_like(time_grid)
             burst[:self.tau_bursts+1] = 1.
         else:
             raise Exception("Burst type {} unknown.".format(self.type_bursts))
@@ -116,7 +116,7 @@ class SfhPeriodic(SedModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.type_bursts", self.type_bursts)
         sed.add_info("sfh.delta_bursts", self.delta_bursts)

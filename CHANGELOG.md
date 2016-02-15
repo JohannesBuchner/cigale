@@ -34,6 +34,7 @@
 ### Optimised
 - Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
 - The sfhfromfile module is now fully initialised when it is instantiated rather than doing so when processing the SED. This should be especially sensitive when processing different SED. (Médéric Boquien)
+- We do not store the time grid in the SED anymore given that we assume it starts at 0 Myr with steps of 1 Myr, we can easily reconstruct to save it if needed. It should save a little bit of memory and it should go a little bit faster. (Médéric Boquien)
 
 ## 0.8.1 (2015-12-07)
 ### Fixed

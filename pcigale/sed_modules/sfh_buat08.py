@@ -63,7 +63,7 @@ class SfhBuat08(SedModule):
         normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        self.time_grid = np.arange(self.age)
+        time_grid = np.arange(self.age)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])
@@ -77,7 +77,7 @@ class SfhBuat08(SedModule):
         c = np.interp(self.velocity, paper_velocities, paper_cs)
 
         # Main SFR
-        t = (self.time_grid+1) / 1000  # The time is in Gyr in the formulae
+        t = (time_grid+1) / 1000  # The time is in Gyr in the formulae
         self.sfr = 10.**(a + b * np.log10(t) + c * t**.5) / 1.e9
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
@@ -97,7 +97,7 @@ class SfhBuat08(SedModule):
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.velocity", self.velocity)
 

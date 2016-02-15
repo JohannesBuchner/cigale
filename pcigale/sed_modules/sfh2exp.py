@@ -76,11 +76,11 @@ class Sfh2Exp(SedModule):
         normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        self.time_grid = np.arange(age)
+        time_grid = np.arange(age)
         time_grid_burst = np.arange(self.burst_age)
 
         # SFR for each component
-        self.sfr = np.exp(-self.time_grid / self.tau_main)
+        self.sfr = np.exp(-time_grid / self.tau_main)
         sfr_burst = np.exp(-time_grid_burst / self.tau_burst)
 
         # Height of the late burst to have the desired produced mass fraction
@@ -112,7 +112,7 @@ class Sfh2Exp(SedModule):
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.tau_main", self.tau_main)
         sed.add_info("sfh.tau_burst", self.tau_burst)

@@ -65,16 +65,16 @@ class SfhFromFile(SedModule):
 
         table = read_table(filename)
         self.sfr = table.columns[self.sfr_column_number].data.astype(np.float)
-        self.time_grid = table.columns[0].data.astype(np.int)
-        if self.time_grid[0] != 0:
+        time_grid = table.columns[0].data.astype(np.int)
+        if time_grid[0] != 0:
             raise Exception("The time grid must start from 0.")
-        if np.all(self.time_grid[1:]-self.time_grid[:-1] == 1) == False:
+        if np.all(time_grid[1:]-time_grid[:-1] == 1) == False:
             raise Exception("The time step must be 1 Myr. Computed models will"
                             " be wrong.")
 
         # We cut the SFH to the desired age.
-        self.sfr = self.sfr[self.time_grid <= age]
-        self.time_grid = self.time_grid[self.time_grid <= age]
+        self.sfr = self.sfr[time_grid <= age]
+        time_grid = time_grid[time_grid <= age]
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
@@ -94,7 +94,7 @@ class SfhFromFile(SedModule):
         """
 
         sed.add_module(self.name, self.parameters)
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.index", self.sfr_column_number)
 

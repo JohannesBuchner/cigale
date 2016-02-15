@@ -4,7 +4,7 @@
 # Author: Yannick Roehlly
 
 from astropy.io.votable.tree import VOTableFile, Resource, Table, Field, Info
-
+import numpy as np
 
 def save_sed_to_vo(sed, filename, norm=1.):
     """
@@ -68,9 +68,9 @@ def save_sed_to_vo(sed, filename, norm=1.):
             Field(votable, name="SFR", datatype="double", unit="Msun/yr",
                   ucd="phys.SFR")
         ])
-        sfh_table.create_arrays(len(sed.sfh[0]))
-        sfh_table.array["time"] = sed.sfh[0]
-        sfh_table.array["SFR"] = norm * sed.sfh[1]
+        sfh_table.create_arrays(sed.sfh.size)
+        sfh_table.array["time"] = np.arange(sed.sfh.size)
+        sfh_table.array["SFR"] = norm * sed.sfh
 
     # SED information to keywords
     if sed.sfh is not None:

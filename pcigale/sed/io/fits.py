@@ -6,6 +6,7 @@
 from collections import OrderedDict
 
 from astropy.table import Table, Column
+import numpy as np
 
 def save_sed_to_fits(sed, prefix, norm=1.):
     """
@@ -38,6 +39,6 @@ def save_sed_to_fits(sed, prefix, norm=1.):
     table.write("{}_best_model.fits".format(prefix))
 
     table = Table(meta=info)
-    table["time"] = Column(sed.sfh[0], unit="Myr")
-    table["SFR"] = Column(norm * sed.sfh[1], unit="Msun/yr")
+    table["time"] = Column(np.arange(sed.sfh.size), unit="Myr")
+    table["SFR"] = Column(norm * sed.sfh, unit="Msun/yr")
     table.write("{}_SFH.fits".format(prefix))
