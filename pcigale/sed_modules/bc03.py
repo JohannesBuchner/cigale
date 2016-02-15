@@ -75,9 +75,8 @@ class BC03(SedModule):
         """
         # First, we process the young population (age lower than the
         # separation age.)
-        young_sfh = np.copy(sed.sfh)
-        young_sfh[:-self.separation_age] = 0.
-        young_wave, young_lumin, young_info = self.ssp.convolve(young_sfh)
+        young_wave, young_lumin, young_info = self.ssp.convolve(
+            sed.sfh[-self.separation_age:])
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
