@@ -231,9 +231,7 @@ class Configuration(object):
                                                                param, message))
                 else:
                     print("Parameter {}: {}".format(param, message))
-            print("Run the same command after having fixed pcigale.ini. If you"
-                  " want to disable error checking, simply remove the "
-                  "pcigale.ini.spec file.")
+            print("Run the same command after having fixed pcigale.ini.")
 
             return None
 
