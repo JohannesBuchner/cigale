@@ -45,13 +45,13 @@ class Sfh2Exp(SedModule):
         )),
         ("age", (
             "cigale_list(dtype=int, minvalue=0.)",
-            "Age of the main stellar population in the galaxy in Myr."
-            "The precision is 1 Myr.",
+            "Age of the main stellar population in the galaxy in Myr. The "
+            "precision is 1 Myr.",
             5000
         )),
         ("burst_age", (
             "cigale_list(dtype=int, minvalue=1.)",
-            "Age of the late burst in Myr. Precision is 1 Myr.",
+            "Age of the late burst in Myr. The precision is 1 Myr.",
             20
         )),
         ("sfr_0", (
