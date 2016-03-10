@@ -8,6 +8,7 @@ from scipy.constants import c, pi
 
 # Cache of dx for integrate(y,dx) done by flux_trapz
 dx_cache = {}
+best_grid_cache = {}
 
 
 def lambda_to_nu(wavelength):
@@ -233,8 +234,7 @@ def memoise_2var(f):
     return memoise_helper
 
 
-@memoise_2var
-def best_grid(wavelengths1, wavelengths2):
+def best_grid(wavelengths1, wavelengths2, key):
     """
     Return the best wavelength grid to regrid to arrays
 
@@ -247,6 +247,8 @@ def best_grid(wavelengths1, wavelengths2):
     ----------
     wavelengths1, wavelengths2: array of floats
         The wavelength grids to be 'regridded'.
+    key: tuple
+        Key to key the results in cache.
 
     Returns
     -------
@@ -255,10 +257,13 @@ def best_grid(wavelengths1, wavelengths2):
 
     """
 
+    if key in best_grid_cache:
+        return best_grid_cache[key]
     wl = np.concatenate((wavelengths1, wavelengths2))
     wl.sort(kind='mergesort')
     flag = np.ones(len(wl), dtype=bool)
     np.not_equal(wl[1:], wl[:-1], out=flag[1:])
+    best_grid_cache[key] = wl[flag]
     return wl[flag]
 
 

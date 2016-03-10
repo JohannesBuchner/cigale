@@ -307,7 +307,7 @@ class SED(object):
             # filter one.
             w = np.where((wavelength >= lambda_min) &
                          (wavelength <= lambda_max))
-            wavelength_r = utils.best_grid(wavelength[w], trans_table[0])
+            wavelength_r = utils.best_grid(wavelength[w], trans_table[0], key)
             transmission_r = np.interp(wavelength_r, trans_table[0],
                                        trans_table[1])
 
