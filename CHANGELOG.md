@@ -31,6 +31,7 @@
 - The order of the parameters for the analysis modules would change each time a new pcigale.ini was generated. Now the order is fixed. (Médéric Boquien)
 - In the output the sfh.age parameter would correspond to the input value minus 1. Now both values are consistent with one another. (Laure Ciesla & Médéric Boquien) 
 - In rare circumstances requiring a specific distribution of redshifts the integration of the spectrum in some filters was not done correctly, inducing relative errors of ~10¯⁵-10¯⁶. (Médéric Boquien)
+- The absorption of the Lyman continuum from old stars tended to be overestimated leading to some “negative fluxes” for the Lyman continuum. (Médéric Boquien)
 
 ### Optimised
 - Prior to version 0.7.0, we needed to maintain the list of redshifts for all the computed models. Past 0.7.0 we just infer the redshift from a list unique redshifts. This means that we can now discard the list of redshifts for all the models and only keep the list of unique redshifts. This saves ~8 MB of memory for every 10⁶ models. the models should be computed slightly faster but it is in the measurement noise. (Médéric Boquien)
