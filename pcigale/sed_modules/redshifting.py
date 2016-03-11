@@ -196,8 +196,8 @@ class Redshifting(SedModule):
             sed.wavelength_grid *= 1. + redshift
 
             # We modify each luminosity contribution to keep energy constant
-            sed.luminosities /= 1. + redshift
-            sed.luminosity /= 1. + redshift
+            sed.luminosities *= 1. / (1. + redshift)
+            sed.luminosity *= 1. / (1. + redshift)
 
         sed.add_info("universe.redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)

@@ -38,6 +38,7 @@
 - The sfhfromfile module is now fully initialised when it is instantiated rather than doing so when processing the SED. This should be especially sensitive when processing different SED. (Médéric Boquien)
 - We do not store the time grid in the SED anymore given that we assume it starts at 0 Myr with steps of 1 Myr, we can easily reconstruct to save it if needed. It should save a little bit of memory and it should go a little bit faster. (Médéric Boquien)
 - To compute the stellar spectrum of the young component, do not pass the full SFH with the old part set to 0. Rather, only pass the corresponding part of the SFH. This nearly doubles the computing speed of the stellar spectrum (Médéric Boquien)
+- Computers are much better at multiplying than at dividing. Therefore to correct the emission for redshifting we multiply by 1/(1+z) rather than dividing by 1+z. (Médéric Boquien)
 
 ## 0.8.1 (2015-12-07)
 ### Fixed
