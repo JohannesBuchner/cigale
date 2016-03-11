@@ -161,7 +161,7 @@ class Redshifting(SedModule):
         # not for blue-shifting.
         if self.redshift < 0.:
             raise Exception("The redshift provided is negative <{}>."
-                            .format(redshift))
+                            .format(self.redshift))
 
         self.universe_age = cosmology.age(self.redshift).value * 1000.
         if self.redshift == 0.:
