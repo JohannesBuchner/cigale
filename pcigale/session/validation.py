@@ -3,6 +3,7 @@
 # Licensed under the CeCILL-v2 licence - see Licence_CeCILL_V2-en.txt
 # Author: Médéric Boquien
 
+from collections import Iterable
 import numpy as np
 import validate as vdt
 
