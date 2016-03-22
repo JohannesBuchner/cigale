@@ -74,7 +74,7 @@ def is_cigale_list(inobject, dtype='float', minvalue=None, maxvalue=None,
         outobject = inobject
 
     try:  # We convert to an array as it is more convenient for tests
-        outobject = np.asarray(outobject, dtype)
+        outobject = np.array([conv_type(item) for item in outobject])
     except ValueError:
         raise vdt.VdtValueError(inobject)
 
