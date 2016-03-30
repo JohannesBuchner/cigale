@@ -93,7 +93,8 @@ class Configuration(object):
             ["SFH: sfh2exp, sfhdelayed, sfhfromfile, sfhperiodic"] +
             ["SSP: bc03, m2005"] +
             ["Nebular emission: nebular"] +
-            ["Dust attenuation: dustatt_calzleit, dustatt_powerlaw"] +
+            ["Dust attenuation: dustatt_calzleit, dustatt_powerlaw, "
+             "dustatt_2powerlaws"] +
             ["Dust emission: casey2012, dale2014, dl2007, dl2014"] +
             ["AGN: dale2014, fritz2006"] +
             ["Radio: radio"] +
@@ -249,7 +250,8 @@ class Configuration(object):
                                ('SSP', ['bc03', 'm2005']),
                                ('nebular', ['nebular']),
                                ('dust attenuation', ['dustatt_calzleit',
-                                                     'dustatt_powerlaw']),
+                                                     'dustatt_powerlaw',
+                                                     'dustatt_2powerlaws']),
                                ('dust emission', ['casey2012', 'dale2014',
                                                   'dl2007', 'dl2014']),
                                ('AGN', ['dale2014', 'fritz2006']),
