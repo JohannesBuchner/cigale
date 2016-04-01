@@ -2,8 +2,8 @@
 
 ## Unreleased
 ### Added
-- When using the `savefluxes` module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for savefluxes to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory. (Médéric Boquien)
-- Similarly to the `savefluxes` module, in the `pdf\_analysis` module if the list of physical properties is left empty, all physical parameters are now analysed. (Médéric Boquien)
+- When using the `savefluxes` module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for `savefluxes` to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory. (Médéric Boquien)
+- Similarly to the `savefluxes` module, in the `pdf_analysis` module if the list of physical properties is left empty, all physical parameters are now analysed. (Médéric Boquien)
 - It is now possible to pass the parameters of the models to be computed from a file rather than having to indicate them in pcigale.ini. This means that the models do not necessarily need to be computed on a systematic grid of parameters. The name of the file is passed as an argument to the parameters\_file keyword in pcigale.ini. If this is done, the creation\_modules argument is ignored. Finally, the file must be formatted as following: each row is a different model and each column a different parameter. They must follow the naming scheme: module\_name.parameter\_name, that is "bc03.imf" for instance. (Médéric Boquien)
 - Addition of the `schreiber2016` SED creation module implementing the Schreiber et al. (2016) dust models. (Laure Ciesla)
 - The physical parameters provided in pcigale.ini were not checked at startup against what the modules could accept. This could lead to a runtime crash if an unexpected value was passed to the module. Now the parameters are checked at startup. If an issue is found, it is indicated and the user is asked to fix it before launching cigale again. The validation file is build at the same time as pcigale.ini. (Médéric Boquien)
@@ -13,12 +13,12 @@
 - The estimates of the physical parameters from the analysis of the PDF and from the best fit were recorded in separate files. This can be bothersome when trying to compare quantities from different files. Rather, we generate a single file containing all quantities. The ones estimated from the analysis of the PDF are prefixed with "bayes" and the ones from the best fit with "best". (Médéric Boquien)
 - To homogenize input and output files, the "observation\_id" has been changed to "id" in the output files. (Médéric Boquien)
 - The output files providing estimates of the physical properties are now generated both in the form of text and FITS files. (Médéric Boquien)
-- When using the `dustatt\_calzleit module`, choosing ẟ≠0 leads to an effective E(B-V) different from the one set by the user. Now the E(B-V) will always correspond to the one specified by the user. This means that at fixed E(B-V), A(V) depends on ẟ. (Médéric Boquien)
+- When using the `dustatt_calzleit module`, choosing ẟ≠0 leads to an effective E(B-V) different from the one set by the user. Now the E(B-V) will always correspond to the one specified by the user. This means that at fixed E(B-V), A(V) depends on ẟ. (Médéric Boquien)
 - The pcigale-mock tool has been merged into pcigale-plots; the mock plots can be obtained with the "mock" command.
 - The `sfhdelayed` module is now initialised with _init_code() to be consistent with the way things are done in other modules. This should give a slight speedup under some sircumstances too. (Médéric Boquien)
 - In `sfhfromfile`, the specification of the time grid was vague and therefore could lead to incorrect results if it was not properly formatted by the end user. The description has been clarified and we now check that the time starts from 0 and that the time step is always 1 Myr. If it is not the case we raise an exception. (Médéric Boquien)
 - When the redshift is not indicated in pcigale.ini, the analysis module fills the list of redshifts from the redshifts indicated in the input flux file. This is inefficient as analysis modules should not have to modify the configuration. Now this is done when interpreting pcigale.ini before calling the relevant analysis module. As a side effect, "pigale check" now returns the total number of models that cigale will compute rather than the number of models per redshift bin. (Médéric Boquien)
-- The optionally saved spectra in the `pdf\_analysis` and `savefluxes` modules were saved in the VO-table format. The most important downside is that it is very slow to write to, which proves to be a major bottleneck in the computing speed. To overcome this issue, we rather save the spectra using the FITS formation. Instead of having one file containing the spectra (including the various components) and the SFH in a single file, now we have one file for the spectra and one file for the SFH.
+- The optionally saved spectra in the `pdf_analysis` and `savefluxes` modules were saved in the VO-table format. The most important downside is that it is very slow to write to, which proves to be a major bottleneck in the computing speed. To overcome this issue, we rather save the spectra using the FITS formation. Instead of having one file containing the spectra (including the various components) and the SFH in a single file, now we have one file for the spectra and one file for the SFH.
 
 ### Fixed
 - To estimate parameters in log, pcigale determines which variables end with the "\_log" string and removed it to compute the models. However in some circumstances, it was overzealous. This has been fixed. (Médéric Boquien)
@@ -63,7 +63,7 @@
 
 ## 0.7.0 (2015-11-19)
 ### Added
-- The pcigale-mock utility has been added to generate plots comparing the exact and pcigale-estimated parameters. This requires pcigale to be run beforehand with the pdf\_analysis module and the mock\_flag option set to True. (Denis Burgarella and Médéric Boquien)
+- The pcigale-mock utility has been added to generate plots comparing the exact and pcigale-estimated parameters. This requires pcigale to be run beforehand with the `pdf_analysis` module and the mock\_flag option set to True. (Denis Burgarella and Médéric Boquien)
 - The pcigale-filter utility has been added to easily list, plot, add, and remove filters without having the rebuild the database entirely. (Médéric Boquien)
 - It is now possible to analyse the flux in a band as a regular parameter. It can be useful for flux predictions. (Yannick Roehlly)
 - The redshift can be a now used as a free parameter, enabling pcigale to estimate the photometric redshift. (Médéric Boquien)
@@ -152,7 +152,7 @@
 ### Changed
 - Set the default dale2014 AGN fraction to 0 to avoid the accidental inclusion of AGN. (Denis Burgarella)
 - Modify the name of the averaged SFR: two averaged SFRs over 10 (sfh.sfr10Myrs) and 100Myrs (sfh.sfr100Myrs). (Denis Burgarella)
-- Improve the documentation of the savefluxes module. (Denis Burgarella)
+- Improve the documentation of the `savefluxes` module. (Denis Burgarella)
 
 ### Fixed
 - Correction of the x-axis limits. (Denis Burgarella)
