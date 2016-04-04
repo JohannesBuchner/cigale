@@ -18,10 +18,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SfhPeriodic(CreationModule):
+class SfhPeriodic(SedModule):
     """Several regularly-spaced short delayed-SFH SF events
 
     This module sets the SED star formation history (SFH) as a combination of
@@ -31,60 +31,60 @@ class SfhPeriodic(CreationModule):
 
     parameter_list = OrderedDict([
         ("type_bursts", (
-            "integer",
+            "cigale_list(dtype=int, options=0. & 1. & 2.)",
             "Type of the individual star formation episodes. 0: exponential, "
             "1: delayed, 2: rectangle.",
             0
         )),
         ("delta_bursts", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Elapsed time between the beginning of each burst in Myr. The "
             "precision is 1 Myr.",
             50
         )),
         ("tau_bursts", (
-            "integer",
+            "cigale_list()",
             "Duration (rectangle) or e-folding time of all short events in "
             "Myr. The precision is 1 Myr.",
-            20
+            20.
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the main stellar population in the galaxy in Myr. The "
             "precision is 1 Myr.",
             1000
         )),
         ("sfr_A", (
-            "float",
+            "float(min=0.)",
             "Multiplicative factor controlling the amplitude of SFR (valid "
             "for each event).",
             1.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         )),
     ])
 
     def _init_code(self):
         self.type_bursts = int(self.parameters["type_bursts"])
         self.delta_bursts = int(self.parameters["delta_bursts"])
-        self.tau_bursts = int(self.parameters["tau_bursts"])
+        self.tau_bursts = float(self.parameters["tau_bursts"])
         age = int(self.parameters["age"])
         sfr_A = float(self.parameters["sfr_A"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+        normalise = bool(self.parameters["normalise"])
 
-        self.time_grid = np.arange(0, age)
-        self.sfr = np.zeros_like(self.time_grid, dtype=np.float)
+        time_grid = np.arange(0, age)
+        self.sfr = np.zeros_like(time_grid, dtype=np.float)
 
         if self.type_bursts == 0:
-            burst = np.exp(-self.time_grid/self.tau_bursts)
+            burst = np.exp(-time_grid/self.tau_bursts)
         elif self.type_bursts == 1:
-            burst = np.exp(-self.time_grid/self.tau_bursts) * \
-                    self.time_grid/self.tau_bursts**2
+            burst = np.exp(-time_grid/self.tau_bursts) * \
+                    time_grid/self.tau_bursts**2
         elif self.type_bursts == 2:
-            burst = np.zeros_like(self.time_grid)
+            burst = np.zeros_like(time_grid)
             burst[:self.tau_bursts+1] = 1.
         else:
             raise Exception("Burst type {} unknown.".format(self.type_bursts))
@@ -116,11 +116,11 @@ class SfhPeriodic(CreationModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.type_bursts", self.type_bursts)
         sed.add_info("sfh.delta_bursts", self.delta_bursts)
         sed.add_info("sfh.tau_bursts", self.tau_bursts)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhPeriodic

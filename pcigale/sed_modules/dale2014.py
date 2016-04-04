@@ -14,10 +14,10 @@ This module implements the Dale (2014) infra-red models.
 from collections import OrderedDict
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class Dale2014(CreationModule):
+class Dale2014(SedModule):
     """Dale et al. (2014) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -31,13 +31,22 @@ class Dale2014(CreationModule):
 
     parameter_list = OrderedDict([
         ('fracAGN', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "AGN fraction. It is not recommended to combine this AGN emission "
             "with the of Fritz et al. (2006) models.",
             0.0
         )),
         ('alpha', (
-            'float',
+            "cigale_list(options=0.0625 & 0.1250 & 0.1875 & 0.2500 & 0.3125 & "
+            "0.3750 & 0.4375 & 0.5000 & 0.5625 & 0.6250 & 0.6875 & 0.7500 & "
+            "0.8125 & 0.8750 & 0.9375 & 1.0000 & 1.0625 & 1.1250 & 1.1875 & "
+            "1.2500 & 1.3125 & 1.3750 & 1.4375 & 1.5000 & 1.5625 & 1.6250 & "
+            "1.6875 & 1.7500 & 1.8125 & 1.8750 & 1.9375 & 2.0000 & 2.0625 & "
+            "2.1250 & 2.1875 & 2.2500 & 2.3125 & 2.3750 & 2.4375 & 2.5000 & "
+            "2.5625 & 2.6250 & 2.6875 & 2.7500 & 2.8125 & 2.8750 & 2.9375 & "
+            "3.0000 & 3.0625 & 3.1250 & 3.1875 & 3.2500 & 3.3125 & 3.3750 & "
+            "3.4375 & 3.5000 & 3.5625 & 3.6250 & 3.6875 & 3.7500 & 3.8125 & "
+            "3.8750 & 3.9375 & 4.0000)",
             "Alpha slope. Possible values are: 0.0625, 0.1250, 0.1875, "
             "0.2500, 0.3125, 0.3750, 0.4375, 0.5000, 0.5625, 0.6250, 0.6875, "
             "0.7500, 0.8125, 0.8750, 0.9375, 1.0000, 1.0625, 1.1250, 1.1875, "
@@ -60,10 +69,11 @@ class Dale2014(CreationModule):
         the quasar
         The energy attenuated is re-injected in model_sb only.
         """
-        alpha = self.parameters["alpha"]
+        self.fracAGN = float(self.parameters["fracAGN"])
+        self.alpha = float(self.parameters["alpha"])
 
         with Database() as database:
-            self.model_sb = database.get_dale2014(0.00, alpha)
+            self.model_sb = database.get_dale2014(0.00, self.alpha)
             self.model_quasar = database.get_dale2014(1.00, 0.0)
 
     def process(self, sed):
@@ -79,23 +89,20 @@ class Dale2014(CreationModule):
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
-        frac_agn = self.parameters["fracAGN"]
-
-        if frac_agn < 1.:
-            L_AGN = luminosity * (1./(1.-frac_agn) - 1.)
+        if self.fracAGN < 1.:
+            L_AGN = luminosity * (1./(1.-self.fracAGN) - 1.)
         else:
-            raise Exception("AGN fraction is exactly 1. Behaviour "
-                            "undefined.")
+            raise Exception("AGN fraction is exactly 1. Behaviour undefined.")
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("agn.fracAGN_dale2014", self.parameters["fracAGN"])
-        sed.add_info("dust.alpha", self.parameters["alpha"])
+        sed.add_info("agn.fracAGN_dale2014", self.fracAGN)
+        sed.add_info("dust.alpha", self.alpha)
 
         sed.add_contribution('dust', self.model_sb.wave,
                              luminosity * self.model_sb.lumin)
-        if frac_agn != 0.:
+        if self.fracAGN != 0.:
             sed.add_contribution('agn', self.model_quasar.wave,
                                  L_AGN * self.model_quasar.lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Dale2014

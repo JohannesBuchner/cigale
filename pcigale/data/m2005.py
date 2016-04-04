@@ -70,25 +70,16 @@ class M2005(object):
         self.mass_table = mass_table
         self.spec_table = spec_table
 
-    def convolve(self, sfh_time, sfh_sfr):
+    def convolve(self, sfh):
         """Convolve the SSP with a Star Formation History
 
-        Given a SFH (an time grid and the corresponding star formation rate
-        SFR), this method convolves the mass distribution and the SSP spectrum
-        along the whole SFR.
-
-        The time grid of the SFH is expected to be ordered and must not run
-        beyond 13.7 Gyr (the maximum time for Maraston 2005 SSP).
+        Given an SFH, this method convolves the masses and the spectra of the
+        SSPs.
 
         Parameters
         ----------
-        sfh_time: array of floats
-            Time grid [Myr)] of the star formation history. It must be
-            increasing and not run beyond 13.7 Gyr. As the SFH will be
-            regrided to the SSP time grid, it is better to have a SFH age grid
-            compatible, i.e. with a precision limited to 1 Myr.
-        sfh_sfr: array of floats
-            Star Formation Rates in Msun/yr at each time of the SFH time grid.
+        sfh: array of floats
+            Star Formation History in Msun/yr.
 
         Returns
         -------
@@ -106,30 +97,15 @@ class M2005(object):
                 - spectra[1]: luminosity in W/nm
 
         """
-        # We work on a copy of SFH (as we change it)
-        sfh_time, sfh_sfr = np.copy((sfh_time, sfh_sfr))
-
-        # Step between two item in the time grid in Myr
-        step = self.time_grid[1] - self.time_grid[0]
-
-        # Number of step to go to the age of the SFH on the SSP age grid.
-        nb_steps = 1 + np.round((np.max(sfh_time) - self.time_grid[0]) / step)
-        # We regrid the SFH to the time grid of the SSP using a linear
-        # interpolation. If the SFH does no start at 0, the first SFR values
-        # will be set to 0.
-        sfh_sfr = np.interp(self.time_grid[:nb_steps],
-                            sfh_time, sfh_sfr,
-                            left=0., right=0.)
-
         # As both the SFH and the SSP (limited to the age of the SFH) data now
         # share the same time grid, the convolution is just a matter of
         # reverting one and computing the sum of the one to one product; this
         # is done using the dot product.
-        mass_table = self.mass_table[:, :nb_steps]
-        spec_table = self.spec_table[:, :nb_steps]
+        mass_table = self.mass_table[:, :sfh.size]
+        spec_table = self.spec_table[:, :sfh.size]
 
-        # The 1.e6 * step is because the SFH is in solar mass per year.
-        masses = 1.e6 * step * np.dot(mass_table, sfh_sfr[::-1])
-        spectra = 1.e6 * step * np.dot(spec_table, sfh_sfr[::-1])
+        # The 1.e6 factor is because the SFH is in solar mass per year.
+        masses = 1.e6 * np.dot(mass_table, sfh[::-1])
+        spectra = 1.e6 * np.dot(spec_table, sfh[::-1])
 
         return masses, spectra

@@ -61,24 +61,16 @@ class BC03(object):
         self.color_table = color_table
         self.lumin_table = lumin_table
 
-    def convolve(self, sfh_time, sfh_sfr):
+    def convolve(self, sfh):
         """Convolve the SSP with a Star Formation History
 
-        Given a SFH (an time grid and the corresponding star formation rate
-        SFR), this method convolves the color table and the SSP luminosity
-        spectrum along the whole SFR.
-
-        The time grid of the SFH is expected to be ordered and must not run
-        beyong 20 Gyr (the maximum time for Bruzual and Charlot 2003 SSP).
+        Given an SFH, this method convolves the color table and the SSP
+        luminosity spectrum.
 
         Parameters
         ----------
-        sfh_time: array of floats
-            Time grid [Myr] of the star formation history. It must be
-            increasing and not run beyond 20 Gyr. The SFH will be regrided to
-            the SSP time.
-        sfh_sfr: array of floats
-            Star Formation Rates in Msun/yr at each time of the SFH time grid.
+        sfh: array of floats
+            Star Formation History in Msun/yr.
 
         Returns
         -------
@@ -98,33 +90,15 @@ class BC03(object):
             - "b_912": Amplitude of Lyman discontinuity
 
         """
-        # We work on a copy of SFH (as we change it)
-        sfh_time, sfh_sfr = np.copy((sfh_time, sfh_sfr))
+        # The convolution is just a matter of reverting the SFH and computing
+        # the sum of the data from the SSP one to one product. This is done
+        # using the dot product.
+        color_table = self.color_table[:, :sfh.size]
+        lumin_table = self.lumin_table[:, :sfh.size]
 
-        # Index, in the SSP time grid, of the time nearest to the age of
-        # the SFH.
-        idx = np.abs(self.time_grid - np.max(sfh_time)).argmin()
-
-        # We regrid the SFH to the time grid of the SSP using a linear
-        # interpolation. If the SFH does no start at 0, the first SFR values
-        # will be set to 0.
-        sfh_sfr = np.interp(self.time_grid[:idx + 1],
-                            sfh_time, sfh_sfr,
-                            left=0., right=0.)
-
-        # Step between two item in the time grid in Myr
-        step = self.time_grid[1] - self.time_grid[0]
-
-        # As both the SFH and the SSP (limited to the age of the SFH) data now
-        # share the same time grid, the convolution is just a matter of
-        # reverting one and computing the sum of the one to one product; this
-        # is done using the dot product.
-        color_table = self.color_table[:, :idx + 1]
-        lumin_table = self.lumin_table[:, :idx + 1]
-
-        # The 1.e6 * step is because the SFH is in solar mass per year.
-        color_info = 1.e6 * step * np.dot(color_table, sfh_sfr[::-1])
-        luminosity = 1.e6 * step * np.dot(lumin_table, sfh_sfr[::-1])
+        # The 1.e6 factor is because the SFH is in solar mass per year.
+        color_info = 1.e6 * np.dot(color_table, sfh[::-1])
+        luminosity = 1.e6 * np.dot(lumin_table, sfh[::-1])
 
         bc03_info = dict(zip(
             ["m_star", "m_gas", "n_ly", "b_4000", "b4_vn", "b4_sdss", "b_912"],

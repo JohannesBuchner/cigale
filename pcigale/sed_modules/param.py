@@ -25,10 +25,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class Param(CreationModule):
+class Param(SedModule):
     """Other parameters
 
     This module does not need any input.
@@ -39,7 +39,7 @@ class Param(CreationModule):
 
     parameter_list = OrderedDict([
         ("filter_list", (
-            "string",
+            "string()",
             "Filters for which the flux will be computed and added to the SED "
             "information dictionary. You can give several filter names "
             "separated by a & (don't use commas).",
@@ -133,5 +133,5 @@ class Param(CreationModule):
                 True
             )
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Param

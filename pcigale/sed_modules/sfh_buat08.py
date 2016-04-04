@@ -25,10 +25,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class SfhBuat08(CreationModule):
+class SfhBuat08(SedModule):
     """Chemical evolution motivated Star Formation History
 
     This module implements a chemical evolution motivated star formation
@@ -39,37 +39,31 @@ class SfhBuat08(CreationModule):
 
     parameter_list = OrderedDict([
         ("velocity", (
-            "float",
+            "cigale_list(minvalue=80., maxvalue=360.)",
             "Rotational velocity of the galaxy in km/s. Must be between 80 "
             "and 360 (included).",
             200.
         )),
         ("age", (
-            "integer",
+            "cigale_list(dtype=int, minvalue=0.)",
             "Age of the oldest stars in the galaxy. The precision "
             "is 1 Myr.",
-            5000.
+            5000
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         ))
     ])
 
-    def process(self, sed):
-        """
-        Parameters
-        ----------
-        sed : pcigale.sed.SED object
-
-        """
-        velocity = float(self.parameters["velocity"])
-        age = int(self.parameters["age"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+    def _init_code(self):
+        self.velocity = float(self.parameters["velocity"])
+        self.age = int(self.parameters["age"])
+        normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        time_grid = np.arange(1, age + 1)
+        time_grid = np.arange(self.age)
 
         # Values from Buat et al. (2008) table 2
         paper_velocities = np.array([80., 150., 220., 290., 360.])
@@ -78,27 +72,34 @@ class SfhBuat08(CreationModule):
         paper_cs = np.array([0.36, -0.20, -0.55, -0.74, -0.85])
 
         # Interpolation of a, b, c corresponding to the velocity.
-        a = np.interp(velocity, paper_velocities, paper_as)
-        b = np.interp(velocity, paper_velocities, paper_bs)
-        c = np.interp(velocity, paper_velocities, paper_cs)
+        a = np.interp(self.velocity, paper_velocities, paper_as)
+        b = np.interp(self.velocity, paper_velocities, paper_bs)
+        c = np.interp(self.velocity, paper_velocities, paper_cs)
 
         # Main SFR
-        t = time_grid / 1000  # The time is in Gyr in the formulae
-        sfr = 10**(a + b * np.log10(t) + c * t**.5) / 1.e9
+        t = (time_grid+1) / 1000  # The time is in Gyr in the formulae
+        self.sfr = 10.**(a + b * np.log10(t) + c * t**.5) / 1.e9
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
-        sfr_integrated = np.sum(sfr) * 1e6
+        self.sfr_integrated = np.sum(self.sfr) * 1e6
         if normalise:
-            sfr /= sfr_integrated
-            sfr_integrated = 1.
+            self.sfr /= self.sfr_integrated
+            self.sfr_integrated = 1.
 
+    def process(self, sed):
+        """
+        Parameters
+        ----------
+        sed : pcigale.sed.SED object
+
+        """
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (time_grid, sfr)
-        sed.add_info("sfh.integrated", sfr_integrated, True)
-        sed.add_info("sfh.velocity", velocity)
+        sed.sfh = self.sfr
+        sed.add_info("sfh.integrated", self.sfr_integrated, True)
+        sed.add_info("sfh.velocity", self.velocity)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = SfhBuat08

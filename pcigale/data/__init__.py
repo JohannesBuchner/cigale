@@ -30,6 +30,7 @@ from .dl2014 import DL2014
 from .fritz2006 import Fritz2006
 from .nebular_continuum import NebularContinuum
 from .nebular_lines import NebularLines
+from .schreiber2016 import Schreiber2016
 
 DATABASE_FILE = pkg_resources.resource_filename(__name__, 'data.db')
 
@@ -235,6 +236,21 @@ class _NebularContinuum(BASE):
         self.wave = nebular_continuum.wave
         self.lumin = nebular_continuum.lumin
 
+class _Schreiber2016(BASE):
+    """Storage for Schreiber et al (2016) infra-red templates
+        """
+    
+    __tablename__ = 'schreiber2016_templates'
+    type = Column(Float, primary_key=True)
+    tdust = Column(String, primary_key=True)
+    wave = Column(PickleType)
+    lumin = Column(PickleType)
+    
+    def __init__(self, ir):
+        self.type = ir.type
+        self.tdust = ir.tdust
+        self.wave = ir.wave
+        self.lumin = ir.lumin
 
 class Database(object):
     """Object giving access to pcigale database."""
@@ -611,6 +627,8 @@ class Database(object):
             dictionary of parameters and their values
         """
         return self._get_parameters(_Dale2014)
+    
+
 
     def add_fritz2006(self, models):
         """
@@ -791,6 +809,72 @@ class Database(object):
             dictionary of parameters and their values
         """
         return self._get_parameters(_NebularContinuum)
+
+    def add_schreiber2016(self, models):
+        """
+        Add Schreiber et al (2016) templates the collection.
+        
+        Parameters
+        ----------
+        models: list of pcigale.data.Schreiber2016 objects
+        
+        """
+    
+        if self.is_writable:
+            for model in models:
+                self.session.add(_Schreiber2016(model))
+            try:
+                self.session.commit()
+            except exc.IntegrityError:
+                self.session.rollback()
+                raise DatabaseInsertError(
+                  'The Schreiber2016 template is already in the base.')
+        else:
+            raise Exception('The database is not writable.')
+
+    def get_schreiber2016(self, type, tdust):
+        """
+        Get the Schreiber et al (2016) template corresponding to the given set of
+        parameters.
+        
+        Parameters
+        ----------
+        type: float
+        Dust template or PAH template
+        tdust: float
+        Dust temperature
+        
+        Returns
+        -------
+        template: pcigale.data.Schreiber2016
+        The Schreiber et al. (2016) IR template.
+        
+        Raises
+        ------
+        DatabaseLookupError: if the requested template is not in the database.
+        
+        """
+        result = (self.session.query(_Schreiber2016).
+              filter(_Schreiber2016.type == type).
+              filter(_Schreiber2016.tdust == tdust).
+              first())
+        if result:
+            return Schreiber2016(result.type, result.tdust, result.wave,
+                                  result.lumin)
+        else:
+            raise DatabaseLookupError(
+                "The Schreiber2016 template for type <{0}> and tdust <{1}> "
+                "is not in the database.".format(type, tdust))
+
+    def get_schreiber2016_parameters(self):
+        """Get parameters for the Scnreiber 2016 models.
+        
+        Returns
+        -------
+        paramaters: dictionary
+        dictionary of parameters and their values
+        """
+        return self._get_parameters(_Schreiber2016)
 
     def _get_parameters(self, schema):
         """Generic function to get parameters from an arbitrary schema.

@@ -7,8 +7,7 @@
 This class represents a Spectral Energy Distribution (SED) as used by pcigale.
 Such SED is characterised by:
 
-- sfh: a tuple (time [Myr], Star Formation Rate [Msun/yr]) representing the
-  Star Formation History of the galaxy.
+- sfh: the Star Formation History of the galaxy.
 
 - modules: a list of tuples (module name, parameter dictionary) containing all
   the pcigale modules the SED 'went through'.
@@ -35,14 +34,8 @@ from scipy.constants import c, parsec
 
 from . import utils
 from .io.vo import save_sed_to_vo
+from .io.fits import save_sed_to_fits
 from ..data import Database
-
-
-
-# Time lapse used to compute the average star formation rate. We use a
-# constant to keep it easily changeable for advanced user while limiting the
-# number of parameters. The value is in Myr.
-AV_LAPSE = 100
 
 
 class SED(object):
@@ -90,15 +83,15 @@ class SED(object):
         # it's needed.
         self._sfh = value
 
-        if value:
-            sfh_time, sfh_sfr = value
+        if value is not None:
+            sfh_sfr = value
             self._sfh = value
             self.add_info("sfh.sfr", sfh_sfr[-1], True, force=True)
             self.add_info("sfh.sfr10Myrs", np.mean(sfh_sfr[-10:]), True,
                           force=True)
             self.add_info("sfh.sfr100Myrs", np.mean(sfh_sfr[-100:]), True,
                           force=True)
-            self.add_info("sfh.age", sfh_time[-1], False, force=True)
+            self.add_info("sfh.age", sfh_sfr.size, False, force=True)
 
     @property
     def fnu(self):
@@ -314,7 +307,7 @@ class SED(object):
             # filter one.
             w = np.where((wavelength >= lambda_min) &
                          (wavelength <= lambda_max))
-            wavelength_r = utils.best_grid(wavelength[w], trans_table[0])
+            wavelength_r = utils.best_grid(wavelength[w], trans_table[0], key)
             transmission_r = np.interp(wavelength_r, trans_table[0],
                                        trans_table[1])
 
@@ -346,6 +339,21 @@ class SED(object):
         """
         save_sed_to_vo(self, filename, mass)
 
+    def to_fits(self, prefix, mass=1.):
+        """
+        Save the SED to FITS files.
+
+        Parameters
+        ----------
+        prefix: string
+            Prefix of the fits file containing the path and the id of the model
+        mass: float
+            Galaxy mass in solar masses. When needed, the data will be scaled
+            to this mass
+
+        """
+        save_sed_to_fits(self, prefix, mass)
+
     def copy(self):
         """
         Create a new copy of the object. This is done manually rather than
@@ -355,7 +363,7 @@ class SED(object):
         """
         sed = SED()
         if self._sfh is not None:
-            sed._sfh = (self._sfh[0], self._sfh[1])
+            sed._sfh = self._sfh
         sed.modules = self.modules[:]
         if self.wavelength_grid is not None:
             sed.wavelength_grid = self.wavelength_grid.copy()

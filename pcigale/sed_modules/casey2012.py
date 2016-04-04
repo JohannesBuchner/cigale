@@ -17,10 +17,10 @@ from collections import OrderedDict
 import numpy as np
 import scipy.constants as cst
 
-from . import CreationModule
+from . import SedModule
 
 
-class Casey2012(CreationModule):
+class Casey2012(SedModule):
     """Casey (2012) templates IR re-emission
 
     Given an amount of attenuation (e.g. resulting from the action of a dust
@@ -31,17 +31,17 @@ class Casey2012(CreationModule):
 
     parameter_list = OrderedDict([
         ("temperature", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Temperature of the dust in K.",
-            35
+            35.
         )),
         ("beta", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Emissivity index of the dust.",
             1.6
         )),
         ("alpha", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Mid-infrared powerlaw slope.",
             2.
         ))
@@ -49,7 +49,8 @@ class Casey2012(CreationModule):
 
     def _init_code(self):
         """Build the model for a given set of parameters."""
-
+        # To compactify the following equations we only assign them to self at
+        # the end of the method
         T = float(self.parameters["temperature"])
         beta = float(self.parameters["beta"])
         alpha = float(self.parameters["alpha"])
@@ -83,6 +84,10 @@ class Casey2012(CreationModule):
         self.lumin_blackbody /= norm
         self.lumin = self.lumin_powerlaw + self.lumin_blackbody
 
+        self.temperature = T
+        self.beta = beta
+        self.alpha = alpha
+
     def process(self, sed):
         """Add the IR re-emission contributions.
 
@@ -96,14 +101,15 @@ class Casey2012(CreationModule):
         luminosity = sed.info['dust.luminosity']
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info("dust.temperature", self.parameters["temperature"])
-        sed.add_info("dust.alpha", self.parameters["alpha"])
-        sed.add_info("dust.beta", self.parameters["beta"])
+        sed.add_info("dust.temperature", self.temperature)
+        sed.add_info("dust.beta", self.beta)
+        sed.add_info("dust.alpha", self.alpha)
+
 
         sed.add_contribution('dust.powerlaw', self.wave,
                              luminosity * self.lumin_powerlaw)
         sed.add_contribution('dust.blackbody', self.wave,
                              luminosity * self.lumin_blackbody)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Casey2012

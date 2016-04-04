@@ -31,8 +31,7 @@ class AnalysisModule(object):
         # module parameter.
         self.parameters = kwargs
 
-    def _process(self, data_file, column_list, creation_modules,
-                 creation_modules_params, parameters):
+    def _process(self, configuration):
         """Do the actual analysis
 
         This method is responsible for the fitting / analysis process
@@ -40,19 +39,8 @@ class AnalysisModule(object):
 
         Parameters
         ----------
-        data_file: string
-            Name of the file containing the observations to be fitted.
-        column_list: array of strings
-            Names of the columns from the data file to use in the analysis.
-        creation_modules: array of strings
-            Names (in the right order) of the modules to use to build the SED.
-        creation_modules_params: array of array of dictionaries
-            Array containing all the possible combinations of configurations
-            for the creation_modules. Each 'inner' array has the same length as
-            the creation_modules array and contains the configuration
-            dictionary for the corresponding module.
-        parameters: dictionary
-            Configuration for the module.
+        configuration: dictionary
+            Configuration file
 
         Returns
         -------
@@ -61,8 +49,7 @@ class AnalysisModule(object):
         """
         raise NotImplementedError()
 
-    def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, parameters):
+    def process(self, configuration):
         """Process with the analysis
 
         This method is responsible for checking the module parameters before
@@ -72,19 +59,8 @@ class AnalysisModule(object):
 
         Parameters
         ----------
-        data_file: string
-            Name of the file containing the observations to be fitted.
-        column_list: array of strings
-            Names of the columns from the data file to use in the analysis.
-        creation_modules: array of strings
-            Names (in the right order) of the modules to use to build the SED.
-        creation_modules_params: array of array of dictionaries
-            Array containing all the possible combinations of configurations
-            for the creation_modules. Each 'inner' array has the same length as
-            the creation_modules array and contains the configuration
-            dictionary for the corresponding module.
-        parameters: dictionary
-            Configuration for the module.
+        configuration: dictionary
+            Contents of pcigale.ini in the form of a dictionary
 
         Returns
         -------
@@ -95,6 +71,7 @@ class AnalysisModule(object):
         KeyError: when not all the needed parameters are given.
 
         """
+        parameters = configuration['analysis_params']
         # For parameters that are present on the parameter_list with a default
         # value and that are not in the parameters dictionary, we add them
         # with their default value.
@@ -124,8 +101,7 @@ class AnalysisModule(object):
                            "expected one." + message)
 
         # We do the actual processing
-        self._process(data_file, column_list, creation_modules,
-                      creation_modules_params, parameters)
+        self._process(configuration)
 
 
 def get_module(module_name):

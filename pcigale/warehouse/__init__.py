@@ -6,7 +6,7 @@
 import marshal
 
 from ..sed import SED
-from .. import creation_modules
+from .. import sed_modules
 
 
 class SedWarehouse(object):
@@ -52,7 +52,7 @@ class SedWarehouse(object):
 
         Returns
         -------
-        a pcigale.creation_modules.Module instance
+        a pcigale.sed_modules.Module instance
 
         """
         # Marshal a tuple (name, parameters) to be used as a key for storing
@@ -62,7 +62,7 @@ class SedWarehouse(object):
         if module_key in self.module_cache:
             module = self.module_cache[module_key]
         else:
-            module = creation_modules.get_module(name, **kwargs)
+            module = sed_modules.get_module(name, **kwargs)
             self.module_cache[module_key] = module
 
         return module

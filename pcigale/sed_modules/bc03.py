@@ -16,11 +16,11 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 from ..data import Database
 
 
-class BC03(CreationModule):
+class BC03(SedModule):
     """Bruzual and Charlot (2003) stellar emission module
 
     This SED creation module convolves the SED star formation history with a
@@ -30,18 +30,19 @@ class BC03(CreationModule):
 
     parameter_list = OrderedDict([
         ("imf", (
-            "int",
+            "cigale_list(dtype=int, options=0. & 1.)",
             "Initial mass function: 0 (Salpeter) or 1 (Chabrier).",
             0
         )),
         ("metallicity", (
-            "float",
+            "cigale_list(options=0.0001 & 0.0004 & 0.004 & 0.008 & 0.02 & "
+            "0.05)",
             "Metalicity. Possible values are: 0.0001, 0.0004, 0.004, 0.008, "
             "0.02, 0.05.",
             0.02
         )),
         ("separation_age", (
-            "int",
+            "cigale_list(dtype=int, minvalue=0)",
             "Age [Myr] of the separation between the young and the old star "
             "populations. The default value in 10^7 years (10 Myr). Set "
             "to 0 not to differentiate ages (only an old population).",
@@ -51,15 +52,17 @@ class BC03(CreationModule):
 
     def _init_code(self):
         """Read the SSP from the database."""
-        if self.parameters["imf"] == 0:
-            imf = 'salp'
-        elif self.parameters["imf"] == 1:
-            imf = 'chab'
-        else:
-            raise Exception("IMF #{} unknown".format(self.parameters["imf"]))
-        metallicity = float(self.parameters["metallicity"])
+        self.imf = int(self.parameters["imf"])
+        self.metallicity = float(self.parameters["metallicity"])
+        self.separation_age = int(self.parameters["separation_age"])
+
         with Database() as database:
-            self.ssp = database.get_bc03(imf, metallicity)
+            if self.imf == 0:
+                self.ssp = database.get_bc03('salp', self.metallicity)
+            elif self.imf == 1:
+                self.ssp = database.get_bc03('chab', self.metallicity)
+            else:
+                raise Exception("IMF #{} unknown".format(self.imf))
 
     def process(self, sed):
         """Add the convolution of a Bruzual and Charlot SSP to the SED
@@ -70,26 +73,16 @@ class BC03(CreationModule):
             SED object.
 
         """
-        imf = self.parameters["imf"]
-        metallicity = float(self.parameters["metallicity"])
-        separation_age = int(self.parameters["separation_age"])
-        sfh_time, sfh_sfr = sed.sfh
-        ssp = self.ssp
-
-        # Age of the galaxy at each time of the SFH
-        sfh_age = np.max(sfh_time) - sfh_time
-
         # First, we process the young population (age lower than the
         # separation age.)
-        young_sfh = np.copy(sfh_sfr)
-        young_sfh[sfh_age > separation_age] = 0
-        young_wave, young_lumin, young_info = ssp.convolve(sfh_time, young_sfh)
+        young_wave, young_lumin, young_info = self.ssp.convolve(
+            sed.sfh[-self.separation_age:])
 
         # Then, we process the old population. If the SFH is shorter than the
         # separation age then all the arrays will consist only of 0.
-        old_sfh = np.copy(sfh_sfr)
-        old_sfh[sfh_age <= separation_age] = 0
-        old_wave, old_lumin, old_info = ssp.convolve(sfh_time, old_sfh)
+        old_sfh = np.copy(sed.sfh)
+        old_sfh[-self.separation_age:] = 0.
+        old_wave, old_lumin, old_info = self.ssp.convolve(old_sfh)
 
         # We compute the Lyman continuum luminosity as it is important to
         # compute the energy absorbed by the dust before ionising gas.
@@ -99,9 +92,9 @@ class BC03(CreationModule):
 
         sed.add_module(self.name, self.parameters)
 
-        sed.add_info("stellar.imf", imf)
-        sed.add_info("stellar.metallicity", metallicity)
-        sed.add_info("stellar.old_young_separation_age", separation_age)
+        sed.add_info("stellar.imf", self.imf)
+        sed.add_info("stellar.metallicity", self.metallicity)
+        sed.add_info("stellar.old_young_separation_age", self.separation_age)
 
         sed.add_info("stellar.m_star_young", young_info["m_star"], True)
         sed.add_info("stellar.m_gas_young", young_info["m_gas"], True)
@@ -131,5 +124,5 @@ class BC03(CreationModule):
         sed.add_contribution("stellar.old", old_wave, old_lumin)
         sed.add_contribution("stellar.young", young_wave, young_lumin)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = BC03

@@ -18,12 +18,14 @@ is changed, this module may need to be adapted.
 
 """
 
+from collections import OrderedDict
+
 import numpy as np
 from scipy.constants import parsec
 from scipy.misc import factorial
 from astropy.cosmology import WMAP7 as cosmology
 
-from ..creation_modules import CreationModule
+from . import SedModule
 
 
 def igm_transmission(wavelength, redshift):
@@ -133,7 +135,7 @@ def igm_transmission(wavelength, redshift):
     return igm_transmission
 
 
-class Redshifting(CreationModule):
+class Redshifting(SedModule):
     """Redshift a SED
 
     This module redshift a rest-frame SED. If the SED is already redshifted, an
@@ -141,9 +143,9 @@ class Redshifting(CreationModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
         ("redshift", (
-            "float",
+            "cigale_list(minvalue=0.)",
             "Redshift to apply to the galaxy. Leave empty to use the redshifts"
             " from the input file.",
             None
@@ -154,6 +156,13 @@ class Redshifting(CreationModule):
         """Compute the age of the Universe at a given redshift
         """
         self.redshift = float(self.parameters["redshift"])
+
+        # Raise an error when applying a negative redshift. This module is
+        # not for blue-shifting.
+        if self.redshift < 0.:
+            raise Exception("The redshift provided is negative <{}>."
+                            .format(self.redshift))
+
         self.universe_age = cosmology.age(self.redshift).value * 1000.
         if self.redshift == 0.:
             self.luminosity_distance = 10. * parsec
@@ -182,19 +191,13 @@ class Redshifting(CreationModule):
             raise Exception("The SED is already redshifted <z={}>."
                             .format(sed.info['universe.redshift']))
 
-        # Raise an error when applying a negative redshift. This module is
-        # not for blue-shifting.
-        if redshift < 0:
-            raise Exception("The redshift provided is negative <{}>."
-                            .format(redshift))
-
         if redshift > 0.:
             # We redshift directly the SED wavelength grid
             sed.wavelength_grid *= 1. + redshift
 
             # We modify each luminosity contribution to keep energy constant
-            sed.luminosities /= 1. + redshift
-            sed.luminosity /= 1. + redshift
+            sed.luminosities *= 1. / (1. + redshift)
+            sed.luminosity *= 1. / (1. + redshift)
 
         sed.add_info("universe.redshift", redshift)
         sed.add_info("universe.luminosity_distance", self.luminosity_distance)
@@ -213,5 +216,5 @@ class Redshifting(CreationModule):
                              self.igm_attenuation[key] * sed.luminosity)
         sed.add_module(self.name, self.parameters)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Redshifting

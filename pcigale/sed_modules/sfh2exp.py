@@ -16,10 +16,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from . import CreationModule
+from . import SedModule
 
 
-class Sfh2Exp(CreationModule):
+class Sfh2Exp(SedModule):
     """Double decreasing exponential Star Formation History
 
     This module sets the SED star formation history (SFH) as a combination of
@@ -29,40 +29,40 @@ class Sfh2Exp(CreationModule):
 
     parameter_list = OrderedDict([
         ("tau_main", (
-            "float",
+            "cigale_list()",
             "e-folding time of the main stellar population model in Myr.",
             6000.
         )),
         ("tau_burst", (
-            "float",
+            "cigale_list()",
             "e-folding time of the late starburst population model in Myr.",
             50.
         )),
         ("f_burst", (
-            "float",
+            "cigale_list(minvalue=0., maxvalue=0.9999)",
             "Mass fraction of the late burst population.",
             0.01
         )),
         ("age", (
-            "integer",
-            "Age of the main stellar population in the galaxy in Myr."
-            "The precision is 1 Myr.",
-            5000.
+            "cigale_list(dtype=int, minvalue=0.)",
+            "Age of the main stellar population in the galaxy in Myr. The "
+            "precision is 1 Myr.",
+            5000
         )),
         ("burst_age", (
-            "integer",
-            "Age of the late burst in Myr. Precision is 1 Myr.",
-            20.
+            "cigale_list(dtype=int, minvalue=1.)",
+            "Age of the late burst in Myr. The precision is 1 Myr.",
+            20
         )),
         ("sfr_0", (
-            "float",
+            "float(min=0)",
             "Value of SFR at t = 0 in M_sun/yr.",
             1.
         )),
         ("normalise", (
-            "boolean",
+            "boolean()",
             "Normalise the SFH to produce one solar mass.",
-            "True"
+            True
         )),
     ])
 
@@ -72,15 +72,15 @@ class Sfh2Exp(CreationModule):
         self.f_burst = float(self.parameters["f_burst"])
         self.burst_age = int(self.parameters["burst_age"])
         age = int(self.parameters["age"])
-        sfr_0 = int(self.parameters["sfr_0"])
-        normalise = (self.parameters["normalise"].lower() == "true")
+        sfr_0 = float(self.parameters["sfr_0"])
+        normalise = bool(self.parameters["normalise"])
 
         # Time grid and age. If needed, the age is rounded to the inferior Myr
-        self.time_grid = np.arange(1, age + 1)
-        time_grid_burst = np.arange(1, self.burst_age + 1)
+        time_grid = np.arange(age)
+        time_grid_burst = np.arange(self.burst_age)
 
         # SFR for each component
-        self.sfr = np.exp(-self.time_grid / self.tau_main)
+        self.sfr = np.exp(-time_grid / self.tau_main)
         sfr_burst = np.exp(-time_grid_burst / self.tau_burst)
 
         # Height of the late burst to have the desired produced mass fraction
@@ -88,7 +88,7 @@ class Sfh2Exp(CreationModule):
 
         # We add the age burst exponential for ages superior to age -
         # burst_age
-        self.sfr[-time_grid_burst[-1]:] += sfr_burst
+        self.sfr[-(time_grid_burst[-1]+1):] += sfr_burst
 
         # Compute the galaxy mass and normalise the SFH to 1 solar mass
         # produced if asked to.
@@ -112,12 +112,12 @@ class Sfh2Exp(CreationModule):
         sed.add_module(self.name, self.parameters)
 
         # Add the sfh and the output parameters to the SED.
-        sed.sfh = (self.time_grid, self.sfr)
+        sed.sfh = self.sfr
         sed.add_info("sfh.integrated", self.sfr_integrated, True)
         sed.add_info("sfh.tau_main", self.tau_main)
         sed.add_info("sfh.tau_burst", self.tau_burst)
         sed.add_info("sfh.f_burst", self.f_burst)
         sed.add_info("sfh.burst_age", self.burst_age)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Sfh2Exp

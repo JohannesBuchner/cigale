@@ -9,10 +9,10 @@ import numpy as np
 import scipy.constants as cst
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class NebularEmission(CreationModule):
+class NebularEmission(SedModule):
     """
     Module computing the nebular emission from the ultraviolet to the
     near-infrared. It includes both the nebular lines and the nubular
@@ -29,27 +29,27 @@ class NebularEmission(CreationModule):
 
     parameter_list = OrderedDict([
         ('logU', (
-            'float',
+            'cigale_list(options=-3. & -2. & -1.)',
             "Ionisation parameter",
             -2.
         )),
         ('f_esc', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "Fraction of Lyman continuum photons escaping the galaxy",
             0.
         )),
         ('f_dust', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "Fraction of Lyman continuum photons absorbed by dust",
             0.
         )),
         ('lines_width', (
-            'float',
+            'cigale_list(minvalue=0.)',
             "Line width in km/s",
             300.
         )),
         ('emission', (
-            'boolean',
+            'boolean()',
             "Include nebular emission.",
             True
         ))
@@ -59,10 +59,11 @@ class NebularEmission(CreationModule):
         """Get the nebular emission lines out of the database and resample
            them to see the line profile. Compute scaling coefficients.
         """
-
-        self.fesc = self.parameters['f_esc']
-        self.fdust = self.parameters['f_dust']
-        self.emission = (self.parameters["emission"].lower() == "true")
+        self.logU = float(self.parameters['logU'])
+        self.fesc = float(self.parameters['f_esc'])
+        self.fdust = float(self.parameters['f_dust'])
+        self.lines_width = float(self.parameters['lines_width'])
+        self.emission = bool(self.parameters["emission"])
 
         if self.fesc < 0. or self.fesc > 1:
             raise Exception("Escape fraction must be between 0 and 1")
@@ -76,22 +77,19 @@ class NebularEmission(CreationModule):
 
         if self.emission:
             with Database() as db:
-                self.lines_template = {m: db.get_nebular_lines(m,
-                                                        self.parameters['logU'])
+                self.lines_template = {m: db.get_nebular_lines(m, self.logU)
                                     for m in db.get_nebular_lines_parameters()
                                     ['metallicity']
                                     }
-                self.cont_template = {m: db.get_nebular_continuum(m,
-                                                            self.parameters['logU'])
+                self.cont_template = {m: db.get_nebular_continuum(m, self.logU)
                                     for m in db.get_nebular_continuum_parameters()
                                     ['metallicity']
                                     }
 
-            lines_width = self.parameters['lines_width'] * 1e3
             for lines in self.lines_template.values():
                 new_wave = np.array([])
                 for line_wave in lines.wave:
-                    width = line_wave * lines_width / cst.c
+                    width = line_wave * self.lines_width * 1e3 / cst.c
                     new_wave = np.concatenate((new_wave,
                                             np.linspace(line_wave - 3. * width,
                                                         line_wave + 3. * width,
@@ -99,7 +97,7 @@ class NebularEmission(CreationModule):
                 new_wave.sort()
                 new_flux = np.zeros_like(new_wave)
                 for line_flux, line_wave in zip(lines.ratio, lines.wave):
-                    width = line_wave * lines_width / cst.c
+                    width = line_wave * self.lines_width * 1e3 / cst.c
                     new_flux += (line_flux * np.exp(- 4. * np.log(2.) *
                                 (new_wave - line_wave) ** 2. / (width * width)) /
                                 (width * np.sqrt(np.pi / np.log(2.)) / 2.))
@@ -138,11 +136,10 @@ class NebularEmission(CreationModule):
             self.absorbed_old = np.zeros(sed.wavelength_grid.size)
             self.absorbed_young = np.zeros(sed.wavelength_grid.size)
 
-        self.absorbed_young = np.zeros(sed.wavelength_grid.size)
-        self.absorbed_old[:self.idx_Ly_break] -= (
+        self.absorbed_old[:self.idx_Ly_break] = -(
             sed.get_lumin_contribution('stellar.old')[:self.idx_Ly_break] *
             (1. - self.fesc))
-        self.absorbed_young[:self.idx_Ly_break] -= (
+        self.absorbed_young[:self.idx_Ly_break] = -(
             sed.get_lumin_contribution('stellar.young')[:self.idx_Ly_break] *
             (1. - self.fesc))
 
@@ -163,8 +160,8 @@ class NebularEmission(CreationModule):
             lines = self.lines_template[sed.info['stellar.metallicity']]
             cont = self.cont_template[sed.info['stellar.metallicity']]
 
-            sed.add_info('nebular.lines_width', self.parameters['lines_width'])
-            sed.add_info('nebular.logU', self.parameters['logU'])
+            sed.add_info('nebular.lines_width', self.lines_width)
+            sed.add_info('nebular.logU', self.logU)
 
             sed.add_contribution('nebular.lines_old', lines.wave,
                                  lines.ratio * NLy_old * self.conv_line)
@@ -176,5 +173,5 @@ class NebularEmission(CreationModule):
             sed.add_contribution('nebular.continuum_young', cont.wave,
                                  cont.lumin * NLy_young * self.conv_cont)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = NebularEmission

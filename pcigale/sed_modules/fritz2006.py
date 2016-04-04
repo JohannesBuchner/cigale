@@ -15,10 +15,10 @@ from collections import OrderedDict
 import numpy as np
 
 from pcigale.data import Database
-from . import CreationModule
+from . import SedModule
 
 
-class Fritz2006(CreationModule):
+class Fritz2006(SedModule):
     """Fritz et al. (2006) AGN dust torus emission
 
     The AGN emission is computed from the library of Fritz et al. (2006) from
@@ -42,35 +42,37 @@ class Fritz2006(CreationModule):
 
     parameter_list = OrderedDict([
         ('r_ratio', (
-            'float',
+            "cigale_list(options=10. & 30. & 60. & 100. & 150.)",
             "Ratio of the maximum to minimum radii of the dust torus. "
             "Possible values are: 10, 30, 60, 100, 150.",
             60.
         )),
         ('tau', (
-            'float',
+            "cigale_list(options=0.1 & 0.3 & 0.6 & 1.0 & 2.0 & 3.0 & 6.0 & "
+            "10.0)",
             "Optical depth at 9.7 microns. "
             "Possible values are: 0.1, 0.3, 0.6, 1.0, 2.0, 3.0, 6.0, 10.0.",
             1.0
         )),
         ('beta', (
-            'float',
-            "Beta. Possible values are:-1.00, -0.75, -0.50, -0.25, 0.00.",
+            "cigale_list(options=-1.00 & -0.75 & -0.50 & -0.25 & 0.00)",
+            "Beta. Possible values are: -1.00, -0.75, -0.50, -0.25, 0.00.",
             -0.50
         )),
         ('gamma', (
-            'float',
+            'cigale_list(options=0.0 & 2.0 & 4.0 & 6.0)',
             "Gamma. Possible values are: 0.0, 2.0, 4.0, 6.0.",
             4.0
         )),
         ('opening_angle', (
-            'float',
+            'cigale_list(options=60. & 100. & 140.)',
             "Full opening angle of the dust torus (Fig 1 of Fritz 2006). "
             "Possible values are: 60., 100., 140.",
             100.
         )),
         ('psy', (
-            'float',
+            'cigale_list(options=0.001 & 10.100 & 20.100 & 30.100 & 40.100 & '
+            '50.100 & 60.100 & 70.100 & 80.100 & 89.990)',
             "Angle between equatorial axis and line of sight. "
             "Psy = 90◦ for type 1 and Psy = 0° for type 2. Possible values "
             "are: 0.001, 10.100, 20.100, 30.100, 40.100, 50.100, 60.100, "
@@ -78,7 +80,7 @@ class Fritz2006(CreationModule):
             50.100
         )),
         ('fracAGN', (
-            'float',
+            'cigale_list(minvalue=0., maxvalue=1.)',
             "AGN fraction.",
             0.1
         ))
@@ -86,16 +88,18 @@ class Fritz2006(CreationModule):
 
     def _init_code(self):
         """Get the template set out of the database"""
-        r_ratio = self.parameters["r_ratio"]
-        tau = self.parameters["tau"]
-        beta = self.parameters["beta"]
-        gamma = self.parameters["gamma"]
-        opening_angle = (180. - self.parameters["opening_angle"]) / 2.
-        psy = self.parameters["psy"]
+        self.r_ratio = float(self.parameters["r_ratio"])
+        self.tau = float(self.parameters["tau"])
+        self.beta = float(self.parameters["beta"])
+        self.gamma = float(self.parameters["gamma"])
+        self.opening_angle = (180. - self.parameters["opening_angle"]) / 2.
+        self.psy = float(self.parameters["psy"])
+        self.fracAGN = float(self.parameters["fracAGN"])
 
         with Database() as base:
-            self.fritz2006 = base.get_fritz2006(r_ratio, tau, beta, gamma,
-                                                opening_angle, psy)
+            self.fritz2006 = base.get_fritz2006(self.r_ratio, self.tau,
+                                                self.beta, self.gamma,
+                                                self.opening_angle, self.psy)
 
     def process(self, sed):
         """Add the IR re-emission contributions
@@ -111,20 +115,20 @@ class Fritz2006(CreationModule):
             sed.add_info('dust.luminosity', 1., True)
         luminosity = sed.info['dust.luminosity']
 
-        fracAGN = self.parameters["fracAGN"]
+
 
         sed.add_module(self.name, self.parameters)
-        sed.add_info('agn.r_ratio', self.parameters["r_ratio"])
-        sed.add_info('agn.tau', self.parameters["tau"])
-        sed.add_info('agn.beta', self.parameters["beta"])
-        sed.add_info('agn.gamma', self.parameters["gamma"])
+        sed.add_info('agn.r_ratio', self.r_ratio)
+        sed.add_info('agn.tau', self.tau)
+        sed.add_info('agn.beta', self.beta)
+        sed.add_info('agn.gamma', self.gamma)
         sed.add_info('agn.opening_angle', self.parameters["opening_angle"])
-        sed.add_info('agn.psy', self.parameters["psy"])
-        sed.add_info('agn.fracAGN', self.parameters["fracAGN"])
+        sed.add_info('agn.psy', self.psy)
+        sed.add_info('agn.fracAGN', self.fracAGN)
 
         # Compute the AGN luminosity
-        if fracAGN < 1.:
-            agn_power = luminosity * (1./(1.-fracAGN) - 1.)
+        if self.fracAGN < 1.:
+            agn_power = luminosity * (1./(1.-self.fracAGN) - 1.)
             l_agn_therm = agn_power
             l_agn_scatt = np.trapz(agn_power * self.fritz2006.lumin_scatt,
                                    x=self.fritz2006.wave)
@@ -148,5 +152,5 @@ class Fritz2006(CreationModule):
         sed.add_contribution('agn.fritz2006_agn', self.fritz2006.wave,
                              agn_power * self.fritz2006.lumin_agn)
 
-# CreationModule to be returned by get_module
+# SedModule to be returned by get_module
 Module = Fritz2006

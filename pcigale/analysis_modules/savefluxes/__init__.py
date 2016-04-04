@@ -14,6 +14,8 @@ parameters.
 The data file is used only to get the list of fluxes to be computed.
 
 """
+
+from collections import OrderedDict
 import ctypes
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -22,15 +24,11 @@ import time
 import numpy as np
 
 from .. import AnalysisModule
-from ..utils import ParametersHandler, backup_dir, save_fluxes
+from ..utils import backup_dir, save_fluxes
 from ...utils import read_table
-from ...warehouse import SedWarehouse
 from .workers import init_fluxes as init_worker_fluxes
 from .workers import fluxes as worker_fluxes
-
-
-# Limit the redshift to this number of decimals
-REDSHIFT_DECIMALS = 2
+from ...handlers.parameters_handler import ParametersHandler
 
 
 class SaveFluxes(AnalysisModule):
@@ -41,100 +39,80 @@ class SaveFluxes(AnalysisModule):
 
     """
 
-    parameter_list = dict([
+    parameter_list = OrderedDict([
+        ("variables", (
+            "cigale_string_list()",
+            "List of the physical properties to save. Leave empty to save all "
+            "the physical properties (not recommended when there are many "
+            "models).",
+            None
+        )),
         ("output_file", (
-            "string",
+            "string()",
             "Name of the output file that contains the parameters of the "
             "model(s) and the flux densities in the bands",
             "computed_fluxes.txt"
         )),
         ("save_sed", (
-            "boolean",
+            "boolean()",
             "If True, save the generated spectrum for each model.",
-            "False"
+            False
         )),
         ("output_format", (
-            "string",
+            "string()",
             "Format of the output file. Any format supported by astropy.table "
             "e.g. votable or ascii.",
             "ascii"
         ))
     ])
 
-    def process(self, data_file, column_list, creation_modules,
-                creation_modules_params, parameters, cores):
+    def process(self, conf):
         """Process with the savedfluxes analysis.
 
         All the possible theoretical SED are created and the fluxes in the
-        filters from the column_list are computed and saved to a table,
+        filters from the list of bands are computed and saved to a table,
         alongside the parameter values.
 
         Parameters
         ----------
-        data_file: string
-            Name of the file containing the observations to fit.
-        column_list: list of strings
-            Name of the columns from the data file to use for the analysis.
-        creation_modules: list of strings
-            List of the module names (in the right order) to use for creating
-            the SEDs.
-        creation_modules_params: list of dictionaries
-            List of the parameter dictionaries for each module.
-        parameters: dictionary
-            Dictionary containing the parameters.
-        cores: integer
-            Number of cores to run the analysis on
-
+        conf: dictionary
+            Contents of pcigale.ini in the form of a dictionary
         """
 
         # Rename the output directory if it exists
         backup_dir()
-        out_file = parameters["output_file"]
-        out_format = parameters["output_format"]
-        save_sed = parameters["save_sed"].lower() == "true"
+        out_file = conf['analysis_params']['output_file']
+        out_format = conf['analysis_params']['output_format']
+        save_sed = conf['analysis_params']['save_sed']
 
-        filters = [name for name in column_list if not name.endswith('_err')]
+        filters = [name for name in conf['bands'] if not
+                   name.endswith('_err')]
         n_filters = len(filters)
-
-        w_redshifting = creation_modules.index('redshifting')
-        if list(creation_modules_params[w_redshifting]['redshift']) == ['']:
-            obs_table = read_table(data_file)
-            z = np.unique(np.around(obs_table['redshift'],
-                                    decimals=REDSHIFT_DECIMALS))
-            creation_modules_params[w_redshifting]['redshift'] = z
-            del obs_table, z
 
         # The parameters handler allows us to retrieve the models parameters
         # from a 1D index. This is useful in that we do not have to create
         # a list of parameters as they are computed on-the-fly. It also has
         # nice goodies such as finding the index of the first parameter to
         # have changed between two indices or the number of models.
-        params = ParametersHandler(creation_modules, creation_modules_params)
+        params = ParametersHandler(conf)
         n_params = params.size
 
-        # Retrieve an arbitrary SED to obtain the list of output parameters
-        warehouse = SedWarehouse()
-        sed = warehouse.get_sed(creation_modules, params.from_index(0))
-        info = list(sed.info.keys())
-        info.sort()
-        n_info = len(sed.info)
-        del warehouse, sed
-
-        model_fluxes = (RawArray(ctypes.c_double,
-                                 n_params * n_filters),
+        info = conf['analysis_params']['variables']
+        n_info = len(info)
+        model_fluxes = (RawArray(ctypes.c_double, n_params * n_filters),
                         (n_params, n_filters))
-        model_parameters = (RawArray(ctypes.c_double,
-                                     n_params * n_info),
+        model_parameters = (RawArray(ctypes.c_double, n_params * n_info),
                             (n_params, n_info))
 
-        initargs = (params, filters, save_sed, model_fluxes,
+        initargs = (params, filters, save_sed, info, model_fluxes,
                     model_parameters, time.time(), mp.Value('i', 0))
-        if cores == 1:  # Do not create a new process
+        if conf['cores'] == 1:  # Do not create a new process
             init_worker_fluxes(*initargs)
             for idx in range(n_params):
                 worker_fluxes(idx)
         else:  # Analyse observations in parallel
-            with mp.Pool(processes=cores, initializer=init_worker_fluxes,
+            with mp.Pool(processes=conf['cores'],
+                         initializer=init_worker_fluxes,
                          initargs=initargs) as pool:
                 pool.map(worker_fluxes, range(n_params))
 
