@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## 0.9.0 (2016-04-04)
 ### Added
 - When using the `savefluxes` module, all the output parameters were saved. This is not efficient when the user is only interested in some of the output parameters but not all. We introduce the "variables" configuration parameter for `savefluxes` to list the output parameters the user wants to save. If the list is left empty, all parameters are saved, preserving the current behaviour. This should increase the speed substantially when saving memory. (Médéric Boquien)
 - Similarly to the `savefluxes` module, in the `pdf_analysis` module if the list of physical properties is left empty, all physical parameters are now analysed. (Médéric Boquien)
