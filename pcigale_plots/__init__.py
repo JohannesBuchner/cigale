@@ -265,7 +265,7 @@ def _sed_worker(obs, mod, filters, sed_type, nologo):
                          (obs_fluxes[mask]-mod_fluxes[mask])/obs_fluxes[mask],
                          yerr=obs_fluxes_err[mask]/obs_fluxes[mask]*3,
                          marker='_', label="(Obs-Mod)/Obs", color='k',
-                         capsize=0.)
+                         capsize=0., linestyle=' ')
             ax2.plot([xmin, xmax], [0., 0.], ls='--', color='k')
             ax2.set_xscale('log')
             ax2.minorticks_on()
