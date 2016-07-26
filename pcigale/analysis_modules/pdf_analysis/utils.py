@@ -320,8 +320,8 @@ def analyse_chi2(chi2):
     # If low values of reduced chi^2, it means that the data are overfitted
     # Errors might be under-estimated or not enough valid data.
     print("\n{}% of the objects have chi^2_red~0 and {}% chi^2_red<0.5"
-          .format(np.round((chi2_red < 1e-12).sum()/chi2_red.size, 1),
-                  np.round((chi2_red < 0.5).sum()/chi2_red.size, 1)))
+          .format(np.round((chi2_red < 1e-12).sum()*100/chi2_red.size, 1),
+                  np.round((chi2_red < 0.5).sum()*100/chi2_red.size, 1)))
 
 
 def _compute_scaling(model_fluxes, obs_fluxes, obs_errors):
